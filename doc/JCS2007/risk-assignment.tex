@@ -1,0 +1,93 @@
+\section{Practical Motivations}
+\label{section-risk-assignment}
+
+Credentials in RT are all created equal, in that each represents a
+true statement in the knowledge base of an authorization decision.
+There is no facility for denoting that one credential may be more or
+less ``believable'' than another.  In this RT is similar to other
+trust management systems, such as SPKI/SDSI \cite{ellison-etal-rfc99}.
+However, recent practice has shown that such a manichean view is not
+consistent with reality.  In this section we discuss practical issues
+that suggest the need for a more fine-grained view of the different
+risks associated with credentials.
+
+\subsection{Risk as an Authentication Metric}
+
+The system RT treats PKI transparently.  That is, the semantics of RT
+does not concern itself with the details of associating keys with
+users, nor authenticating this association.  Nevertheless, credentials
+for authorization decisions are established by certificates, that must
+be authenticated.  Furthermore, authentication is not necessarily a
+simple process in open distributed systems, rather modern PKI allows
+for construction of global public-key namespaces on the basis of local
+certification authorities.  In this setting authentication can involve
+traversing a chain of intermediary authorities in distinct
+administrative domains \cite{birrell-etal-oakland86}.  Distinct
+domains may be trusted to varying degrees, so depending on what domain
+boundaries are crossed, one public key certification may be more
+trustworthy than another, or there may exist multiple paths of varying
+degrees of trust to establish the same certification.
+\emph{Authentication chains} of this sort resemble certificate chains
+as we study them in this paper, though the latter is at a level of
+abstraction above the former.
+
+To address issues of trust in authentication chains,
+\emph{authentication metrics} have been developed to assign
+measurements of trust to particular certifications
+\cite{reiter-stubblebine-tissec99}.  The measure of assurance of a
+certification is based on the set of chains that establish it, which
+are in turn based on a combination of trust measures assigned to nodes
+in the chain, i.e.~particular administrative domains.  A number of
+schemes have been proposed, including a \emph{legitimacy} measure for
+PGP \cite{Abdul-Rahman-EDI97}, illustrating the practical relevance of
+the idea.
+
+Thus, in standard authorization frameworks, the treatment of
+credentials as inerrable facts ignores any degrees of assurance that
+are established for particular certifications.  But such degrees are
+clearly of potential interest to the authorizer, for example if
+multiple credentials are involved in a particular decision and each is
+of low assurance, then these may compound to yield unacceptably low
+assurance for the decision, whereas it may be tolerable if only one of
+them has low assurance.  By allowing an assignment of risks to RT
+credentials, and providing a means of combining them in the
+authorization semantics, our proposed extension to RT allows a formal
+accounting of these considerations.
+
+\subsection{Balancing Security and Efficiency}
+
+In addition to issues of trust, efficiency issues may affect the risk
+associated with credentials.  For example, if cryptographic
+certification of a particular credential via the PKI would be too
+time-consuming, the authorizer may prefer to avoid using that
+credential.  The algorithm we define for online authorization is given
+a threshold of tolerable risk for authorization, and avoids
+authorization chains that exceed this threshold.  Thus, our directed
+search technique provides a heuristic for efficiency in case risk is
+measured in computational cost.
+
+A more interesting example is the use of cached credentials.  Caching
+credentials is a useful technique to avoid re-retrieving and
+re-authenticating certificates.  However, certificates are commonly
+assigned expiration dates, as in x509 \cite{X509}, and most trust
+management systems, including RT and SPKI/SDSI, do not consider
+expiration in the formal authorization semantics but only in the
+initial credential certification \cite{ellison-etal-rfc99}.
+Therefore, re-use of a cached credential runs the risk of re-using
+expired rights.  Similarly, systems with certificate revocation must
+take care not to re-use cached credentials that have been revoked.
+However, if the system uses certificate revocation lists as does for
+example SPKI/SDSI \cite{ellison-etal-rfc99}, maintaining a current
+view of revocation may be problematic due to the likely need to update
+lists with non-local information.  This reality is reflected in the
+\emph{verify-only} mode of QCM \cite{Gunter:PDCR}. To implement
+certificate revocation, QCM relies on a database of revoked
+certificate identifiers, but in verify-only mode its external
+communications are blocked for the sake of efficiency.  In such
+situations, our formalism allows trust management systems to represent
+and manage the risks associated with credentials that have expired or
+that may have been revoked.  A sufficiently abstract representation of
+risk even allows to balance the cost of trusting questionable
+credentials against the efficiency benefits gained by their usage, as
+discussed in \autoref{section-applications-cost-benefit}.
+    

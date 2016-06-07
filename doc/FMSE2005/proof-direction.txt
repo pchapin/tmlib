@@ -1,0 +1,88 @@
+A Framework for TbV Management (revised 3/25/05)
+================================================
+
+This outline revision is based on a discussion between Sean and Chris
+on 3/24/05.  The main difference between this and the last version is
+a reworking of our understanding of trust cost/benefit analysis and
+proof directives.  In particular, the new idea is that proof direction
+should be obtained automatically via cost/benefit analysis, not
+imposed a priori as a component of the interface.  Additionally, it
+seems better from an expository perspective to start with RT as an
+implementation model for the framework, and then go to RT_0^D as an
+extension; this will allow us to focus on core issues in a simpler
+setting first.  More explanatory comments and a revised outline
+follow.
+
+Comments 
+--------
+
+(The general description of most research topics remain the same as in
+the last outline, but the fourth "cost/benefit" analysis component of
+the system should be revised as follows.)
+
+Automatic proof direction via cost/benefit analysis: The basic idea is
+that we want to balance the cost of authorization (i.e. proof search)
+with the cost of making trust assumptions that reduce the cost of
+authorization.  For example, suppose we always want to be sure that
+our waiting time for non-local hits is less than .5 seconds.  A proof
+in a completely untrusted setting may take 2 seconds, whereas a proof
+given some trust assumptions can reduce this time.  However, we want
+to make the least risky assumptions to achieve this.  The point of
+cost/benefit analysis is to allow a user a means of examining what
+efficiency benefits will result from certain trust assumptions.
+
+It is possible to imagine doing this either statically or dynamically.
+In a static setting, we could consider an authorization decision given
+some arbitrary principal requesting said authorization, whereas in a
+dynamic setting we consider the decision given a particular principal.
+Obviously, static analysis is harder, and it's not entirely clear what
+it would entail, so at the moment I'll stick to a dynamic analysis.
+
+Imagine that our proof search procedure (e.g. certificate chain
+discovery) has a means of not just retrieving non-local assertions,
+but also of determining response times a priori.  Suppose also that we
+specify that we don't want to go over .5 seconds wait time, and an
+authorization procedure reaches some point where it cannot proceed
+without exceeding this wait time.  The proof search could then proceed
+on the basis of some pre-assigned trust assumption, and again attempt
+to complete within the specified time parameters.  If the search again
+fails, it can try again using even weaker trust assumptions, etc.  The
+weakness ordering of trust assumptions could be based on logical
+entailment and/or some meta-specifications.  The point is, if the
+procedure is given a list of candidate trust assumptions, ordered by
+some objective or subjective definition of "trustability", it can
+automatically optimize the trust/proof cost balance-- by attempting
+authorization in progressively weaker settings, and stopping the first
+time success is achieved.
+
+Outline
+-------
+
+1. TbV Framework: Top-Level Features (philosophy, examples, basic
+   properties)
+   a. Proof costs and trust transformations
+   b. Specifying trust and proof costs
+   c. Automatic cost/benefit analyis in online authorization 
+   d. Auditing
+     i. Efficient auditing via caching of partial online solutions (?)
+
+2. Framework Implementation in RT
+   a. RT semantics of authorization
+   b. TbV trust transformations as logical weakenings.
+     i. "Pure" trust ordering is provability ordering.
+     ii. Meta-cost can also be applied to assumptions (examples), 
+     yielding a "subjective" trust ordering.
+   c.Extension of proof search implementation with dynamic cost analysis
+     ii. Examples of likely costs of interests, techniques for 
+     dynamically computing cost analysis.
+   d. Cost/benefit analysis to balance trust and implementation cost.
+
+3. Extensions: Delegations
+   a. Redefined RT_0^D semantics of authorization.
+   b. Motivations for redefinition
+     i. Declaration benefits (easier to state transforms of interest).
+     ii. Implementation benefits (different lifetime properties).
+   c. Demonstrate equivalence with Li/Mitchell Datalog predicates.
+   d. Redefinition of implementation (set theory approach).
+     i. Correctness of set theory approach wrt logical approach.
+     ii. Extension of cost/benefit analysis to delegation

@@ -1,0 +1,28 @@
+
+Part 1 (Overview of Trust Management using RT)
+----------------------------------------------
+
++ Web services: distributed processing across administrative domains.
++ Authorization in a distributed environment (closed vs open worlds).
++ Overview of RT.
++ Example: WebService for VT residents.
++ Authorization as a logic program.
++ Delegation and RT_0^D
+
+Part 2 (Trust-but-Verify)
+-------------------------
+
++ Basic concept (credit card example?)
++ Importance of formal trust-transformation.
++ Continum of trust.
+
+
+Part 3 (Trust-but-Verify in an RT Setting)
+------------------------------------------
+
++ Trust in RT: Trust costs and the addition of trusted credentials.
++ Proof search with limited trust.
++ Trust in memberships and in delegations.
++ Practical matters: caching, certificate expiration, and timeouts.
++ Credential discovery.
+

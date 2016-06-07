@@ -1,0 +1,67 @@
+
+> Referee: 1
+>
+> The paper road map at the top of page 4 describes the contents of the
+> remaining sections of the paper, but omits section 6. Is this
+> intentional, since later in 2.1 they mention the topic of section 6?
+
+It was an oversight to omit section 6 from the road map in section 1.2. We
+have added an appropriate sentence to the end of section 1.2.
+
+> Page 5 - x509 should read X.509
+
+Corrected.
+
+> Throughout the paper, citations are treated as nouns (e.g., An example in
+> [X] illustrates...; In addition [X] gives requirements ...;). I tend to
+> avoid this style personally, but will not insist that others do the same.
+> The first paragraph on page 44 contains "...languages is given by Seamons
+> et al. in [Seamons et al. 2002]." To be more consistent with the rest of
+> the paper, it should read "...languages is given in [Seamons et al.
+> 2002].
+
+We appreciate the reviewer's "classical" view that citations should
+not be treated as nouns, however this rule appears to be violated
+often in modern computer science literature and as far as we can tell
+is common practice. In any case the reviewer is correct that our
+handling of citations should be consistent and certainly the
+repetition of "Seamons et al."  is awkward. We have changed the text
+as the reviewer suggested.
+
+> Referee: 2
+>
+> As I said above, the discussion of trust negotiation frameworks is very
+> short. The reader with no prior experience of those systems may not see
+> the reasons of the ratings reported in tables I and II. While an encoding
+> of the running example in those frameworks would require language details
+> that might make the paper significantly longer, there is probably space
+> enough for at least some brief hints and pointers to the features that
+> justify the tables.
+
+In the last paragraph of section 6 we comment on Protune's ability to
+encode RT_0 credentials, and thus provide by way of simulation all the
+features of RT_0. Since the running example is demonstrated using RT_0
+in section 5.2.2 we feel this is a succinct way of explaining how
+Protune can provide a number of the features mentioned in the
+tables. We have elaborated on the last paragraph of section six to
+make this point clearer and more explicit. We have also provided
+citations at appropriate spots as pointers to further Protune details
+relevant to other features in the tables besides just those provided
+by RT_0.
+
+> Minor comments:
+>
+> - definition of Requester (p.5): perhaps it is more precise to say
+>   "possibly" or "typically" non-local
+
+This is a good suggestion especially considering that trust management
+techniques could be applied to control the access of processes on the same
+host. We have adjusted the wording of the definition.
+
+> - def. of Role membership (p.6): I would prefer something like "[...] the
+>   group of entities that can activate [alternatively: play] a role"
+
+The suggested change is also more consistent with the wording used in the
+definition of Role immediately above. We have adjusted the wording of the
+definition.
+

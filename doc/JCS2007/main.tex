@@ -1,0 +1,83 @@
+\documentclass{article}
+%\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+%\usepackage[T1]{fontenc}
+\usepackage[english]{fp-autoref}
+\usepackage{fp-frame}
+\usepackage[latin1]{inputenc}
+\usepackage{mathpartir}
+\usepackage{moreverb}% TEMPORARY
+\def\TirName#1{\text{\sc #1}}
+\usepackage{stmaryrd}
+\usepackage{url}
+\usepackage{jbw-arrow}
+\usepackage{enumerate}
+\usepackage{epsfig}
+
+\input{macros}
+\input{ces_macros}
+\input{figures}
+
+\title{Risk Management for Distributed Authorization}
+
+\author{
+Christian Skalka\footnote{Corresonding author. 
+Address: University of 
+Vermont, Department of Computer Science, Burlington, VT 05405.
+Phone: (802)656-1920.  Email: \ttt{skalka@cs.uvm.edu}}  \\ University of Vermont
+\and 
+X.~Sean Wang  \\ University of Vermont
+\and 
+Peter Chapin \\ University of Vermont
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\input{abstract}
+
+\input{intro}
+
+\input{rt}
+
+\input{risk-assignment}
+
+\input{rtr}
+
+\input{examples}
+
+\input{rtr-discovery}
+
+\input{application}
+
+\input{conclusion}
+
+\subsection*{Acknowledgements}
+The work of Wang and Chapin was partly supported by the NSF grant
+IIS-0430165.
+
+\bibliographystyle{plain}
+%\hbadness=10000 % Don't tell us how bad the bibliography really looks. We do not want to know...
+\bibliography{security}
+
+\input{appendix}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+

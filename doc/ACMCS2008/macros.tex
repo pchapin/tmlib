@@ -1,0 +1,80 @@
+\newtheorem{condition}{Condition}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+
+\newcommand{\RT}{\text{RT}}
+\newcommand{\WSMDB}{\text{WS}_{MDB}}
+\newcommand{\WSM}{\text{WS}_{M}}
+\newcommand{\WS}{\text{WS}}
+\newcommand{\says}{\textit{ says }}
+\newcommand{\as}{\textit{ as }}
+\newcommand{\controls}{\textit{ controls }}
+\newcommand{\serves}{\textit{ serves }}
+\newcommand{\for}{\textit{ for }}
+\newcommand{\carrier}[3]{#1 \textit{ carries } #2 \textit{ for } #3}
+\newcommand{\speaksfor}{\Rightarrow}
+\renewcommand{\implies}{\supset}
+\newcommand{\network}{\mathcal{N}}
+\newcommand{\cod}[1]{\llbracket#1\rrbracket}
+\newcommand{\subcod}[2]{\llbracket#2\rrbracket_{#1}}
+\newcommand{\audit}{\text{audit}}
+\newcommand{\aud}{\text{aud}}
+\newcommand{\assert}{\text{assert}}
+\newcommand{\lookup}{\text{lookup}}
+\newcommand{\ok}[1]{\mathit{OK}(#1)}
+%\newcommand{\priv}{\ok{T}}
+\newcommand{\priv}{\mathbf{priv}}
+%\newcommand{\privmdb}{\ok{T_{MDB}}}
+\newcommand{\privmdb}{\priv_{MDB}}
+\newcommand{\aclmdb}{\acl_{MDB}}
+\newcommand{\rawreq}{\mathbf{req}}
+\newcommand{\acl}{\mathcal{A}}
+\newcommand{\ccl}{\mathcal{C}}
+\newcommand{\cclmdb}{\ccl_{MDB}}
+\newcommand{\rolecerts}{\mathcal{R}}
+\newcommand{\delcerts}{\mathcal{D}}
+\newcommand{\keycontrol}{\mathcal{K}}
+\newcommand{\true}{\mathbf{true}}
+\newcommand{\metaonreq}[1]{\hat{#1}}
+\newcommand{\onloc}[2]{#1 \cdot #2}
+\newcommand{\onreq}[2]{#1 \cdot #2}
+\newcommand{\cloc}{\iota}
+\newcommand{\cedge}[1]{\stackrel{#1}{\longleftarrow}}
+\newcommand{\cred}[3]{#1 \cedge{#3} #2}
+\newcommand{\mathitcred}[3]{\mathit{#1} \cedge{\mathit{#3}} \mathit{#2}}
+\newcommand{\expr}{\mathrm{expr}}
+\newcommand{\rmem}{\mathrm{rmem}}
+\newcommand{\creds}{\mathcal{C}}
+\newcommand{\po}{\preccurlyeq}
+%\renewcommand{\implies}{\Rightarrow}
+\newcommand{\credsmean}[1]{\mathcal{S}_{#1}}
+\newcommand{\inexprs}{\mathrm{inexprs}}
+\newcommand{\bounds}{\mathrm{bounds}}
+%\def\twoheadrightarrowfill@{\arrowfill@\relbar\relbar\twoheadrightarrow} 
+%\newcommand{\xtwoheadrightarrow}[2][]{\ext@arrow 0359\xtwoheadrightarrowfill@{#1}{#2}} 
+\newcommand{\wtedge}[3]{#1 \sarrow{->}{#3} #2}
+\newcommand{\xtwoheadrightarrow}[1]{\sarrow{->>}{#1}}
+\newcommand{\wtpath}[3]{#1 \xtwoheadrightarrow{#3} #2}
+\newcommand{\nodes}[1]{\mathcal{N}_{#1}}
+\newcommand{\wtedges}[1]{\mathcal{E}_{#1}}
+\newcommand{\mathgraph}[1]{\mathcal{G}_{#1}}
+\newcommand{\role}[2]{$\mathit{#1}.\mathit{#2}$}
+
+% These commands added for the ACMCS paper.
+\newcommand{\newterm}[1]{\textit{#1}}
+\newcommand{\varword}[1]{\textit{#1}}
+\newcommand{\keyword}[1]{\textbf{#1}}
+\newcommand{\mkeyword}[1]{\;\textbf{#1}\;}
+%\newcommand{\iff}{iff}
+\newcommand{\activation}[2]{#1\,\mathit{as}\,#2}
+\newcommand{\delcred}[3]{#1 \stackrel{#3}{\longrightarrow} #2}
+\newcommand{\prolog}{\text{Prolog}}
+\newcommand{\datalog}{\text{Datalog}}
+\newcommand{\datalogc}{$\text{Datalog}_\mathcal{C}$}
+
+\long\def\cnote#1{\marginpar{CS}{\small \ \ $\langle\langle\langle$\
+{#1 - CS}\
+    $\rangle\rangle\rangle$\ \ }} 
+\long\def\pnote#1{\marginpar{PC}{\small \ \ $\langle\langle\langle$\
+{#1 - PC}\
+    $\rangle\rangle\rangle$\ \ }} 

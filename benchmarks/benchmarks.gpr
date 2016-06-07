@@ -1,0 +1,68 @@
+with "../src/tmlib.gpr";
+
+project Benchmarks is
+
+   type Os_Type is
+      ("Unix", "Windows_NT");
+   Os : Os_Type := external ("OS", "Unix");
+   for Source_Dirs use (".");
+   for Main use ("benchmarks.adb");
+   type Build_Type is
+      ("Release", "Debug");
+   Build : Build_Type := external ("BUILD");
+
+   case Build is
+
+      when "Debug" =>
+
+         case Os is
+
+            when "Windows_NT" =>
+               for Object_Dir use "build\Debug";
+
+            when "Unix" =>
+               for Object_Dir use "build/Debug";
+         end case;
+
+      when "Release" =>
+
+         case Os is
+
+            when "Windows_NT" =>
+               for Object_Dir use "build\Release";
+
+            when "Unix" =>
+               for Object_Dir use "build/Release";
+         end case;
+   end case;
+
+   package Compiler is
+
+      case Build is
+
+         when "Debug" =>
+
+            case Os is
+
+               when "Windows_NT" =>
+                  for Default_Switches ("ada") use ("-gnato", "-fstack-check", "-g", "-gnata", "-gnat05", "-gnatwcijmrz");
+
+               when "Unix" =>
+                  for Default_Switches ("ada") use ("-gnato", "-fstack-check", "-g", "-gnata", "-gnat05", "-gnatwcijmrz");
+            end case;
+
+         when "Release" =>
+
+            case Os is
+
+               when "Windows_NT" =>
+                  for Default_Switches ("ada") use ("-gnato", "-fstack-check", "-gnat05", "-gnatwcijmrz", "-O2");
+
+               when "Unix" =>
+                  for Default_Switches ("ada") use ("-gnato", "-fstack-check", "-gnat05", "-gnatwcijmrz", "-O2");
+            end case;
+      end case;
+   end Compiler;
+
+end Benchmarks;
+

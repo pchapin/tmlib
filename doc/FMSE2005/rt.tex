@@ -1,0 +1,106 @@
+\section{Overview of RT}
+\label{section-rt}
+
+Rather than defining a new trust management logic for a formalization
+of risk, we take advantage of the existing $\RT$ system
+\cite{Li:2003-04}.  This system combines the strengths of role-based
+access control with an expressive trust management logic, and enjoys a
+variety of existing implementation techniques \cite{Li:2003-02}.  We
+believe these features make $\RT$ one of the most advanced trust
+management systems, and an appealing setting for the development of
+formal risk assessment.  The RT role-based trust management system is
+actually a collection of trust management logics, all of which are
+variations on a basic logic called $\RT_0$ \cite{Li:2003-04}.
+Variations include separation of duties and delegation.  In this same
+spirit, we propose a variation on $\RT_0$ to incorporate a
+formalization of risk assessment, so we briefly review $\RT_0$ here to
+provide necessary background.
+
+In $\RT_0$, individual actors, or principals, are called
+$\mathit{Entities}$ and are defined by public keys.  We let $A,B,C,D,E$
+range over entities.  Each entity $A$ can create an arbitrary number
+of $\mathit{Roles}$ in a namespace local to the entity,
+denoted $A.r$.  The $\mathit{RoleExpressions}$ of $\RTR$, denoted $f$, are either
+entities or roles or constructed from other role expressions by
+\emph{linking} and \emph{intersection}, as described below.  To define
+a role an entity issues credentials that specify the role's
+membership. Some of these credentials may be a part of private policy;
+others may be signed by the issuer and made publically available. The
+overall membership of a role is taken as the memberships specified by
+all the defining credentials.
+
+$\RT_0$ provides four credential forms:
+\begin{enumerate}
+
+\item $\cred{A.r}{E}{}$ 
+
+ This form asserts that entity $E$ is a member of role $A.r$.
+
+\item $\cred{A.r}{B.s}{}$ 
+
+  This form asserts that all members of role $B.s$
+  are members of role $A.r$. Credentials of this form can be used to
+  delegate control over the membership of a role to another entity.
+
+\item $\cred{A.r}{B.s.t}{}$ 
+
+  This form asserts that for each member $E$ of
+  $B.s$, all members of role $E.t$ are members of role
+  $A.r$. Credentials of this form can be used to delegate control over
+  the membership of a role to all entities that have the attribute
+  represented by $B.s$.  The expression $B.s.t$ is called a 
+  \emph{linked role}.
+
+\item $\cred{A.r}{f_1 \cap \cdots \cap f_n}{}$
+  
+  This form asserts that each entity that is a member of all role
+  expression forms $f_1,\ldots, f_n$ is also a member of role
+  $A.r$. The expression $f_1 \cap \cdots \cap f_n$ is called an
+  \emph{intersection role}.
+
+\end{enumerate}
+Authorization is then cast as a role membership decision: an access
+target is represented as some role expression $f$, and authorization
+for that target for some entity $A$ is equivalent to determining
+whether $A$ is a member of $f$.  In such a decision, we call $f$ the
+\emph{governing role}.  Authorization always assumes some given finite
+set of credentials, denoted $\creds$.  We use
+$\mathit{Entities(\mathcal{C})}$ to represent the entities used in a
+particular set of credentials $\mathcal{C}$, and similarly
+$\mathit{RoleNames(\mathcal{C})}$, $\mathit{Roles(\mathcal{C})}$, etc.
+
+\subsection{Example}
+
+Suppose a hotel $H$ offers a room discount to certain preferred
+customers, who are members of $H.\mathit{preferred}$. The policy of
+$H$ is to grant a discount to all of its preferred customers in
+$H.\mathit{preferred}$ as well as to members of certain organizations.
+$H$ defines a role $H.\mathit{orgs}$ that contains the public keys of
+these organizations. Into that role $H$ places, for example, the key
+of the AAA, the American Auto Association. These
+credentials are summarized as follows:
+\begin{mathpar}
+\cred{H.\mathit{discount}}{H.\mathit{preferred}}{}
+
+\cred{H.\mathit{discount}}{H.\mathit{orgs}.\mathit{members}}{}
+
+\cred{H.\mathit{orgs}}{\mathit{AAA}}{}
+\end{mathpar}
+
+Now imagine that at a later time a special marketing plan is created to
+encourage travellers to stay at $H$. A decision is made that all
+members of the AAA are automatically preferred customers and thus the
+credential
+$\cred{H.\mathit{preferred}}{\mathit{AAA}.\mathit{members}}{}$ is added
+to the policy.
+
+Finally suppose that Mary is a member of the AAA. She has a
+credential, $\cred{\mathit{AAA}.\mathit{members}}{\mathit{M}}{}$,
+attesting to that fact. By presenting this credential to $H$'s web
+service Mary can prove in two distinct ways that she is authorized to
+receive the discount. On one hand she is a member of an organization
+in $H.\mathit{orgs}$. On the other hand she is, indirectly, a
+preferred customer of $H$.  Certain practical considerations may
+motivate $H$'s decision about which ``proof'' to use.  As we will see
+in \autoref{section-rtr-discovery}, specified risk thresholds in
+$\RTR$ can steer authorization in the right direction.

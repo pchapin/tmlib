@@ -1,0 +1,339 @@
+\section{The System $\RTR$}
+\label{section-rtr}
+
+The system $\RTR$ is $\RT_0$ extended with a formal definition of risk
+assessments.  In this section we define the syntax and semantics of
+$\RTR$, and give some examples of risk-assessed authorization
+decisions in $\RTR$.  As for $\RT$ in \cite{Li:2003-02}, we define a
+set theoretic semantics for $\RTR$, since this allows an easy
+correspondence with the graph theoretic characterization of $\RTR$ for
+distributed chain discovery given in the next section.  While a
+constraint datalog semantics for $\RTR$-- similar to the datalog semantics of
+$\RT$ in \cite{Li:2003-01}-- is an interesting possibility, it is
+beyond the scope of this paper.
+
+\rmemfig
+
+\subsection{Syntax and Semantics}
+
+The system $\RTR$ is defined as a framework, parameterized by a
+\emph{risk ordering}, which is required to be a complete lattice
+$(\mathcal{K},\po)$.  We let $\risk$ and $\risks$ range over elements
+and subsets of $\mathcal{K}$ respectively, and let $\top$ and $\bot$
+denote top and bottom.  Any instantiation of $\RTR$ is expected to
+supply a risk ordering with $\po$ decidable, and must also supply an
+associative, commutative, monotonic \emph{risk aggregation} operation
+$\oplus$.
+%, with $\bot$ a 0-element of $\oplus$-- i.e. 
+%$\bot \oplus \risk = \risk$.  
+The relation $\po$ allows risks to be compared, and ``greater'' and
+``lesser'' risks assessed, while $\oplus$ allows risks to be
+combined when authorization decisions involve multiple risks.
+Examples of particular risk orderings are given in
+\autoref{section-rtrexamples} and \autoref{section-application},
+below.
+
+The basis of risk assessment is the association of risk with
+individual credentials, since credentials are the fundamental assertions
+used in authorization decisions.  Thus, credentials in $\RTR$ are of the
+following form:
+%\footnote{In this definition and elsewhere we assume the syntactic
+%definitions given in \cite{Li:2003-02}}:
+$$
+\cred{A.r}{f}{\risk}
+$$ where $\risk$ is the risk associated with the credential.  We leave
+unspecified the precise mechanism of risk association, though in many
+cases it is likely that the authorizing agent will automatically
+assign risk to credentials.  In essence, the aggregation of risks
+associated with credentials used in some authorization decision
+constitutes the risk of that decision.
+
+Formally, the semantics of $\RTR$ associates risk $\risk$ with the
+membership of entities $B$ in roles $A.r$.  Thus, the meaning of roles
+$A.r$ are finite sets of pairs of the form $(B,\risk)$, called
+$\mathit{RiskAssessment}$s; we let $R$ range over such sets.  For any
+$\mathcal{A}\subseteq \mathit{Entities}$,
+$\mathit{RiskAssessment}(\mathcal{A})$ denotes the set of risk
+assessments $R$ such that $(A,\risk) \in R$ implies $A \in
+\mathcal{A}$.  Note that any $R$ may associate more than one risk with
+any entity, i.e.~there may exist $(A,\risk_1),(A,\risk_2) \in R$ such
+that $\risk_1 \ne \risk_2$.  This reflects the possibility of more
+that one path to role membership, each associated with incomparable
+risk.  Taking the glb of incomparable risks in risk assessments is
+unsound, since the glb will assess a lesser risk of membership than is
+in fact possible to obtain through any path.
+
+However, if a risk assessment associates two distinct but comparable
+risks with a given role membership, the lesser of the two can be taken
+as representative; in general, risk assessments can be taken as a set
+of lower bound constraints on risk in authorization.  Thus, we define
+equivalence on risk assessments as follows:
+$$
+R \cup \setdefn{(A,\risk_1),(A,\risk_2)} = R \cup \setdefn{(A,\risk_1)} 
+\qquad \text{where } \risk_1 \po \risk_2 
+$$ 
+We call \emph{canonical} those risk assessments $R$ such that there
+exist no $(A,\risk_1), (A,\risk_2) \in R$ where $\risk_1 \po \risk_2$,
+and observe that any equivalence class of risk assessments has 
+a unique canonical form.  Furthermore, the canonical representation 
+of any assessment $R$, denoted $\hat{R}$, is decidable since
+assessments are finite and $\po$ is decidable.   We extend the 
+ordering $\po$ to risk assessments as follows:
+\begin{eqnarray*}
+R_1 \po R_2 &\iff& \forall (A,\risk_1) \in \hat{R_1} . \exists \risk_2. 
+(A,\risk_2) \in \hat{R_2} \wedge \risk_1 \po \risk_2
+\end{eqnarray*}
+The relation is clearly decidable.  We also observe that it is
+is a partial order:
+\begin{corollary}
+The relation $\po$ on risk assessments is a partial order.
+\end{corollary} 
+Hereafter we restrict our consideration to canonical risk assessments
+without loss of generality.  We immediately observe the following,
+which will be useful in the development of a formal semantics for 
+$\RTR$:
+\begin{lemma}
+\label{lemma-assessmentlattice}
+For all finite $\mathcal{A} \subset \mathit{Entities}$, the poset:
+$$(\mathit{RiskAssessment}(\mathcal{A}),\po)$$
+is a complete lattice. 
+\end{lemma}
+\begin{proof}
+Given $\mathcal{R} \subseteq \mathit{RiskAssessment}(\mathcal{A})$.
+For each $A \in \mathcal{A}$, let $\risks_A =
+\setdefn{\risk\ |\ \exists R \in \mathcal{R} . (A,\risk) \in R}$, 
+and let $\risk_A$ be the lub of $\risks_A$, which must exist since 
+we require risk orderings to be complete lattices.  Let
+$R_{\mathcal{R}} = \setdefn{(A,\risk_A) \mid A \in \mathcal{A}}$.
+Clearly $R_{\mathcal{R}}$  is an element of 
+$\mathit{RiskAssessment}(\mathcal{A})$,
+and is a lub of $\mathcal{R}$.  The existence of a glb for 
+$\mathcal{R}$ follows dually.
+\end{proof}
+A notion of aggregation of risk assessments 
+is useful to define:
+\begin{eqnarray*}
+R \oplus \risk &\ \defeq\ & \setdefn{(A,\risk' \oplus \risk) \ \mid\ (A,\risk') \in R}\\
+R_1 \oplus R_2 &\ \defeq\ &
+\setdefn{(A,\risk_1 \oplus \risk_2) \ \mid\ 
+(A,\risk_1), (A,\risk_2) \in R_1 \times R_2} 
+\end{eqnarray*}
+We assert monotonicity of this operation:
+\begin{corollary}
+\label{cor-oplusmonotonic}
+The operation $\oplus$ on risk assessments is monotonic.
+\end{corollary}
+
+As we will see below, solutions to sets of credentials are 
+functions of type:
+$$
+\mathit{Role} \rightarrow \mathit{RiskAssessment}
+$$ 
+Letting $f$ and $g$ be functions of this type, we define:
+$$
+f \po g \quad\iff\quad f(A.r) \po g(A.r) \text{ for all roles } A.r
+$$
+%\begin{corollary}
+%\label{cor-assessmentlattice}
+%The poset $(\mathit{Role} \rightarrow \mathit{RiskAssessment}, \po)$ is
+%a complete lattice.
+%\end{corollary}
+Now, we can define the semantics of $\RTR$, by extending the
+semantics of $\RT_0$ in \cite{Li:2003-02} to assess risk:
+\begin{definition}[Semantics of $\RTR$] 
+\label{def-solution}
+Given a set $\creds$ of $\RTR$ credentials, the semantics
+$\credsmean{\creds}$ of $\creds$ is a function mapping role expressions to risk
+assessments.  In particular, $\credsmean{\creds}$ is the least function
+$\rmem : \mathit{Role} \rightarrow \mathit{RiskAssessment}$ 
+(ordered by $\po$ as above) such that $\bounds[\rmem] \po \rmem$,
+where $\bounds[\rmem]$ and the auxiliary function $\expr[\rmem]$, mapping
+role expressions to risk assessments, are defined as in \autoref{figure-rmem}.
+\end{definition}
+
+Given any $\creds$, we can construct $\credsmean{\creds}$ by a least
+fixpoint argument, showing that any set of credentials has a solution.
+The technique follows \cite{Li:2003-02}.  The solution is constructed
+as the limit of the sequence $\setdefn{\rmem_i}_{i \in \mathbb{N}}$,
+where $\rmem_i : \mathit{Roles}(\creds) \rightarrow 
+\mathit{RiskAssessment}(\mathit{Entities}(\creds))$
+for every $i$.  The sequence is defined inductively by taking 
+$\rmem_0(A.r) = \varnothing$ for every role $A.r$, and letting:
+$$
+\rmem_{i+1}(A.r) = \bounds[\rmem_i](A.r)
+$$ 
+for every $A.r$.  The function relating the values in
+$\setdefn{\rmem_i}_{i \in \mathbb{N}}$ is monotonic, since $\cup$ and
+$\oplus$ are monotonic, the latter by definition and
+\autoref{cor-oplusmonotonic}.  Further, the pointwise ordering of
+functions $\rmem_i$ under $\po$ forms a complete lattice, by
+\autoref{lemma-assessmentlattice}.  Therefore, a least fixpoint of the
+sequence $\setdefn{\rmem_i}_{i \in \mathbb{N}}$ exists.  Let 
+$\rmem_\omega$ be this fixpoint, and define:
+$$
+\begin{array}{rclr}
+\credsmean{\creds}(A.r) &=& \rmem_\omega(A.r) \qquad &  A.r \in \mathit{Roles}(\creds) \\
+\credsmean{\creds}(A.r) &=& \varnothing & A.r \not\in \mathit{Roles}(\creds)
+\end{array}
+$$
+It is easily shown that $\credsmean{\creds}(A.r)$ so defined is a
+least solution to $\creds$ as specified in \autoref{def-solution}.
+
+\subsection{Examples}
+\label{section-rtrexamples}
+
+We now give some examples of risk assessments for authorizations in
+two different risk models, illustrating applications of the system.
+Other more complex examples are discussed in
+\autoref{section-application}.
+
+\subsubsection{Bound-of-Risks}  
+
+In \cite{Den:latt}, an information flow security model is presented
+where all static data is assigned to a security class.  Security
+classifications of variables are then assigned based on the
+combination of security classes of data flowing into those variables,
+as determined by an abstract program interpretation.  Security classes
+are identified by elements in a complete lattice, where
+``class-combination'' is defined as the lub of combined classes.
+
+We propose that an adaptation of this model is useful in the context
+of authorization risk assessment.  We do not propose an abstract
+interpretation of authorization, incorporating some form of
+``may-analysis'', but rather a purely dynamic authorization and risk
+assessment model, so in this sense we differ from the model proposed
+in \cite{Den:latt}.  Nevertheless, we may adopt the use of least upper
+bounds as a ``class-combination'' mechanism-- in our terminology,
+``risk aggregation''-- that assesses the risk of any authorization
+decision as the least upper bound of risks associated with all
+credentials used in the decision.
+
+Consider a risk ordering where three classifications $\mathcal{K} =
+\setdefn{\mathit{low,medium,high}}$ are defined, and the following
+relations are imposed:
+$$
+\mathit{low} \po \mathit{medium} \po \mathit{high}
+$$ 
+and $\oplus$ is taken to be the lub operator.  Imagine also that an
+online vendor called $\mathit{Store}$ maintains a purchasing policy
+whereby representatives of the $\mathit{Acme}$ corporation have
+$\mathit{buyer}$ power only if they are both employees and official
+purchasers.  Since this policy is maintained locally, it is associated
+with a $\mathit{low}$ risk of usage, hence $\mathit{Store}$ could
+specify:
+\begin{mathpar}
+\mathitcred{Store.buyer}{Acme.purchaser \cap Acme.employee}{low}
+\end{mathpar}
+Imagine further that $\mathit{Ed}$ attempts to make a purchase from
+$\mathit{Store}$, providing certificates claiming $\mathit{employee}$
+and $\mathit{purchaser}$ status.  However, if we assume that these
+certificates can possibly be faked, or that role membership within the
+$\mathit{Acme}$ corporation has a volatile status, higher risk can be
+assigned to these certificates:
+\begin{mathpar}
+\mathitcred{Acme.employee}{Ed}{medium}
+
+\mathitcred{Acme.purchaser}{Ed}{high}
+\end{mathpar}
+We also assume that a less risky path of establishing
+$\mathit{Ed}$'s membership in the $\mathit{Acme.purchaser}$ role is
+through a $\mathit{manager}$ certificate obtained directly from
+$\mathit{Personnel}$, and via $\mathit{Acme}$'s own policy specifying
+$\mathit{purchaser}$ power for all $\mathit{manager}$s:
+\begin{mathpar}
+\mathitcred{Acme.purchaser}{Personnel.manager}{low}
+
+\mathitcred{Personnel.manager}{Ed}{low}
+\end{mathpar}
+Although using $\mathit{Ed}$'s certificate asserting his membership in
+the $\mathit{Acme.purchaser}$ role will incur a $\mathit{high}$ risk,
+because of the less risky path to this relation, the risk assessment of
+this set of credentials will find that establishing $\mathit{Ed}$'s
+membership in the $\mathit{Store.buyer}$ role requires a lower bound of
+$\mathit{medium}$ risk.  The least solution for all given roles
+is as follows:
+\begin{eqnarray*}
+\mathit{Store.buyer}&:& \setdefn{(\mathit{Ed, medium})}\\
+\mathit{Acme.employee}&:& \setdefn{(\mathit{Ed, medium})}\\
+\mathit{Acme.purchaser}&:& \setdefn{(\mathit{Ed, low})}\\
+\mathit{Personnel.manager}&:& \setdefn{(\mathit{Ed, low})}
+\end{eqnarray*}
+Of course, in certain cases it may be preferable to use the
+certificate $\mathit{Ed}$ provides, instead of going through
+$\mathit{Personnel}$-- if wait times for distributed communication
+with that node are prohibitively long, for example.  However, in this
+case it should be specified that a $\mathit{high}$ level of risk will
+be tolerated in the credential chain.  In
+\autoref{section-chain-discovery} and \autoref{section-application},
+we define a technique for credential chain discovery that implements
+this idea.
+
+Returning to the example, for the purposes of illustration we imagine
+that the risk ordering is extended with an element $\mathit{moderate}$,
+that is incomparable with $\mathit{medium}$, inducing the lattice:
+\begin{center}
+\risklattice
+\end{center}
+We also imagine that $\mathit{Store}$ has cached an old certificate,
+establishing $\mathit{Ed}$'s membership in the $\mathit{Acme.employee}$
+role with $\mathit{moderate}$ risk:
+\begin{mathpar}
+\mathitcred{Acme.employee}{Ed}{moderate}
+\end{mathpar}
+In this case, since $\mathit{moderate}$ and $\mathit{medium}$ are 
+incomparable, the risk assessment will reflect that $\mathit{Ed}$'s
+membership in the $\mathit{Store.buyer}$ and $\mathit{Acme.employee}$
+roles can be established via two paths with incomparable risk:
+\begin{eqnarray*}
+\mathit{Store.buyer}&:& \setdefn{(\mathit{Ed, medium}),(\mathit{Ed, moderate})}\\
+\mathit{Acme.employee}&:& \setdefn{(\mathit{Ed, medium}),(\mathit{Ed, moderate})}
+\end{eqnarray*}
+Precision and safety in the assessment of minimal risk is not lost by
+taking the glb of incomparable risk assessments.
+
+\subsubsection{Sum-of-Risks}
+\label{sec:sum-of-risks}
+
+An alternative to the bound-of-risks model is a sum-of-risks model,
+where credentials are assigned numeric risk values and the total risk
+for any authorization decision is the sum of all risks associated with
+the credentials used in the decision.  Thus, we take the risk ordering
+in this model to be the lattice of natural numbers up to $\omega$
+induced by $\leq$, and we take $\oplus$ to be addition.  This model is
+useful in case risk is considered additive, or in case the number of
+credentials used in an authorization decision is an element of risk,
+the more the riskier.
+
+Imagining a similar situation as above, the following risks could 
+be assigned, where 1 is considered ``not risky'' and 4 is considered
+``risky'':
+\begin{mathpar}
+\mathitcred{Store.buyer}{Acme.purchaser \cap Acme.employee}{1}
+
+\mathitcred{Acme.employee}{Ed}{3}
+
+\mathitcred{Acme.purchaser}{Ed}{4}
+
+\mathitcred{Acme.purchaser}{Personnel.manager}{2}
+
+\mathitcred{Personnel.manager}{Ed}{3}
+\end{mathpar}
+Note that $\mathit{Ed}$'s certificate claiming membership in the role
+$\mathit{Acme.purchaser}$ is still assigned higher risk than both
+the certificate establishing his $\mathit{manager}$ status and the
+certificate establishing $\mathit{purchaser}$ rights for
+$\mathit{manager}$s.  However, the sum-of-risks model will still
+ascertain that the use of $\mathit{Ed}$'s certificate will be the least
+risky way to establish his membership in the $\mathit{Store.buyer}$
+role.  The solution of the given credentials will comprise the following
+risk assessments:
+\begin{eqnarray*}
+\mathit{Store.buyer}&:& \setdefn{(\mathit{Ed, 8})}\\
+\mathit{Acme.employee}&:& \setdefn{(\mathit{Ed, 3})}\\
+\mathit{Acme.purchaser}&:& \setdefn{(\mathit{Ed, 4})}\\
+\mathit{Personnel.manager}&:& \setdefn{(\mathit{Ed, 3})}
+\end{eqnarray*}
+If a pure count of credentials used in authorization is the 
+basis of risk assessment, this model can be formally obtained 
+in the sum-of-risks model by associating risk 1 with every 
+credential.

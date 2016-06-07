@@ -1,0 +1,298 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FILE         : PolicyMaker-POC.tex
+% AUTHOR       : (C) Copyright 2005 by Peter C. Chapin
+% LAST REVISED : 2005-05-02
+% SUBJECT      : Presentation on "Compliance Checking in the PolicyMaker..."'
+%
+% Send comments or bug reports to:
+%
+%       Peter C. Chapin
+%       University of Vermont
+%       Burlington, VT 05061
+%       pchapin@cem.uvm.edu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass[landscape]{slides}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+%\usepackage{stmaryrd}
+%\usepackage{mathpartir}
+
+\input{slide-macros}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{Compliance Checking in PolicyMaker}
+\author{Presented by Peter C. Chapin\\University of Vermont}
+\date{May 2, 2005}
+\maketitle
+
+%%%%%
+\startslide{Outline}
+
+\begin{itemize}
+\item Overview of PolicyMaker
+\item Proof of Compliance Problem
+\item Locally Bounded Proof of Compliance Problem
+\item Polynomial Time Variant
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{References}
+
+\begin{itemize}
+\item ``Compliance Checking in the PolicyMaker Trust Management System.'' Matt Blaze, Joan Feigenbaum, and Martin Strauss. \textit{Proceedings of the Second International Conference on Financial Cryptography}, pp 254-274. Published by Springer-Verlag, 1998.
+\item ``Decentralized Trust Management.'' Matt Blaze, Joan Feigenbaum, and Jack Lacy. \textit{Proceedings of the 1996 IEEE Symposium on Security and Privacy}, pp 164-173. Published by IEEE Computer Society Press, May 1996.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{Trust-Management/PolicyMaker}
+A method for handling distributed authorization.
+\begin{itemize}
+\item Authorizer writes a policy to describe who can have access to a resource.
+\item Requester sends signed credentials intended to prove compliance with policy.
+\item Authorizer executes a ``proof of compliance'' algorithm that returns YES if requester complies with policy; NO otherwise.
+\end{itemize}
+In PolicyMaker the policy and credential assertions are arbitrary functions.
+\stopslide
+
+%%%%%
+\startslide{Assertions}
+
+Assertions are represented with the pair $(f_i, s_i)$ where
+\begin{itemize}
+  \item $f_i$ is the function
+  \item $s_i$ is an identifier that represents the source of the assertion.
+\end{itemize}
+
+The policy is represented as an assertion with source POLICY. We'll use $f_0$ for the policy function.
+
+\stopslide
+
+%%%%%
+\startslide{Acceptance Records}
+
+Assertions produce \textit{acceptance records} of the form $(i, s_i, R_{ij})$ where
+
+\begin{itemize}
+\item $i$ is the assertion number that generated the record.
+\item $s_i$ is the source identifier of the assertion that generated the record.
+\item $R_{ij}$ is an \textit{action string} that specifies the $j^{th}$ possible action assertion $i$ is authorizing.
+\end{itemize}
+
+Action strings are strings over some alphabet $\Sigma$. The request itself is encoded as an action string.
+
+\stopslide
+
+%%%%%
+\startslide{Acceptance Sets}
+
+\begin{itemize}
+\item The compliance checker maintains a workspace consisting of a set of acceptance records.
+\item The assertions take this workspace as an argument and return an updated workspace.
+\item Workspace initialized to $\{(\Lambda, \Lambda, R)\}$. Where $R$ is the encoding of the request.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{Proof of Compliance (POC)}
+
+\textbf{Input:} A request $r$ and a set $\{(f_0, \mbox{POLICY}), (f_1, s_1), \ldots, (f_{n-1}, s_{n-1})\}$ of assertions.
+
+\textbf{Question:} Is there a finite sequence $i_1, i_2, \ldots, i_t$ of indicies such that each $i_j$ is in $\{0, 1, \ldots, n-1\}$, but the $i_j$'s are not necessarily distinct and not necessarily exhaustive of $\{0, 1, \ldots, n-1\}$ and such that
+\begin{displaymath}
+  (0, \mbox{POLICY}, R) \in (f_{i_t}, s_{i_t}) \circ \cdots \circ (f_{i_1}, s_{i_1})(\{\Lambda, \Lambda, R)\})
+\end{displaymath}
+
+where $R$ is the encoding of the request as an action string.
+\stopslide
+
+%%%%%
+\startslide{Promise Problems}
+\begin{itemize}
+\item Two predicates $(Q, R)$. 
+\item Machine $M$ solves the problem if
+\begin{displaymath}
+\forall w (Q(w) \rightarrow (M_h(w) \wedge (M_a(w) \leftrightarrow R(w))))
+\end{displaymath}
+\item class NPP contains all promise problems with at least one solution in NP.
+\item Promise problem is NP-hard if all solutions are NP-hard.
+\end{itemize}
+To prove NP-hardness, reduce an NP-hard language to an instance of the promise problem where $Q$ is always satisfied.
+\stopslide
+
+%%%%%
+\startslide{Locally Bounded POC (LBPOC)}
+\textbf{Input:} A request $r$, a set $\{(f_0, \mbox{POLICY}), (f_1, s_1), \ldots, (f_{n-1}, s_{n-1})\}$ of assertions, and integers $c$, $l$, $m$, and $s$.
+
+\textbf{Promise:} Each $f_i$ runs in time $O(N^c)$. On any input set that contains $(\Lambda, \Lambda, R)$, for each $f_i$ there is a set $O_i$ of at most $m$ action strings such that any acceptance record produced by $f_i$ has an action string $R_{ij} \in O_i$. Furthermore, $s$ is the maximum size of an acceptance record produced by $f_i$.
+
+\textbf{Question:} Is there a sequence $i_1, \ldots, i_t$, as before, such that $t \le l$ and
+\begin{displaymath}
+  (0, \mbox{POLICY}, R) \in (f_{i_t}, s_{i_t}) \circ \cdots \circ (f_{i_1}, s_{i_1})(\{\Lambda, \Lambda, R)\})
+\end{displaymath}
+
+\stopslide
+
+%%%%%
+\startslide{LBPOC $\in$ NPP}
+
+\begin{itemize}
+\item Non-deterministically guess $i_1, \ldots, i_t$.
+\item Simulate assertions in guessed sequence.
+\item Check if $(0, \mbox{POLICY}, R)$ is in the resulting acceptance set.
+\end{itemize}
+
+This is clearly polynomial: There are at most $l$ assertions. Each assertion runs in time $O(N^c)$. Thus overall running time of verification is $O(l(nms)^c)$
+
+However, LBPOC is NP-hard.
+
+\stopslide
+
+%%%%%
+\startslide{Bounded Post Correspondence (BPCP)}
+\textbf{Input:} A finite alphabet $\Sigma$, two sequences $a = (a_1, a_2, \ldots, a_q)$ and $b = (b_1, b_2, \ldots, b_q)$ of strings from $\Sigma^{*}$, and a positive integer $K \le q$.
+
+\textbf{Question:} Is there a sequence $i_1, i_2, \ldots, i_k$ of $k \le K$ (not necessarily distinct) positive integers between 1 and $q$, such that the two strings $a_{i_1} a_{i_2} \cdots a_{i_q}$ and $b_{i_1} b_{i_2} \cdots b_{i_q}$ are identical?
+
+This problem is NP-complete (and thus NP hard). Note that the unbounded case is undecidable.
+
+\stopslide
+
+%%%%%
+\startslide{LBPOC is NP-Hard}
+
+Proof by reducing, in polynomial time, an arbitrary instance of BPCP to a corresponding instance of LBPOC where the promise is satisfied.
+
+\begin{itemize}
+\item Request and action string irrelevant in reduction. Use $\sigma$ as placeholder in LBPOC instance.
+\item Sources of assertions irrelevant in reduction, except for the POLICY assertion. Use $\sigma$ as placeholder in LBPOC instance.
+\item LBPOC instance has $n = q + 1$ assertions.
+\item For $1 \le i \le q$, assertion $(f_i, \sigma)$ outputs $S \cup \{(i, \sigma, (a_i, b_i, |S|))\}$.
+\item Let $c = 2$, $l = K + 1$, $m = K$.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{Proof (continued)}
+Introduce assertion $(f_0, \mbox{POLICY})$ on input $S$ as follows
+
+\begin{itemize}
+\item Sort $S$ into increasing order with respect to the size field in the action string. Let $i_1, \ldots, i_t$ be the resulting sorted sequence of first coordinates of acceptance records.
+\item If $a_{i_1} \cdots a_{i_t} = b_{i_1} \cdots b_{i_t}$, output $\{(0, \mbox{POLICY}, R)\}$, otherwise output the empty set.
+\end{itemize}
+
+The reduction is polynomial time. The resulting LBPOC instance satisfies the promise and accepts iff the original BPCP instance accepts.
+
+\stopslide
+
+%%%%%
+\startslide{Monotonic Assertions}
+
+Assertion $f_i$ is monotonic if, for all acceptance sets $A$ and $B$
+\begin{displaymath}
+A \subseteq B \rightarrow (f_i)(A) \subseteq (f_i)(B)
+\end{displaymath}
+
+In other words, if $f_i$ approves an action given evidence $A$, $f_i$ will continue to approve that action given addition evidence. There is no ``negative'' evidence.
+
+LBPOC with monotonic assertions is still NP-hard\ldots even after removing restriction on using only $l$ assertions.
+
+\stopslide
+
+%%%%%
+\startslide{Agglomeration}
+
+Instead of composing the results of multiple assertions ($f_i \circ f_j$), we can agglomerate them ($f_i \star f_j$).
+
+\begin{itemize}
+\item $S_j = f_{i_j}(S_{j-1}) \cup S_{j-1}$
+\end{itemize}
+
+Thus assertions can't ``undo'' the effects of other assertions by removing their acceptance records from the work space. This is different than monotonicity.
+
+Authors claim that agglomerative versions of LBPOC, including LBPOC with monotonic assertions are still NP-hard.
+
+\stopslide
+
+%%%%%
+\startslide{Authenticity}
+
+\begin{itemize}
+\item An assertion $f_i$ is authentic if the new acceptance records that it outputs are only in the form $(i, s_i, R_{ij})$.
+\item The assertion does not attempt to impersonate another assertion by outputting a record of the form $(i', s_{i'}, R_{i'j})$.
+\item So far assertions have not needed to be authentic. They could have output an acceptance set containing new acceptance records ``produced'' by other assertions.
+\end{itemize}
+
+LBPOC using authentic, monotonic assertions and agglomeration is in P.
+
+\stopslide
+
+%%%%%
+\startslide{Compliance Checking Algorithm}
+\begin{verbatim}
+CCA(r, {n assertions}, c, m, s)
+{
+  S <- {(_, _, R)}
+  I <- { }
+  for j <- 1 to nm {
+    for i <- n-1 to 0 {
+      if f_i notin I then S' <- f_i(S)
+      if IllFormed(f_i) then I <- I union {f_i}
+        else S <- S union S'
+    }
+  }
+  if (0, POLICY, R) in S then return accept
+  return reject
+}
+\end{verbatim}
+\stopslide
+
+%%%%%
+\startslide{Proof of CCA}
+
+Running time: $O(mn^2(nms)^c) = O(n^{(2+c)})$
+
+Does it work?
+\begin{itemize}
+\item Let acceptance set be $A$ when the inner loop starts.
+\item Each assertion is executed on a superset of $A$.
+\item Each assertion authorizes every action $A$ implies to that assertion.
+\item Multiple passes ensure that all possible authorizations are generated.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{Proof of CCA (continued)}
+\begin{itemize}
+\item Monotonicity: Assertions generate the same authorized action strings despite ``noise'' of authorizations generated by other assertions.
+\item Agglomeration: Assertions can't ``fight'' each other by authorizing and unauthorizing each other's action strings.
+\item Authenticity: \textit{I do not understand why this is necessary.}
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{Questions}
+\begin{center}\Large ?\end{center}
+\stopslide
+
+\end{document}

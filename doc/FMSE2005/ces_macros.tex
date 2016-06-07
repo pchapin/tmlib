@@ -1,0 +1,532 @@
+\newcommand{\cesnote}[1]{\textit{(#1 -- c.e.s.)}}
+
+\newcommand{\thmnumbering}{section}
+\newtheorem{theorem}{Theorem}[\thmnumbering]
+%\newtheorem{definition}{Definition}[\thmnumbering]
+\newtheorem{corollary}{Corollary}[\thmnumbering]
+\newtheorem{example}{Example}[\thmnumbering]
+%\newtheorem{lemma}{Lemma}[\thmnumbering]
+%\newtheorem{proposition}{Proposition}[\thmnumbering]
+%\newenvironment{proof}{\noindent\textit{Proof. }}{}
+%\newcommand{\qed}{$\Box$}
+\def\squareforqed{\hbox{\rlap{$\sqcap$}$\sqcup$}}
+\def\qed{\ifmmode\squareforqed\else{\unskip\nobreak\hfil
+\penalty50\hskip1em\null\nobreak\hfil\squareforqed
+\parfillskip=0pt\finalhyphendemerits=0\endgraf}\fi}
+
+\newcommand{\colfigurebox}[5]
+{
+        \begin{figure}
+        \begin{center}
+        \framebox[#1]{
+                \begin{minipage}{#2}
+                \footnotesize
+                \vspace{2mm}
+                #5
+                \vspace{1mm}
+                \end{minipage}
+                \normalsize
+        }
+        \caption{#4} 
+        \label{#3}
+        \end{center}
+        \end{figure}
+}
+
+\newcommand{\figurebox}[5]
+{
+        \begin{figure*}
+        \begin{center}
+        \framebox[#1]{
+                \begin{minipage}{#2}
+                \footnotesize
+                \vspace{2mm}
+                #5
+                \vspace{1mm}
+                \end{minipage}
+                \normalsize
+        }
+        \caption{#4} 
+        \label{#3}
+        \end{center}
+        \end{figure*}
+}
+
+%%%%% dduct %%%%%%
+\newcommand{\dduct}[2]{
+\ensuremath{
+\renewcommand{\arraystretch}{1.3}
+	\begin{array}[b]{c}
+		#1\\\hline
+		#2
+	\end{array}
+\renewcommand{\arraystretch}{1}
+}
+}
+%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\algtab}[1]
+{
+\vspace*{-3mm}
+\begin{tabbing}
+\hspace*{12mm}\=\hspace{9mm}\=\hspace{9mm}\=\hspace{6mm}\=\hspace{6mm}\=
+\hspace{6mm}\=\\\newcommand{\cmnts}{\noindent\textbf{Comments\hspace{2mm}}}
+#1
+\end{tabbing}
+}
+\newcommand{\lt}{\left\{}
+\newcommand{\rt}{\right\}}
+\newcommand{\Lt}{\left\{\!\!\right.}
+\newcommand{\Rt}{\left.\!\!\right\}}
+\newcommand{\const}{\mathbf{c}}
+\newcommand{\heading}[1]{\noindent\textbf{#1\ \  }}
+
+\newcommand{\schemecomp}[3]{#1\vdash^i#2\preccurlyeq#3}
+
+\newcommand{\Estep}{\rightarrow}
+\newcommand{\instance}{\preccurlyeq}
+\newcommand{\geninstance}{\trianglelefteq}
+\newcommand{\gen}{\mathit{gen}}
+\newcommand{\normalize}{\mathit{normalize}}
+
+\newcommand{\iruleone}{\textsc{Sub$^\instance$}}
+\newcommand{\iruletwo}{$(\preccurlyeq\!\forall)$}
+\newcommand{\irulethree}{$(\forall\!\preccurlyeq)$}
+
+%\newcommand{\seclang}{\lambda_{\text{\rm sec}}}
+%\newcommand{\setlang}{\lambda_{\text{\rm set}}}
+\newcommand{\pinit}{\ensuremath{p_0}}
+%\newcommand{\reduce}{\leadsto}
+\newcommand{\reduce}{\rightarrow}
+%\newcommand{\eqdefn}{=_{\scriptscriptstyle{\mathit{def}}}}
+\newcommand{\subn}{\varphi}
+\newcommand{\subndefn}[1]{[#1]}
+\newcommand{\restrict}[2]{{#1}\!\mid_{#2}}
+\newcommand{\rrow}[2]{\lt \drow{r}{#1}{#2} \rt}
+%\newcommand{\refcell}{\mathrm{ref}}
+%\newcommand{\tref}{\mathrm{ref}}
+%\newcommand{\hmxconfig}[2]{#1/#2}
+%\newcommand{\store}{\varsigma}
+\newcommand{\rangevec}[3]{#1^{\hspace{4pt}#2 \in \setdefn{1,\ldots,#3}}}
+%\newcommand{\initenv}{\Gamma_\iota}
+\newcommand{\initenv}{\Delta}
+%\newcommand{\extend}[3]{#1\oplus #2 \mapsto #3}
+\newcommand{\gdesc}[1]{\text{\textit{#1}}}
+\newcommand{\loc}{l}
+\newcommand{\setdefn}[1]{\lt#1\rt}
+\newcommand{\deref}{\,!}
+\newcommand{\assignfn}[1]{{:=}_{#1}}
+%\renewcommand{\eabs}[3]{\lambda\langle#1\rangle #2 . #3 }
+\newcommand{\credentials}{\mathcal{A}}
+\newcommand{\constrain}[2]{#1\!\mid_{#2}}
+\newcommand{\remove}[2]{#1\backslash{#2}}
+\newcommand{\subrule}{\TirName{Sub}}
+\newcommand{\varrule}{\TirName{Var}}
+\newcommand{\absrule}{\TirName{Abs}}
+\newcommand{\apprule}{\TirName{App}}
+\newcommand{\letrule}{\TirName{Let}}
+\newcommand{\assignrule}{\TirName{Assign}}
+\newcommand{\refrule}{\TirName{Ref}}
+\newcommand{\derefrule}{\TirName{Deref}}
+\newcommand{\construle}{\TirName{Const}}
+\newcommand{\forallelim}{\TirName{$\forall$ Elim}}
+\newcommand{\forallintro}{\TirName{$\forall$ Intro}}
+\newcommand{\configrule}{\TirName{Config}}
+\newcommand{\labinferrule}[3]{\inferrule*[right=\scriptsize#3]{#1}{#2}}
+\newcommand{\Labinferrule}[3]{\inferrule*[Right=\scriptsize#3]{#1}{#2}}
+\newcommand{\vvec}{\bar{\regv}}
+\newcommand{\tvec}{\bar{\tau}}
+\newcommand{\existsC}[2]{\exists #1 . #2}
+\newcommand{\rename}{\varrho}
+\newcommand{\blankheading}[2]
+{	
+	\vspace{17pt}
+	\noindent\textbf{\Large #2}
+	\addcontentsline{toc}{#1}{#2}
+	\vspace{10pt}
+}
+\newcommand{\blankchapter}[1]
+{	
+	\chapter*{#1}
+	\addcontentsline{toc}{chapter}{#1}
+}
+\newcommand{\blanksection}[1]
+{	
+	\section*{#1}
+	\addcontentsline{toc}{section}{#1}
+}
+
+%
+% ICFP secty definitions
+%
+\newcommand{\chse}{\ensuremath{\ |\ }}
+\newcommand{\chkpriv}[2]{\ensuremath{\mathrm{checkpriv\ }#1\ \mathrm{for\ }#2}}
+\newcommand{\inspect}{\ensuremath{\mathrm{inspect}}}
+\newcommand{\ite}[3]{\ensuremath{\mathrm{if\ }#1\ \mathrm{then\ }#2\ \mathrm{else\ } #3}}
+\newcommand{\nil}{\mathit{nil}}
+\newcommand{\fail}{\ensuremath{\mathbf{secfail}}}
+\newcommand{\needs}{\ensuremath{\mathrm{\ needs\ }}}
+%\newcommand{\fnty}[3]{\ensuremath{#1\rightarrow#2\needs#3}}
+\newcommand{\fnty}[3]{\ensuremath{#1\xrightarrow{#3}#2}}
+\newcommand{\privs}{\ensuremath{\mathrm{privs}}}
+\newcommand{\rmpriv}{\ensuremath{\mathrm{rmpriv}}}
+\newcommand{\satisfy}{\ensuremath{\mathit{satisfy}}}
+\newcommand{\hsleq}{\ensuremath{\mathit{\preceq_{hs'}}}}
+\newcommand{\minsafe}{\ensuremath{\mathit{minsafe}}}
+\newcommand{\leastsub}{\ensuremath{\mathit{leastsub}}}
+\newcommand{\safesub}{\ensuremath{\mathit{safesub}}}
+\newcommand{\vars}{\ensuremath{\mathit{vars}}}
+%\newcommand{\pinit}{\ensuremath{p_{\iota}}}
+\newcommand{\pset}{\ensuremath{\mathbf{s}}}
+\newcommand{\psetinit}{\ensuremath{\pset_{\iota}}}
+\newcommand{\cons}[2]{\ensuremath{#1\!::\!#2}}
+\newcommand{\constr}{\ensuremath{\ /\ }}
+\newcommand{\stack}{\ensuremath{\mathtt{S}}}
+%\newcommand{\stack}{\ensuremath{\mathbf{s}}}
+\newcommand{\gpset}{\ensuremath{R}}
+%\newcommand{\subn}{\ensuremath{S}}
+\newcommand{\vsubn}{\ensuremath{\hat{S}}}
+\newcommand{\isecty}{\ensuremath{\mathit{isecty}}}
+\newcommand{\mt}{\ensuremath{\mathit{mt_{\scriptscriptstyle{\tpc}}}}}
+%\newcommand{\mt}{\ensuremath{\mathit{mt}}}
+\newcommand{\MT}{\ensuremath{\mathit{MT}}}
+\newcommand{\MTfn}{\ensuremath{f}}
+\newcommand{\dom}{\ensuremath{\mathit{Dom}}}
+\newcommand{\var}{\ensuremath{\mathit{Vars}}}
+\newcommand{\sectyfail}{\ensuremath{\mathbf{sectyfail}}}
+\newcommand{\infsecty}{\ensuremath{\mathit{infer\_secty}}}
+\newcommand{\sconstrs}{\ensuremath{\mathit{scs}}}
+\newcommand{\tpc}{\ensuremath{\mathit{TPC}}}
+\newcommand{\pc}{\ensuremath{\mathit{PC}}}
+\newcommand{\tc}{\ensuremath{\mathit{TC}}}
+\newcommand{\close}{\ensuremath{\mathit{close}}}
+\newcommand{\verify}{\ensuremath{\mathit{verify}}}
+\newcommand{\glb}{\ensuremath{\mathit{glb}}}
+\newcommand{\istack}{\ensuremath{\stack_{\iota}}}
+\newcommand{\stackinit}{\ensuremath{\stack_{\iota}}}
+%\newcommand{\mapping}[2]{#1 \triangleright #2}
+\newcommand{\mapping}[2]{[#2/#1]}
+\newcommand{\stackframe}[3]{\langle #1, #2, #3 \rangle}
+\newcommand{\constack}[4]{\ensuremath{\stackframe{#1}{#2}{#3}\hspace{-2pt} :: \! #4}}
+\newcommand{\revstack}[4]{\ensuremath{#4 @ \stackframe{#1}{#2}{#3}}}
+%\newcommand{\signedfn}[3]{\ensuremath{{}^{#3}\!\lambda #1.#2}}
+\newcommand{\signedfn}[3]{\ensuremath{\lambda #1.#2.#3}}
+%\newcommand{\signedfn}[3]{\ensuremath{\lambda\, #1.#2 \rhd #3}}
+\newcommand{\access}{\ensuremath{\credentials}}
+%\newcommand{\enabled}{\ensuremath{\mathcal{F}}}
+\newcommand{\enabled}{\pset}
+%\newcommand{\secderv}{\ensuremath{\vdash_{\!\scriptscriptstyle{\access}}}}
+\newcommand{\secderv}{\ensuremath{\vdash}}
+\newcommand{\secvar}{\ensuremath{\alpha}}
+\newcommand{\secty}{\ensuremath{\tau}}
+\newcommand{\lp}{\ensuremath{\mathit{lp}}}
+%\newcommand{\seclang}{\ensuremath{\lambda_{\text{sec}}}}
+\newcommand{\unit}{\ensuremath{\text{unit}}}
+\newcommand{\Let}{\ensuremath{\mathrm{\ let\ }}}
+\newcommand{\In}{\ensuremath{\mathrm{\ in\ }}}
+\newcommand{\translt}{\TirName{trans$\le$}}
+\newcommand{\reflt}{\TirName{ref$\le$}}
+\newcommand{\sub}{\TirName{sub}}
+\newcommand{\subtr}{\TirName{sub}}
+\newcommand{\vartr}{\TirName{var}}
+\newcommand{\fntr}{\TirName{abs}}
+\newcommand{\appltr}{\TirName{app}}
+\newcommand{\lptr}{\RuleLetPrivYes}
+\newcommand{\lpftr}{\RuleLetPrivNo}
+\newcommand{\cptr}{\RuleCheckPriv}
+\newcommand{\fnlt}{$\rightarrow\le$}
+\newcommand{\inlt}{\TirName{coerce$\le$}}
+\newcommand{\psvar}{\ensuremath{\rho}}
+\newcommand{\tysubn}{\ensuremath{\Theta}}
+\newcommand{\soln}[1]{\ensuremath{\lfloor#1\rfloor}}
+\newcommand{\exf}[1]{\ensuremath{\mathit{#1}}}
+\newcommand{\fullvers}[1]{}
+\newcommand{\shortvers}[1]{#1}
+\newcommand{\slredex}[2]{#1,#2}
+\newcommand{\false}{\text{\bf false}}
+\newcommand{\jdirect}[6]{#1, #2, #3, #4 \vdash #5 : #6}
+
+\def\snote#1{\ \ [[\ \ \textbf{#1}\ \ ]]\ \ }
+
+%
+% ECOOP capty definitions
+%
+%\newcommand{\gdesc}[1]{\text{\textit{#1}}}
+\newcommand{\idworld}{\mathit{ID}}
+\newcommand{\idset}{}
+\newcommand{\lab}{d}
+\newcommand{\labset}{D}
+\newcommand{\Alabworld}{\mathcal{L}_a}
+\newcommand{\Blabworld}{\mathcal{L}_b}
+\newcommand{\labworld}{\mathcal{D}}
+\newcommand{\intface}{\iota}
+\newcommand{\uintface}{\varphi}
+\newcommand{\coreobj}[1]{[#1]}
+\newcommand{\objdefn}[3]{\coreobj{#1}\cdot #2 \cdot #3}
+\newcommand{\varobjdefn}[3]{#1\cdot #2 \cdot #3}
+\newcommand{\recdefn}[1]{\{ #1 \}}
+\newcommand{\recgen}[1]{{\pi}_{#1}}
+%\newcommand{\setdefn}[1]{\recdefn{#1}}
+%\newcommand{\capab}[2]{\langle #1,#2 \rangle}
+%\newcommand{\capab}[3]{\objdefn{#1}{#2}{#3}}
+%\newcommand{\itranslate}[1]{\mathit{trans}\ #1}
+\newcommand{\itranslate}[1]{\hat{#1}}
+\newcommand{\itranslatewide}[1]{\widehat{#1}}
+%\newcommand{\stranslate}[1]{\hat{#1}}
+\newcommand{\stranslate}[1]{#1}
+\newcommand{\itrans}[1]{\itranslate{#1}}
+\newcommand{\strans}[1]{\stranslate{#1}}
+\newcommand{\itranswide}[1]{\widehat{#1}}
+\newcommand{\stranswide}[1]{#1}
+%\newcommand{\project}[2]{#1/#2}
+%\newcommand{\modify}[3]{#1[#2 = #3]}
+%\newcommand{\elevate}[1]{[#1]}
+%\newcommand{\rowabbrv}[1]{[#1]}
+\newcommand{\project}[2]{#1.#2}
+\newcommand{\modify}[3]{#1\{#2 = #3\}}
+\newcommand{\elevate}[1]{\{#1\}}
+\newcommand{\rowabbrv}[1]{\{#1\}}
+\newcommand{\memcheck}[2]{#2\ni#1}
+\newcommand{\notmemcheck}[2]{#2\not\ni#1}
+\newcommand{\memcheckprim}[1]{\ni_{#1}}
+\newcommand{\projprim}[1]{/_{#1}}
+%\newcommand{\methlist}{\mathit{ml}}
+\newcommand{\methlist}{\varrho}
+%\newcommand{\loc}{l}
+\newcommand{\send}[3]{#1.#2(#3)}
+\newcommand{\select}[2]{#1.#2}
+%\newcommand{\store}{\sigma}
+\newcommand{\config}[3]{#1,#2,#3}
+\newcommand{\isoopconfig}[2]{#1/#2}
+\newcommand{\hmxconfig}[2]{#1,#2}
+%\newcommand{\ocap}{\ensuremath{o_{\mathrm{cap}}}}
+\newcommand{\ocap}{\ensuremath{\mathrm{pop}}}
+%\newcommand{\isoop}{\ensuremath{\mathrm{isoop}_{\mathrm{set}}}}
+\newcommand{\isoop}{\ensuremath{\mathrm{isoop}}}
+%\newcommand{\projml}{\ensuremath{P\!\Lambda_{\mathrm{ref}}}}
+\newcommand{\projml}{\ensuremath{\mathrm{pml}_{\scriptstyle{B}}}}
+%\newcommand{\reduce}{\rightarrow}
+%\newcommand{\extend}[3]{#1\!\parallel\! #2 \mapsto #3}
+%\newcommand{\extend}[3]{#1\!\oplus\! #2 \mapsto #3}
+\newcommand{\extend}[3]{#1[#2 \mapsto #3]}
+\newcommand{\meths}[1]{\text{\rm meths}(#1)}
+\newcommand{\ivars}[1]{\text{\rm ivars}(#1)}
+\newcommand{\ifacevars}[1]{\text{\rm vars}_{\intface}(#1)}
+%\newcommand{\hole}{\text{\vbox{\hrule height 0.015cm width 0.15cm}}}
+%\newcommand{\fv}[1]{\text{\rm fv}(#1)}
+%\newcommand{\domain}[1]{\text{\rm dom}(#1)}
+\newcommand{\snks}[1]{\text{\rm usr}(#1)}
+\newcommand{\obj}[2]{\text{\rm obj}_{#1}(#2)}
+%\newcommand{\cast}[2]{(#1)#2}
+%\newcommand{\cast}[2]{\llcorner\!#2\!\lrcorner_{#1}}
+%\newcommand{\cast}[3]{#1\!\shortmid\!_{\!\scriptscriptstyle{#2}}{#3}}
+\newcommand{\cast}[3]{#1\!\shortmid\!(#2,#3)}
+\newcommand{\multicast}[2]{#1\!\shortmid\!#2}
+%\newcommand{\elet}[3]{\mathrm{let}\,#1=#2\,\mathrm{in}\,#3}
+%\newcommand{\etestprim}[1]{\mathord{?}_{#1}}
+%\newcommand{\eaccess}[2]{#1.#2}
+%\newcommand{\eaccessprim}[1]{._{#1}}
+\newcommand{\refcell}{\text{\rm ref}}
+\newcommand{\successor}{\text{\rm succ}}
+\newcommand{\pred}{\text{\rm pred}}
+\newcommand{\iszero}{\text{\rm zero}}
+\newcommand{\olab}{\text{\rm obj}}
+\newcommand{\weaklab}{\text{\rm strong}}
+\newcommand{\snkslab}{\text{\rm usr}}
+\newcommand{\srclab}{\text{\rm src}}
+\newcommand{\intfacelab}{\text{\rm ifc}}
+\newcommand{\setlab}{\text{\rm set}}
+\newcommand{\getlab}{\text{\rm get}}
+\newcommand{\deletelab}{\text{\rm delete}}
+\newcommand{\readlab}{\text{\rm read}}
+\newcommand{\writelab}{\text{\rm write}}
+\newcommand{\subsetfn}{\text{\rm subseteq}}
+\newcommand{\castfn}{\text{\rm cast}}
+\newcommand{\upcastfn}{\text{\rm upcast}}
+\newcommand{\caprec}[2]{\recdefn{\olab = #1, \intfacelab = #2}}
+%\newcommand{\credentials}{\mathcal{A}}
+\newcommand{\vpre}{\tpre}
+\newcommand{\vabs}{\tabs}
+%\newcommand{\defeq}{=_{\scriptscriptstyle{\mathrm{def}}}}
+%\newcommand{\defeq}{\stackrel{\mathrm{def}}{=}}
+\newcommand{\defeq}{\triangleq}
+\newcommand{\bisimilar}{\simeq}
+\newcommand{\redexsimilar}{\approxeq}
+\newcommand{\contextsimilar}{\approxeq}
+%\renewcommand{\tset}[1]{[#1]}
+%\renewcommand{\ourX}{\ensuremath{\mathrm{ROWS}}}
+\newcommand{\tref}{\refcell}
+\newcommand{\ycomb}{Y}
+%\newcommand{\self}{\varsigma}
+\newcommand{\ivar}{i}
+%\newcommand{\initenv}{\Gamma_1}
+%\newcommand{\objt}[2]{#1\ \mathbf{withface}\ #2}
+\newcommand{\prettyrow}[1]{[#1]}
+%\newcommand{\objt}[2]{#1\ \cdot\ #2}
+\newcommand{\objt}[3]{{#1}^{#2}_{#3}}
+%\newcommand{\objt}[3]{{#1}\cdot{#2}-{#3}}
+\newcommand{\intt}{\mathrm{int}}
+\newcommand{\objintt}{\mathbf{int}}
+\newcommand{\unitt}{\mathrm{unit}}
+\newcommand{\labinit}{\lab_1}
+%\newcommand{\schemecomp}[3]{#1\vdash^i#2\preccurlyeq#3}
+%\newcommand{\jocap}[5]{#1,#2,#3\vdash#4 : #5}
+\newcommand{\jocap}[5]{#1,#3\vdash#4 : #5}
+\newcommand{\assume}{\Gamma}
+%\newcommand{\vecdefn}[3]{#1^{\hspace{6pt}#2 \in \setdefn{1,\ldots,#3}}}
+\newcommand{\vecdefn}[3]{{#1}^{\hspace{4pt}0<{#2}\le{#3}}}
+%\newcommand{\methods}[2]{#1^{\hspace{6pt}#2}}
+\newcommand{\codt}[1]{\llparenthesis\,#1\,\rrparenthesis}
+\newcommand{\codtin}[1]{\llparenthesis\,#1\,\rrparenthesis_{\tin}}
+\newcommand{\codtout}[1]{\llparenthesis\,#1\,\rrparenthesis_{\tout}}
+\newcommand{\invcodt}[1]{\rrparenthesis#1\llparenthesis}
+\newcommand{\fndestruct}[3]{#1;\ #2 \mapsto #3}
+\newcommand{\ksset}[1]{{\text{\emph{Set}}}_{#1}}
+\newcommand{\kmeth}[1]{{\text{\emph{Meth}}}_{#1}}
+\newcommand{\kifc}[1]{{\text{\emph{Ifc}}}_{#1}}
+%\newcommand{\weaken}[3]{\mathbf{weak}(#1,#2,#3)}
+\newcommand{\weaken}[2]{\mathbf{weak}_{#2}(#1)}
+%\newcommand{\eabs}[2]{\lambda#1.#2}
+\newcommand{\cellobj}[2]{#1 \cdot #2}
+\newcommand{\newcell}[2]{\refcell_{#1}#2}
+\newcommand{\unitv}{()}
+\newcommand{\cget}[1]{\send{#1}{\getlab}{}}
+\newcommand{\cset}[2]{\send{#1}{\setlab}{#2}}
+\newcommand{\intersect}[2]{#1\wedge#2}
+\newcommand{\union}[2]{#1\vee#2}
+\newcommand{\unionprim}[1]{\vee_{#1}}
+\newcommand{\difference}[2]{#1\ominus#2}
+\newcommand{\diffprim}[1]{\ominus_{\!#1}}
+\newcommand{\differenceprim}[1]{\ominus_{#1}}
+\newcommand{\reduceisect}{\reduce_\wedge}
+%\newcommand{\existsC}[2]{\exists#1.#2}
+\newcommand{\noneset}{\varnothing}
+\newcommand{\allset}{\coset{\noneset}}
+\newcommand{\addmem}[2]{#1{\scriptstyle\oplus}#2}
+\newcommand{\removemem}[2]{#1{\scriptstyle\ominus}#2}
+\newcommand{\setmeaning}[1]{\langle#1\rangle}
+%\newcommand{\tin}{\cdot}
+%\newcommand{\tout}{-}
+\newcommand{\tin}{+}
+\newcommand{\tout}{-}
+\newcommand{\ttop}{\top}
+\newcommand{\tbot}{\bot}
+\newcommand{\setv}{\rowv}
+\newcommand{\allsett}{\omega}
+\newcommand{\nonesett}{\varnothing}
+%\newcommand{\fielduk}[2]{\stackrel{\;#2}{#1}}
+\newcommand{\fielduk}[2]{#1#2}
+\newcommand{\fieldint}[1]{\fielduk{#1}{\tin}}
+\newcommand{\fieldoutt}[1]{\fielduk{#1}{\tout}}
+%\newcommand{\fieldint}[1]{\dot{#1}}
+%\newcommand{\fieldoutt}[1]{\bar{#1}}
+\newcommand{\kcon}{\text{\emph{Con}}}
+\newcommand{\compoundC}{\mathbf{C}}
+\newcommand{\srow}[3]{\fielduk{#1}{#2},#3}
+\newcommand{\snext}{,}
+\newcommand{\sys}{\ensuremath{\system{1}{=}}}
+\newcommand{\inlong}[1]{#1}
+\newcommand{\labs}[2]{\lambda #1 . #2}
+\newcommand{\tyinf}{\ensuremath{\mathit{infer}}}
+\newcommand{\unify}{\ensuremath{\mathit{unify}}}
+\newcommand{\kprow}[1]{{\text{\emph{Prow}}}_{#1}}
+\newcommand{\rurow}[2]{\tset{\unionrow{\fielduk{r}{#1}}{#2}}}
+\newcommand{\simplify}{\ensuremath{\mathit{simplify}}}
+\newcommand{\confusion}{\ensuremath{\mathit{confusion}}}
+%\newcommand{\close}{\ensuremath{\mathit{close}}}
+\newcommand{\ctrans}{\ensuremath{\mathit{Trans}}}
+\newcommand{\ctransp}{\ensuremath{\mathit{Trans_{row}}}}
+\newcommand{\cfn}{\ensuremath{\mathit{Fn}}}
+\newcommand{\crow}{\ensuremath{\mathit{Row}}}
+%\newcommand{\tyinf}{\ensuremath{\mathit{infer}}}
+\newcommand{\absrow}{\partial\tabs}
+\newcommand{\groundrow}{\varrho}
+%\newcommand{\fail}{\mathbf{fail}}
+\newcommand{\fieldel}{\mathit{f}}
+\newcommand{\rowsplit}{\mathit{split}}
+\newcommand{\multivar}{\ensuremath{\gamma}}
+\newcommand{\extnsn}{\varepsilon}
+\newcommand{\compsubn}{\vartheta}
+\newcommand{\privset}{\mathcal{R}}
+\newcommand{\mvar}{\mu\nu}
+\newcommand{\abrvrow}{ar}
+\newcommand{\arow}[3]{\langle #1, #2, #3 \rangle}
+\newcommand{\smid}{\!\shortmid\!}
+%\newcommand{\range}{\mathrm{rng}}
+\newcommand{\fuse}{\mathit{fuse}}
+\newcommand{\prow}{\pi}
+\newcommand{\emptyprow}{\epsilon}
+\newcommand{\urset}{\mathcal{R}}
+\newcommand{\unionrow}[2]{#1\ltimes#2}
+\newcommand{\cprow}[2]{#1\smid#2}
+\newcommand{\prowt}{\pi}
+\newcommand{\rawform}[4]{(\unionrow{#1}{\cprow{#2}{#3}}\snext #4)}
+\newcommand{\tground}{\hat{\tau}}
+\newcommand{\nat}{\mathbb{N}}
+\newcommand{\pair}[2]{#1 * #2}
+\newcommand{\coset}[1]{\bar{#1}}
+%\newcommand{\stacked}[1]{\lfloor#1\rfloor}
+\newcommand{\stacked}[1]{\cdot#1\cdot}
+\newcommand{\venv}{\gamma}
+\newcommand{\closure}[2]{\mathtt{C}({#1},{#2})}
+\newcommand{\onflag}[1]{\mathbf{on}(#1)}
+\newcommand{\offlag}{\mathbf{off}}
+\newcommand{\shadow}[2]{#1 ; #2}
+\newcommand{\flagsym}{\mathbf{f}}
+\newcommand{\gleanenv}{\mathrm{env}}
+\newcommand{\valueworld}{\mathbb{V}}
+\newcommand{\OK}{\mathit{ok}}
+\newcommand{\tOK}{\tau_{\OK}}
+\newcommand{\tdead}{\tau_{dp}}
+\newcommand{\upddef}{\triangleright}
+\newcommand{\defupd}[2]{#1 \upddef #2}
+\newcommand{\tsetp}[1]{\tset{\cdot#1\cdot}}
+\newcommand{\inject}[1]{{}^\backprime#1}
+\newcommand{\match}[3]{\text{\rm match}\ #1\ \text{\rm{with}}\ #2 \rightarrow #3}
+\newcommand{\defuser}{\partial}
+\newcommand{\defmatch}[1]{\hole \rightarrow #1}
+\newcommand{\scod}[1]{\codp{#1}{}}
+\newcommand{\succeedmacro}{\text{\bf succeed}}
+\newcommand{\failmacro}{\text{\bf fail}}
+\newcommand{\freshlab}[1]{\text{\bf{fresh}}_{#1}()}
+\newcommand{\sframe}{\mathit{f}}
+\newcommand{\oldest}{\text{\rm oldest}}
+\newcommand{\sectrans}{$\seclang$-to-$\projml$}
+\newcommand{\vb}[1]{\texttt{#1}}
+\newcommand{\public}{\text{\texttt{public}}}
+\newcommand{\private}{\text{\texttt{private}}}
+%\renewcommand{\protected}{\text{\texttt{protected}}}
+\newcommand{\metaj}{\mathcal{J}}
+\newcommand{\locrule}{\TirName{Loc}}
+\newcommand{\eassign}[2]{\mathord{:=}\,#1\,#2}
+\newcommand{\eass}[1]{\mathord{:=}\,#1}
+\newcommand{\vcod}[1]{\langle#1\rangle}
+\newcommand{\rcodp}[2]{\langle#1\rangle_{#2}}
+\newcommand{\weakface}[2]{#1\backslash_{#2}}
+\newcommand{\labstack}{\delta}
+\newcommand{\labcons}[2]{#1::#2}
+\newcommand{\rev}{\mathrm{rev}}
+\newcommand{\codconfig}[3]{\codp{\hmxconfig{#1}{#2}}{#3}}
+\newcommand{\codsim}{\lhd}
+\newcommand{\oreduce}{\hookrightarrow}
+\newcommand{\Ehole}{[\,]}
+\newcommand{\selfobj}[1]{[#1]}
+\newcommand{\selft}[1]{\prettyrow{#1}}
+\newcommand{\eseclang}{\seclang^{\stack}}
+\newcommand{\codE}[3]{\cod{(#2, #3, #1)}}
+\newcommand{\slreduce}{\reduce}
+\newcommand{\frun}{f_{\mathrm{run}}}
+\newcommand{\silenturl}[1]{}
+\newcommand{\eg}{e.g.~}
+\newcommand{\linfer}[3]{\inferrule*[right=\textsc{\scriptsize#3}]{#1}{#2}}
+
+%
+% DANGEROUS REDEFINES!
+%
+%\renewcommand{\drow}[3]{\fielduk{#1}{#2},#3}
+%\renewcommand{\tpre}{\tin}
+%\renewcommand{\tabs}{\tout}
+
+
+
+

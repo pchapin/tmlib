@@ -1,0 +1,33 @@
+
+1. Give general overview of ABLP logic. What is it for?
+
+2. Present syntax of principals, motivate each syntactic form (describe
+   the intent).
+
+3. Present syntax of primitive formulae, motivate each syntactic form
+   (describe the intent).
+
+4. Present inference rules, discuss
+    - mention that logic is undecidable in general
+
+5. Give an example inference (prefereably example 2.1 in Skalka & Wang
+   SWS04)
+
+6. Access control 
+   - define and discuss "controls" connective
+   - define and discuss ACLs
+   - give example access control judgement
+   - mention ACL decisions (of specific form) are 
+     decidable, as discussed in paper
+
+7. Delegation
+   - define and discuss "for" connective (as defined
+     on bottom of page 17)
+   - define and discuss ACL modifications in presence
+     of delegation with "for"
+   - discuss why e.g. "A for B says s" is more powerful
+     than "A says B says s"
+
+For typesetting inference rules:
+   
+  http://pauillac.inria.fr/~remy/latex/

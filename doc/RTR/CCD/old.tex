@@ -1,0 +1,71 @@
+% Should this initialization stuff be part of the pseudo code or does
+% the text describe this well enough (or is it obvious enough) to leave
+% out?
+%
+%initialNode = Graph.addNode(governingRole);
+%initialArr  = new ARR(-1, governingRole, bot, bot, GoverningObserver);
+%initialNode.addArr(initialArr);
+%Queue.push(initialNode);
+%
+\begin{verbatim}
+while ((currentNode = Queue.pop()) != null) {
+  foreach (Credential c in CredentialStore.getDefiningCredentials(currentNode)) {
+    switch (c.type()) {
+
+    case "A.r <- E":
+      newNode = Graph.addNode("E");
+      foreach (arr in currentNode) {
+        newArr = arr aggregated with c's risk;
+        if (newArr.totalRisk <= maximumRisk && newNode.addArr(newArr)) {
+          newArr.executeObserver(newNode);
+        }
+      }
+      break;
+
+    case "A.r <- B.s":
+      newNode = Graph.addNode("B.s");
+      modified = false;
+      foreach (arr in currentNode) {
+        newArr = arr aggregated with c's risk;
+        if (newArr.totalRisk <= maximumRisk) { modified = newNode.addArr(newArr); }
+      }
+      if (modified) { Queue.push(newNode); }
+      break;
+
+    case "A.r <- A.s.t":
+      newNode = Graph.addNode("A.s.t");
+      foreach (arr in currentNode) {
+        newArr = arr aggregated with c's risk;
+        if (newArr.totalRisk <= maximumRisk) { newNode.addArr(newArr); }
+      }
+
+      supportNode = Graph.addNode("A.s");
+      modified = false;
+      foreach (arr in newNode) {
+        supportArr = new ARR(c's key, "A.s", arr.totalRisk, bot, LinkingObserver);
+        modified = supportNode.addArr(supportArr);
+      }
+      if (modified) { Queue.push(supportNode); }
+      break;
+
+    case "A.r <- intersect(B.s1, B.s2, ..., B.sn)":
+      newNode = Graph.addNode("B.s1 ^ B.s2 ^ ... ^ B.sn");
+      foreach (arr in currentNode) {
+        newArr = arr aggregated with c's risk;
+        if (newArr.totalRisk <= maximumRisk) { newNode.addArr(newArr); }
+      }
+
+      foreach (roleName in intersection) {
+        supportNode = Graph.addNode(roleName);
+        modified = false;
+        foreach (arr in newNode) {
+          supportArr = new ARR(c's key, roleName, arr.totalRisk, bot, IntersectionObserver);
+          modified = supportNode.addArr(supportArr);
+        }
+        if (modified) { Queue.push(supportNode); }
+      }
+      break;
+    }
+  }
+}
+\end{verbatim}

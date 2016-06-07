@@ -1,0 +1,355 @@
+\section{Features of Trust Management Systems}
+\label{section-features}
+
+In this section we describe and discuss features relevant to trust
+management.  We do not intend this listing to be exhaustive, rather we
+intend to focus on features that are generally considered important
+for trust management applications.  Our goal is to more deeply
+characterize trust management systems, and to provide a means for
+comparison of various systems later in the paper.
+
+We name and discuss features below, commenting on their relevance to trust
+management and noting important implementation issues. Particular trust
+management systems will be discussed in detail in \autoref{section-review},
+but in anticipation of that and in order to provide a thumbnail reference,
+Table~\ref{tbl:tmsummary1} and Table~\ref{tbl:tmsummary2} summarize feature
+sets for the collection of trust management systems we survey. Recall from
+the previous section that we understand trust management systems to
+include more than just the core authorization semantics, but also ancillary
+components such as translation from certificates to credentials. Thus, some
+systems are said to possess features that are realized in ancillary
+components instead of the core semantics. Also, while some systems are
+not explicitly designed to support certain features, their semantics is
+sufficiently expressive to simulate them, and such instances are listed in
+the table. The order in which the systems are listed is
+intended to follow an approximate chronological order of their development.
+The order is approximate because some of the systems were developed over
+a considerable span of time and it is difficult to specify precisely
+when they reached a mature state.
+
+\input{summary}
+
+% The summary table contains:
+%
+% Formal Foundation
+% Semantics
+% Authorization Procedure
+% Authorization Complexity
+% Public Key Infrastructure
+% Threshold Policies
+% Local Name Spaces
+% Role-Based Access Control
+% Delegation of Rights
+% Certificate Validity
+% Distributed Chain Discovery
+% Negative Certificates
+
+% Formal Foundation
+
+\subsection{Discussion of Features}
+
+We now briefly describe trust management features at a conceptual
+level.  Specific examples of these features in systems are given in
+\autoref{section-review}.
+
+\subsubsection{Formal Foundation} 
+Since authorization systems are used in security-sensitive contexts,
+mathematically precise descriptions of their behavior and formal
+assurances of their correctness is essential.  A variety of formalisms
+serve as effective foundations for the definition of trust management
+authorization semantics.  As we describe later in this survey, these
+can be divided into three main categories: logics, database
+formalisms, and graph theory.
+
+In the case of trust management systems based on logic, the
+authorization problem is expressed in terms of finding a proof of a
+particular formula representing successful resource access, with a
+collection of suitable axioms representing policy.  Credentials
+relevant to a particular decision become additional hypotheses to be
+used in the proof.  Trust management systems based on database
+formalisms (e.g.~relational algebra) see the authorization decision as
+a query against a distributed database. The certificates issued by a
+principal contain, in effect, tuples from relations that a principal
+controls.  Trust management systems based on graph theory define the
+authorization decision in terms of finding a path through a graph. The
+request is represented by a particular node in the graph. Principals
+are also graph nodes and the certificates they issue denote edges.
+
+%In \autoref{section-review} we focus particularly on the systems
+%described by logics, including those systems that use the logic based
+%query language \datalog. The systems that use other formalisms are
+%also discussed, although we cover them in less detail.
+
+It is not unusual for a particular trust management system to be
+described by more than one formalism. In fact, some aspects of trust
+management are more naturally expressed using one formalism or
+another.  Also, \datalog\ serves as both a database formalism and a
+programming logic, and several trust management systems have been
+specified in \datalog.
+
+% Authorization Procedure. Authorization Complexity.
+
+\subsubsection{Authorization Procedure. Authorization Complexity} Trust
+management systems differ in exactly how the authorization decision is
+implemented. In a broad sense this is due to differences in the way
+the systems are described; systems using the same style of
+formalization tend to use similar authorization procedures. This is
+particularly evident among the systems using programming logics such
+as \datalog\ as both their formal foundation and implementation.
+However, some differences between systems result in significant
+differences in how authorization is computed even when the underlying
+formalism is the same, if certificate revocation is present in one
+system but not another for example.  In some cases no authorization
+procedure is given; the details of computing authorization is entirely
+left to the implementors.
+
+The computational complexity of the authorization decision is clearly of
+practical interest. Authorization should be decidable
+and tractable, but there is a trade off between the expressiveness of the
+certificate and policy language and the complexity of the authorization
+decision. For example, the systems that use Datalog with constraints
+(\datalogc) can have various levels of computational complexity depending
+on the constraint domain used \cite{Li:DCFTML}. Yet even trust management
+systems with undecidable decision procedures can be potentially useful;
+realistic policies may be decidable even if the general policy language is
+not.
+%The danger in such a system is that an
+%attacker who submits carefully crafted certificates might be able to
+%force the authorization decision to execute infinitely.
+
+% Public Key Infrastructure
+
+\subsubsection{Public Key Infrastructure (PKI)} It is common for trust
+management systems to treat keys directly as principals. This creates a
+conceptually clean design. In contrast some systems regard the human or
+machine participants as the principals and encode a relationship between
+principals and the keys that identify them. In the former case key bindings
+are not represented in the authorization semantics, where in the latter
+case they are. Although PKIs underpin the implementation of trust
+management systems, the question here is: to what extent does a particular
+trust management system directly concern itself with the details of key
+management.
+
+% Threshold Policies
+
+\subsubsection{Threshold and Separation of Duty Policies} Many systems
+support threshold policies, where at least $k$ out of a set of $n$ entities
+must agree on some point in order to grant access. Threshold policies are
+appealing since agreement provides confidence in situations wherein no
+single authority is trusted by itself. The concept of separation of duty is
+related to threshold policies. In the case of a separation of duty policy
+entities from different sets must agree before access is granted.
+
+For example a bank might require that two different cashiers approve a
+withdrawal (same set---threshold policy). The bank might also require that a
+cashier and a manager, who are not the same person, approve a loan
+(different sets---separation of duty policy). In general threshold policies
+and separation of duty policies cannot be implemented in terms of each
+other, although some trust management systems provide support for both
+\cite{Li:DRBTMF}.
+
+% Local Name Spaces
+
+\subsubsection{Local Name Spaces} It is desirable for trust management 
+systems to allow each administrative domain to manage its own
+name space independently.  Requiring that names be globally unique is
+problematic and, in general infeasible. Although there have been
+attempts at creating a global name space \cite{X500}, these attempts
+have at best only been partially successful. The ability to reference
+non-local name spaces is also a keystone of modern trust management,
+in that it allows local policy to consider requesters that may not be
+directly known to the local system.
+
+% Role-Based Access Control
+
+\subsubsection{Role-Based Access Control} In a large system with many 
+principals it is often convenient to use role based access control
+(RBAC) \cite{Ferraiolo:RBAC,Sandhu:RBACM}. In such a system
+\newterm{roles} are used to associate a group of principals to a set
+of permissions.  The use of roles simplifies administration since the
+permissions granted to a potentially large group of principals are
+defined in a single place.  RBAC is a conceptual foundation of modern
+authorization technologies, so many trust management systems provide
+features to support RBAC policies.
+
+%Some trust management systems support this concept by casting the access
+%control decision as a role membership decision. Access will be granted
+%if the requestor is a member of an appropriate role but the precise
+%meaning of the roles, in terms of the permissions that are connected to
+%them, is defined outside the trust management environment. In contrast
+%some trust management systems include a mechanism in their policy
+%language to define permissions explicitly. In these systems the access
+%control decision is directly rendered for a particular permission. In
+%some cases roles are not provided directly but can be simulated by
+%assigning an appropriate interpretation to suitable objects within the
+%system.
+
+% Delegation of Rights
+
+\subsubsection{Delegation of Rights} All trust management systems allow an
+authorizer to delegate authority. In other words, an authorizer can
+specify third parties that have the authority to certify particular
+attributes. We take this as one of the defining characteristics of a
+trust management system.  In many applications a requester will also
+want to delegate some or all of his or her rights to an intermediary
+who will act on that requester's behalf.
+
+Delegation of rights is important in a distributed environment. For
+example a request may be made to an organization's front end system
+that accesses internal servers where the request is ultimately
+processed. The classic three-tier architecture of web applications
+follows this approach.  In many environments the back end servers may
+have their own access control requirements, in which case the
+requester will need to delegate his or her rights to the front end
+system for use when making requests to the internal servers.
+
+Trust management systems differ in their support for rights
+delegation. Delegation certificate forms may be formally provided, or
+delegation can be simulated via more primitive forms.  Also,
+delegation \emph{depth} can be modulated in some systems-- rather than
+being purely transitive, delegation of rights may only be allowed to
+be transferred between fixed $n$ principals. In some cases rights can be
+delegated arbitrarily or not at all. A system that has this latter
+feature is said to support boolean delegation depth.
+%
+%Although delegation of rights seems different than delegation of authority,
+%many trust management systems can simulate a kind of delegation of rights
+%using delegation of authority. To do this the authorizer writes a policy
+%that allows those with access to the resource to grant access to others.
+%For example, using the trust management system $\RT_0$, the principal $A$
+%can express his willingness to accept delegated rights by writing the
+%policy $A.r \leftarrow A.r.s$. Here we assume that a principal must be a
+%member of role $A.r$ to gain access. With this policy any principal $E \in
+%A.r$ can create a local role $s$ and add another principal $F$ to $E.s$.
+%$F$ then becomes a member of $A.r$ and thus has access to the resource.
+%Presumably the lifetime of the certificate issued by $E$ placing $F$ in
+%$E.s$ would be short so that the delegation would only be valid for the
+%duration of a single session.
+%
+%This approach does require an authorizer to write an appropriate policy
+%ahead of time. However, even in systems that support delegation of rights
+%as an explicit feature, authorizers often have the option of ignoring
+%delegated rights if they choose. Thus it is not unusual for this matter to
+%be under the control of the authorizer's policy regardless of the
+%mechanism.
+%
+%[It seems like the trick I mentioned above requires the TM logic to support
+%circular policy statements. I'm not sure that's universal, however. Systems
+%without such an ability might not be able to simulate delegation of rights
+%using delegation of authority.]
+
+% Certificate Validity
+
+\subsubsection{Certificate Validity} Since an authorizer receives certificates
+from unknown and potentially untrustworthy entities, the validity of
+those certificates must be checked.  Usually, signatures must be
+verified and the certificate must not have expired, since in practice
+certificates will almost always have a finite lifetime to ensure that
+obsolete information cannot circulate indefinitely. In some systems
+certificate validity is explicitly treated as part of the structure of
+the trust management authorization semantics-- the component $L$
+described in \autoref{section-overview-structure}.  In such cases
+sufficient expressivity may exist in the policy language to specify
+authentication policies \cite{Abadi:CACDS}, or, in a simpler (and
+currently more popular) scenario, certificate lifetimes can be
+directly represented in credentials and taken into account in policy
+\cite{Bauer:GFACSW,lbi-fc01,skalka-wang-chapin-jcs06}. In other
+systems, certificate validity is defined externally and checked as
+part of the translation of certificates into credentials-- the
+component $T_C$-- and not formally reflected in the authorization
+semantics \cite{RFC-2693}. We note that it is a topic of lively debate
+whether authorizers \cite{Rivest:CWECRL} or certificate authorities
+\cite{McDaniel:RTCWECRL} should determine validity intervals for
+authorization decisions.
+
+\subsubsection{Credential Negation} Policy languages sometimes 
+allow policy makers to specify that a credential \emph{not} be held.
+For example, access to a resource may require that requesters not
+possess a credential endowing them with a felon role.  In systems
+using logic as a foundation for the semantics of authorization, this
+is expressed as credential negation.  That is, authorization is
+predicated on the negation of a role attribute expressed as a
+credential.  Note that this makes the semantics nonmonotonic-- as more
+credentials (facts) are added to the system, it is possible that fewer
+authorizations succeed.  As noted in \cite{seamons-policy02}, this
+makes credential negation a generally undesirable feature, since
+nonmonotonic systems are potentially unsound in practice.  For example, if a
+certificate is not discovered due to a network failure, access might be
+granted that would otherwise have been denied.
+
+\subsubsection{Certificate Revocation} Certificate revocation is 
+similar to credential negation, but allows previously granted access
+rights to be explicitly eliminated \cite{Rivest:CWECRL}.  Like
+certificate validity, this can be implemented in the translation $T_C$
+from certificates to credentials. For example, in SPKI/SDSI
+\cite{RFC-2693} online revocation lists can be defined that filter out
+revoked certificates prior to embedding as credentials for the
+authorization decision.  At first glance it may appear that
+certificate revocation entails nonmonotonicity, as does credential
+negation.  However, it has been demonstrated that certificate
+revocation can encoded monotonically in both the Proof Carrying
+Authorization framework \cite{Bauer:GFACSW} and a logic-based PKI
+infrastructure \cite{lbi-fc01}; we describe how in
+\autoref{section-other-PCA}.  The technique points out a relation
+between certificate revocation and certificate validity, in that
+monotonic revocation can be based on lifetimes and the requirement to
+renew certificates.  Various high-level approaches to and nuances of
+certificate revocation are discussed in \cite{Rivest:CWECRL}.
+
+% Negative Certificates
+%
+%\subsubsection{Negative Credentials}  
+%In \emph{monotonic} systems each policy statement or credential can
+%only add new access rights, never remove existing ones. In a
+%non-monotonic system, negative certificates that explicitly deny an
+%access right are possible. Many distributed environments avoid
+%non-monotonic access control because such systems are often unsafe in
+%practice: if a certificate is not received due to a network failure,
+%access might be granted that would otherwise have been denied.  Also,
+%non-monotonic authorization semantics are more conceptually and
+%computationally complex.
+%
+%Another way of achieving the same effect is via certificate
+%\emph{revocation} \cite{Rivest:CWECRL}, and by representing certificate
+%revocation lists in the authorization semantics. Like certificate validity,
+%this is also an issue that can be handled by the translation $T_C$ from
+%certificates to credentials. For example, in SPKI/SDSI online revocation
+%lists can be defined that filter out revoked certificates prior to
+%embedding as credentials for the authorization decision. In contrast Proof
+%Carrying Authorization treats revocation as part of the core logic by using
+%an inference rule that only allows a credential to be used if a suitable
+%revocation list is available. This allows revocation to be handled without
+%introducing any non-monotonicity.
+
+%A related issue is certificate revocation. Practical systems usually
+%provide a way for a principal to explicitly revoke a certificate that
+%becomes invalid before its expiration time. Since trust management systems
+%allow certificates to be made pertaining to arbitrary attributes, this
+%issue is more pressing than in other certificate based systems. For
+%example, identities do not typically change very often but other attributes
+%may be subject to rapid changes that are outside of the control of the
+%certificate issuer. Thus it is useful for a trust management application to
+%provide some way for an issuer to revoke certificates.
+%
+%Unfortunately the information that a certificate has been revoked is itself
+%a kind of negative certificate. Introducing such a facility into a trust
+%management system also introduces the problems of non-monotonicity. For this
+%reason we group negative certificates and certificate revocation together.
+
+% Distributed Chain Discovery
+
+\subsubsection{Distributed Certificate Chain Discovery} Where do 
+certificates for a particular access request come from?  In the
+example in \autoref{section-overview-example}, it was assumed that the
+requester presents all relevant certificates upon access request.  It
+is also easy to imagine settings in which authorizers maintain local
+databases of certificates.  More generally, certificates could be
+stored anywhere in the network, as long as the local system has some
+way of finding them.  Of course, given the potentially enormous number
+of certificates on the network, it is necessary to define some means
+of selectively retrieving only certificates that might pertain to a
+particular authorization decision.  This problem is sometimes called
+\emph{distributed certificate chain discovery} \cite{Li:DCDTM} or
+\emph{policy directed certificate retrieval} \cite{Gunter:PDCR}.  In
+both of these approaches the process of obtaining certificates is formally
+well founded and not left to ad hoc techniques.

@@ -1,0 +1,97 @@
+\section{Introduction}
+
+Trust management systems provide a means to specify and enforce
+distributed authorization policies.  Many such systems possess a
+formal foundation for making authorization decisions, so that security
+is rigorously enforced and so that designers and users have a clear
+understanding of policies and semantics.  Current state-of-the-art
+includes SPKI/SDSI \cite{rivest-lampson-96,ellison-etal-rfc99} and
+$\RT$ \cite{Li:2003-04}.  The expressiveness and rigor of these
+systems have become increasingly important to security in modern
+distributed computing infrastructures, as web-based interactions
+continue to evolve in popularity and complexity.
+
+Authorization in trust management usually takes into account several
+facts and assertions, including certificates provided by non-local,
+untrusted actors.  Although cryptographic techniques provide certain
+measures of confidence in this setting, not all components of
+authorization can realistically be used with the same level of
+confidence.  The Pretty Good Privacy (PGP) framework acknowledges
+this, by including a notion of trustworthiness of certificates in
+their legitimacy measure \cite{Abdul-Rahman-EDI97}.  Furthermore,
+efficient online authorization decisions often require a weakening of
+ideal security, since the latter may be prohibitively expensive.  This
+weakening may involve the acceptance of assertions that would
+otherwise be verified, in case lowered confidence levels are more
+tolerable than the danger of intractability.  Thus, many practical
+distributed authorization decisions include elements of \emph{risk}
+associated with authorization components, where risk could be
+associated with trust or other practical considerations making some
+facts more or less risky than others.
+
+A rigorous assessment of authorization should accurately assess risk,
+but risk in trust management is usually an informal consideration.  In
+this paper, we develop a trust management logic called $\RTR$,
+introduced in a simpler form in previous work
+\cite{chapin-skalka-wang-fmse05}, that formally incorporates formal
+risk assessment.  The system is a variant of $\RT$ \cite{Li:2003-04},
+and includes an abstract definition of risk, a means to associate risk
+with individual assertions, and a semantics that assesses risk of
+authorization by combining the risk of assertions used in
+authorization decisions.  This formalization promotes development of a
+distributed authorization algorithm allowing tolerable levels of risk
+to be precisely specified and rigorously enforced.
+
+\subsection{Contributions}
+
+The main contributions of this paper are twofold.  First, we develop a
+rigorous formal foundation for an authorization calculus that
+incorporates a notion of risk, and aggregation of risk for particular
+authorization decisions, in the system $\RTR$.  The system is designed
+as an extension to the system $\RT$ \cite{Li:2002-05}.  The definition
+of risk, risk ordering, and aggregation of risk are left abstract
+modulo some basic sanity requirements, so $\RTR$ is a framework for
+risk management in authorization, that can be specialized for
+particular applications.  Our theory also features thresholds, which
+are formal specifications of tolerable risk.  The per-role granularity
+of thresholds allows different security domains to specify their own
+risk tolerance, and allows these specifications to interact in
+particular authorization decisions.
+
+Our second main contribution is an algorithm for performing
+authorization in a distributed setting, called distributed chain
+discovery.  The algorithm does not depend on all credentials for
+authorization to be known locally, but allows certificates relevant to
+particular decisions to be retrieved dynamically from remote locations
+based on a simple storage scheme.  The technique is based on one
+defined by other authors \cite{Li:2003-02}, but modified to reflect
+risk management as specified in the semantics.  More importantly, the
+algorithm is risk-directed: as partial authorization proofs are
+constructed, associated risk is maintained, and certificates that
+would cause thresholds to be exceeded are avoided.  If risk is chosen
+to reflect computational expense, this technique provides a heuristic
+to improve efficiency, and modulating thresholds allows computational
+cost to be balanced with e.g.~issues of trust.
+
+
+\subsection{Paper Outline}
+
+The remainder of the paper is organized as follows. In
+\autoref{section-rt}, an overview of the $\RT_0$ system is given for
+background.  In \autoref{section-risk-assignment}, motivations for
+adding risk measures and management to authorization is discussed.  In
+\autoref{section-rtr}, we define the syntax and set-theoretic
+semantics of $\RTR$, an authorization logic with risk assessment,
+including a formalization of risks, risk ordering, risk aggregation
+and thresholds.  It is demonstrated that this semantics provides a
+meaningful interpretation of any set of credentials.  The system
+$\RTR$ is defined as a framework, and several example instances are
+given in \autoref{section-examples} to illustrate the use and
+flexibility of the system.  In \autoref{section-rtr-discovery}, we
+give a graph-theoretic interpretation of $\RTR$ that is equivalent to
+the set-theoretic semantics, and show that so-called credential graphs
+can be automatically reconstructed by a distributed chain discovery
+algorithm, as an implementation of distributed authorization.  In
+\autoref{section-application}, we discuss some interesting practical
+applications of $\RTR$, and we conclude with a summary of the paper
+and remarks on related work in \autoref{section-conclusion}.

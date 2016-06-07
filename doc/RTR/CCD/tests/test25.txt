@@ -1,0 +1,14 @@
+# This test has a cycle over the derived edge. It terminates because of
+# the upper bound on the risk used by the search. Although the maximum
+# size of the Q seems (by experiment) to be linear in the upper bound on
+# the risk, it feels like the runtime is much slower. Right now I'm not
+# sure exactly why that is; clearly it's related to a large number of
+# spurious ARRs being processed. In any case, it's not good. The
+# expected output is (E, 30), (E, 50), (E, 70), etc up to the limit
+# imposed by the bound.
+
+A.r, 100
+A.r <- B.s ^ C.t, 4, 5
+B.s <- E, 1, 10
+C.t <- E, 1, 15
+C.t <- A.r, 2, 5

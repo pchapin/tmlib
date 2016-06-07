@@ -1,0 +1,11 @@
+# This is variation of test12.txt. In this case, the upper bound on the
+# search is reduced to 50 so that the (M, 65) is never discovered.
+# However, the (M, 30) via the linked role is found.
+
+H.discount, 50
+H.discount <- H.preferred, 2, 15
+H.discount <- H.orgs.members, 3, 20
+H.preferred <- AARP.members, 2, 50
+H.orgs <- AARP, 1, 10
+AARP.members <- M, 1, 0
+

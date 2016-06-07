@@ -1,0 +1,6 @@
+# This is a basic intersection test. The expected result is (E, 20)
+
+A.r, 100
+A.r <- B.s ^ C.t, 4, 10
+B.s <- E, 1, 5
+C.t <- E, 1, 5

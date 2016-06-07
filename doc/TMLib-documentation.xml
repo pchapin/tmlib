@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+  "http://www.docbook.org/xml/4.4/docbookx.dtd" [
+  
+<!ELEMENT xi:include (xi:fallback?) >
+<!ATTLIST xi:include
+    xmlns:xi   CDATA      #FIXED     "http://www.w3.org/2001/XInclude"
+    href       CDATA      #REQUIRED
+    parse      (xml|text) "xml"
+    encoding   CDATA      #IMPLIED >
+<!ELEMENT xi:fallback ANY>
+<!ATTLIST xi:fallback
+    xmlsn:xi   CDATA      #FIXED     "http://www.w3.org/2001/XInclude" >
+<!ENTITY % local.chapter.class "| xi:include">
+]>
+
+<!-- FILE   : TMLib-Documentation.xml
+     AUTHOR : (C) Copyright 2010 by Peter C. Chapin
+
+This is the documentation for the TMLib library. -->
+
+<book status="draft">
+  <bookinfo>
+    <title>TMLib Documentation</title>
+    <author>
+      <firstname>Peter</firstname>
+      <surname>Chapin</surname>
+      <othername role="mi">C.</othername>
+      <affiliation>
+        <orgname>Vermont Technical College</orgname>
+        <orgdiv>Computer Information Systems Department</orgdiv>
+      </affiliation>
+    </author>
+    <authorinitials>pcc</authorinitials>
+    <copyright>
+      <year>2010</year>
+      <holder>Peter C. Chapin</holder>
+    </copyright>
+    <legalnotice>
+      <para>Permission is granted to copy, distribute and/or modify this document under the
+        terms of the GNU Free Documentation License, Version 1.1 or any later version published
+        by the Free Software Foundation; with the Invariant Sections being LIST THEIR TITLES,
+        with the Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST. A copy
+        of the license is included in the file <filename>GFDL.txt</filename>.</para>
+    </legalnotice>
+    <!-- Do I really want to include this revision history? -->
+    <revhistory>
+      <revision>
+        <revnumber>0.0</revnumber>
+        <date>2010-12-31</date>
+        <authorinitials>pcc</authorinitials>
+        <revremark>Initial release (well, not really).</revremark>
+      </revision>
+    </revhistory>
+  </bookinfo>
+
+  <preface>
+    <title>Introduction</title>
+
+    <para>Trust management systems, in the context of this work, are systems that provide a
+      solution to the distributed authorization problem. In a traditional system the entity that
+      controls a resource, the <emphasis>authorizer</emphasis>, must maintain or access a
+      database of all possible users of the system and that maps user identities to
+      authorizations. When a request for access is made, the <emphasis>requester</emphasis>
+      first authenticates his or her identity and the authorizer uses that identity to look up
+      the allowed authorizations in the database.</para>
+
+    <para>The traditional approach is not well suited to large distributed systems because in
+      such systems the authorizer does not typically know all the potential users. Instead the
+      authorizer relies on user attributes that are certified by designated authorities on those
+      attributes. Specifically the authorizer writes a policy that describes the characteristics
+      of acceptable users. When a request is made, the requester provides certificates that
+      prove compliance with that policy.</para>
+
+    <para>TMLib is a library of functions that allow applications to support trust management
+      style distributed authorization. The core library is written in SPARK Ada for maximum
+      safety and security.</para>
+
+    <para>Managing the certificates is a significant chore in such systems. Thus this library
+      provides an administrative application that can be used to create and manually verify
+      certificates in multiple certificate formats. In addition this library provides functions
+      for performing a proof of compliance computation that can be used in any application that
+      wishes to use trust management services.</para>
+
+    <para>The TMLib library is covered by the Lesser GNU Public License. This basically means
+      that you are free to use it in any way that you wish as well as modify it as you desire.
+      In addition, you can link this library into programs with "non-free" licenses. See the
+      file <filename>LGPL.txt</filename> for more details. The choice of using the LGPL for this
+      library instead of the GPL was made to help promote the use of the RT trust management
+      system.</para>
+
+  </preface>
+
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="doc-TMLibDesign.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="doc-TMUser.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="doc-TMLibUser.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="doc-TMLibDev.xml"/>
+
+  <!-- <bibliography> ... </bibliography> -->
+</book>

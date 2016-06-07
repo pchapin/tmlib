@@ -1,0 +1,595 @@
+\subsection{QCM and SD3}
+
+Many trust management systems have focused on authorization decisions
+while setting aside issues of certificate storage and retrieval.  In
+contrast, Query Certificate Manager (QCM)
+\cite{Gunter:DALSI,Gunter:ADDUQCM,Gunter:PDCR} and its successor Secure
+Dynamically Distributed Datalog (SD3)
+\cite{Jim:STMSCE,Jim:DDQE} address the issue head-on, by treating 
+trust management as essentially a distributed database problem.  An
+advantage of their approach is that well-studied database techniques
+and abstractions can be leveraged.  In particular, the system provides
+applications programmers with high-level database query languages for
+defining authorization policy over a transparent PKI infrastructure,
+where authorization is implemented as a query processed automatically
+over a distributed database.  Among the implementation benefits of
+their distributed database approach are a variety of optimization
+techniques and a natural incorporation of distributed certificate
+retrieval.  SD3 also introduces a novel certified evaluation mechanism
+that reduces the size of its trusted computing base.
+% whereby the results of query evaluation are
+% certified by a machine-checkable proof of evaluation correctness.
+% Since the evaluator can be a complex program, while the proof checker
+% is simple, reliance on the proof checker for correctness significantly
+% reduces the size of the trusted computing base.
+
+\subsubsection{Features}
+QCM hides from end-users the complexity of distributed query
+evaluation and certificate retrieval. Instead it presents a high level
+abstraction of a secure, local database.  The original presentation of
+QCM proposed a policy language based on relational algebra
+\cite{Gunter:DALSI}.  Consider the following example of a web page
+content filtering application taken from Gunter and Jim
+\cite{Gunter:DALSI}. Here a ratings server $r_1$ maintains a relation
+\text{\bf ratings} containing rating information for a large
+collection of web pages.  An independent server $r_2$ maintains a
+similar relation. A web browser then defines a local relation in terms
+of these other two using relational algebra expressions:
+\begin{eqnarray*}
+\textbf{ratings} & = &
+   r_1.\textbf{ratings} \cap r_2.\textbf{ratings} \\
+\textbf{ok}      & = &
+   \pi_{\text{hash}}(\sigma_{\text{rating} = G}\textbf{ratings})
+\end{eqnarray*}
+The browser will only accept ratings for which the two rating servers
+agree. In addition, the browser's \textbf{ok} table contains only the
+page hashes for the pages with a $G$ rating.
+
+Now, suppose that the browser was governed by the policy that it would
+only display web pages with a $G$ rating.  Formally, assuming that $h$
+is the hash of a web page, it would only be displayed if
+$\sigma_{\text{hash}=h}\textbf{ok}$ is not null.  In the simplest
+scenario, the browser could enforce this by submitting the query
+$\sigma_{\text{hash}=h}\textbf{ok}$ to a local QCM processor, and
+the processor would in turn query $r_1$ and $r_2$ remotely.  However,
+a more efficient and flexible scheme is allowed in QCM-- tuples in a
+database relation can be certified by the relation authority, and
+distributed as certificates.  Such certificates, called 
+\emph{inclusions}, are denoted via an
+ABLP-style \textbf{says} connective.  For example, the web server
+that hosts a page with hash $h$ can obtain certificates from the
+rating servers for that page. Each certificate is signed by the
+corresponding rating server:
+\begin{eqnarray*}
+r_1\,\,\textbf{says}\,\,r_1.\textbf{ratings} & \supseteq &
+   \{(\text{hash}: h, \text{rating}: G)\} \\
+r_2\,\,\textbf{says}\,\,r_2.\textbf{ratings} & \supseteq &
+   \{(\text{hash}: h, \text{rating}: G)\} 
+\end{eqnarray*}
+When the page is requested by a browser, the two certificates are sent
+as well, and from there to the local QCM processor along with the
+query $\sigma_{\text{hash}=h}\textbf{ok}$.  Now the processor does
+not need to contact the remote servers because the certificates
+contain enough information to answer the query directly, and can even
+cache the certificate contents for future use.  This scheme is clearly
+more efficient, and has the additional benefit that not all relation
+authorities need to be online during authorization.
+
+Also notable is QCM's support for certificate revocation
+\cite{Gunter:GCR}. This is done by allowing a set of revoked tuples to
+be subtracted from a set of otherwise potentially useful tuples. QCM
+provides for explicit \newterm{non-membership certificates} that can
+be used to assert that a tuple is not an element of the revoked set.
+This later work adopts a set-theoretic model of the QCM database to
+accommodate the notion of non-membership, and a new language of set
+comprehension is defined for QCM programming.
+
+As an example of this set comprehension language, consider the earlier
+example of web page content filtering. Rating server $r_1$ maintains a
+relation that binds page hashes to rating values
+$r_1.\textbf{ratings}(\text{hash}, \text{rating})$, and similarly for rating
+server $r_2$. The browser's policy then defines a set \textbf{ok} of
+acceptable page hashes with the statement
+\begin{eqnarray*}
+\text{\bf ok} = \{h\,|\,
+  \langle \text{hash} = h, \text{rating} = G \rangle & \leftarrow & 
+    r_1.\textbf{ratings}, \\
+  \langle \text{hash} = h, \text{rating} = G \rangle & \leftarrow &
+    r_2.\textbf{ratings}\,\}
+\end{eqnarray*}
+This defines a set of hash values for pages that both ratings servers agree
+are $G$ rated. Queries also have the form of set expressions. When the
+browser retrieves a page it asks its local QCM processor to evaluate the
+query $\{p\,|\,p \leftarrow \textbf{ok}, p = h\}$ where $h$ is the hash of
+the retrieved page. If this set evaluates to the singleton $\{h\}$ then the
+browser can display the page as $G$ rated.
+
+Secure Dynamically Distributed Datalog (SD3) is the successor of
+QCM. It adds to QCM an extended version of \datalog\ as its policy and
+credential language, allowing recursive policies to be defined. In SD3
+predicates are scoped by public keys; rules can refer to predicates in
+other name spaces by prepending the key to the predicate name. For
+example, suppose that the predicate $E$ under control of key $K$
+defines the edge relation of a particular graph. The following SD3
+program computes the transitive closure of that graph.
+\begin{eqnarray*}
+T(X, Y) &\leftarrow& K\$E(X, Y). \\
+T(X, Y) &\leftarrow& T(X, Z), T(Z, Y).
+\end{eqnarray*}
+SD3 also adds other notable implementation features, including
+intentional responses and certified evaluation, discussed below.
+
+\subsubsection{Running Example}
+
+Here we demonstrate how SD3 would express the medical records example. We
+need to first express the information to be processed as a collection of
+relations. Alice maintains a one-place relation
+\texttt{records} with tuples storing the keys of those principals who can
+access her medical records. We can then represent Alice's policy as the
+following two SD3-style \datalog\ rules.
+\begin{itemize}
+\item \texttt{$K_a$\$records($K_b$)}
+\item \texttt{$K_a$\$records(X) $\leftarrow$ $K_b$\$alice\_delegates(X)}
+\end{itemize}
+\datalog\ has no problems expressing either recursion or intersections
+(conjunctions). Bob's policy becomes
+\begin{itemize}
+\item \texttt{$K_b$\$team(X) $\leftarrow$ $K_b$\$team(Y), Y\$support(X)}
+\item \texttt{$K_b$\$alice\_delegates(X) $\leftarrow$ $K_h$\$medical\_staff(X), $K_b$\$team(X)}
+\item \texttt{$K_b$\$team($K_c$)}
+\end{itemize}
+The remaining assertions made by the hospital and by Carol are
+\begin{itemize}
+\item \texttt{$K_h$\$medical\_staff($K_d$)}
+\item \texttt{$K_c$\$support($K_d$)}
+\end{itemize}
+This example only hints at the expressivity of the general SD3 policy
+language.
+
+SD3 distinguishes between global names that are key-qualified and local
+names that are not. In this way SD3 supports multiple, independent name
+spaces. If the hospital database evaluates Dave's request to update Alice's
+medical records in the context of Alice's name space, then the $K_a$ prefix
+on Alice's policy is superfluous. The tuples from relations in other name
+spaces would be signed by the corresponding key and obtained from some
+source external to Alice's name space.
+
+\subsubsection{Semantics} The authors of QCM and SD3 have used 
+a variety of formal semantics for different aspects and versions of
+the system.  In the original presentation of QCM \cite{Gunter:DALSI},
+the core authorization semantics are the semantics of the relational
+algebra.  Additionally, an I/O automata model of network communication
+is developed to verify that certain checks during updates guarantee
+data consistency \cite{Gunter:ADDUQCM}.  In this model each QCM node
+maintains a set of pending queries, a set of inclusions that it
+accepts (initialized to the definitions known directly by the node),
+and a set of requests that the node has made. The automaton specifies
+how this state changes for each possible input or output action. A
+corresponding automaton models the network itself. This allows
+different network models, including potentially hostile models, to be
+studied in a straight forward way.
+
+In later work that addresses certificate revocation, a set-theoretic
+model of the more recent QCM language of set comprehension is
+developed as a denotational semantics \cite{Gunter:GCR}.  QCM
+expressions are interpreted as set operations in a universe of QCM
+values, which include numbers, strings, keys, and finite and cofinite
+sets of values.  An operational semantics describing the behavior of
+QCM evaluation is defined, and is shown to be sound with respect to
+the denotational semantics.  It is important for the operational
+semantics that QCM objects are only modeled as single values or finite
+or cofinite sets, since this means that they can be finitely
+represented.
+
+The semantics of SD3 are based on the semantics of \datalog\ in a
+fairly straightforward manner; the only complication is the
+interpretation of key-qualifiers on predicate names.  To describe the
+semantics of a distributed SD3 program, first a \newterm{global
+\datalog\ program} is constructed from a given SD3 program by
+replacing each $n$-ary predicate $R$ with an $(n+1)$-ary predicate
+$R^g$, and each atom of the form $s\$R(t_1, \ldots, t_n)$ with an atom
+of the form $R^g(s, t_1, \ldots, t_n)$. The semantics of an SD3
+program is the minimum model of the resulting \datalog\ program
+\cite{Jim:DDQE}.
+
+While the formal meaning of QCM and SD3 programs has evolved
+throughout development of these systems, the authors argue that their
+interpretation has been essentially consistent, since relational
+algebra, set comprehension, and \datalog\ are ``roughly equivalent by
+variations of Codd's Theorem'' \cite{Jim:STMSCE}.
+
+
+\subsubsection{Implementation} Algorithms for query processing in 
+the QCM and SD3 systems has been defined and proven correct
+\cite{Gunter:GCR,Jim:STMSCE} with respect to a number of safety and
+security requirements, e.g.~soundness of the algorithms with respect
+to the denotational meaning of programs.  The distributed database
+approach also allows a number of standard optimization techniques to
+be applied, notably magic set rewriting \cite{Jim:DDQE}.  Beyond this,
+QCM and SD3 also offer several novel implementation features.
+
+When a QCM node is queried the result is a collection of signed
+tuples, possibly obtained indirectly from other nodes, forming an
+\newterm{extensional} response to the query. SD3 extends this by
+allowing a node to instead return an \newterm{intensional} response
+consisting of one or more rules, perhaps in terms of relations held by
+other nodes, that define the result of the query. In such a case the query
+originator could contact the other nodes if necessary to obtain the
+information needed to fully evaluate the query.
+
+An example from Jim and Suciu \cite{Jim:DDQE} illustrates this distinction.
+Suppose that an SD3 server has the rule $R(x,y)\,\texttt{:-}\,E(x, w, z),
+w\$R(z, y)$ and it receives from the client the query $R(1, y)$. Suppose
+also that the server has the tuples $E(1, s_2, 2)$ and $E(1, s_3, 3)$ in
+its local table. The server could return the intensional response of
+\begin{displaymath}
+\begin{array}{c}
+R(1, y)\,\texttt{:-}\,s_2\$R(2, y) \\
+R(1, y)\,\texttt{:-}\,s_3\$R(3, y)
+\end{array}
+\end{displaymath}
+The client could then contact sites $s_2$ and $s_3$ to complete the
+query based on these rules.  
+
+Jim describes a prototype SD3 system that implements the DNSSEC protocol
+\cite{Jim:STMSCE}. In order to obtain the performance needed in DNS
+applications, Jim's implementation uses a number of elaborate optimization
+techniques. These optimizations add complexity to the implementation and
+increase the size of the trusted computing base. To deal with this Jim's
+implementation uses \newterm{certified evaluation}. The output of the SD3
+query evaluator is checked by a relatively simple proof checker. If the
+check fails, the results of the query are considered erroneous. Since proof
+checking is easier than proof construction, the proof checker can be small
+and simple, thus reducing the size of the trusted computing base.
+
+QCM supports distributed credential chain discovery, which the QCM authors
+refer to as \newterm{policy-directed certificate retrieval}
+\cite{Gunter:PDCR}. Such distributed queries are satisfied extensionally.
+For example if a QCM node $a$ defines a relation $\text{\bf ratings} =
+b.\text{\bf ratings}$ that node would answer queries about the membership
+of $\text{\bf ratings}$ by querying $b$. If $b$ defined its $\text{\bf
+ratings}$ relation in some complex way it might query other nodes as
+appropriate. However, node $b$ would return signed tuples from its
+$\text{\bf ratings}$ relation rather than a signed policy rule.
+
+QCM's system of distributed credential chain discovery should be contrasted
+with that described earlier for $\RT_0$. In the $\RT_0$ case distributed
+queries are satisfied intentionally: policy rules are passed back to the
+authorizing node where the entire credential chain is computed. This allows
+$\RT_0$ to make direct use of credentials provided with the request without
+having to transmit those credentials to other nodes. 
+
+% ===========================
+% Here is the original draft.
+% 
+% Query Certificate Manager (QCM)
+% \cite{Gunter:DALSI,Gunter:ADDUQCM,Gunter:PDCR} and its successor Secure
+% Dynamically Distributed Datalog (SD3)
+% \cite{Jim:STMSCE,Jim:DDQE} use a distributed database approach to the trust
+% management problem. This approach is based on the observation that an
+% authority on an attribute is, in effect, the maintainer of a relation about
+% that attribute. For example the student records office at a university
+% might maintain a one-place relation listing the public keys of all honors
+% students or, more generally, a two-place relation binding the public keys
+% of students to the students' grade point averages. Even if the relations
+% are not made explicit, it is conceptually useful to regard the information
+% maintained by an authority to be organized in this way. Doing so allows
+% trust management systems to take advantage of the considerable body of
+% knowledge about database systems.
+% 
+% When a QCM node is queried the result is a collection of signed tuples,
+% possibly obtained indirectly from other nodes, forming an
+% \newterm{extensional} response to the query. SD3 extends this by allowing a
+% node to instead return an \newterm{intensional} response consisting of a
+% rule, perhaps in terms of relations held by other nodes, that defines the
+% result of the query. In such a case the query originator could contact the
+% other nodes if necessary to obtain the information needed to fully evaluate
+% the query. \cnote{This needs more description-- why isn't the original 
+% query a sifficient formula?}
+% 
+% QCM and SD3 express the distributed authorization problem as a distributed
+% database query problem, making the considerable research in that field
+% \cite{Kossmann:SADQP} relevant to trust management applications. Thus
+% QCM/SD3 provides support for distributed credential chain discovery as a
+% consequence of their handling of distributed queries. In addition because
+% QCM/SD3 provides a mechanism to securely query distributed databases, they
+% can also be used in other contexts besides authorization applications. For
+% example, it is straightforward to define a public key infrastructure using
+% QCM/SD3 where distributed queries are used to obtain certified keys.
+% 
+% Note also that during a query it is not necessary for all attribute
+% authorities to be on-line at that time. A query can be accompanied by
+% relevant tuples or rules that have been previously signed by appropriate
+% authorities. This is similar to the way a requester in a SPKI/SDSI or RT
+% system can provide certificates containing signed policy statements along
+% with the request.
+% 
+% QCM uses sets of tuples with relational algebra operations as its formal
+% foundation. In this context monotonicity is obtained by disallowing the set
+% difference operation, thus rendering the system relationally incomplete but
+% offering robust behavior in the face of network failures. SD3, using
+% \datalog, extends the relational algebra by adding support for recursive
+% queries. Thus \datalog\ provides a bridge between the logical approach and
+% the database approach for handling trust management systems.
+% 
+% \cnote{Maybe too much detail in intro section, should be 
+% inlined throughout other appropriate sections.}
+% 
+% \subsubsection{Features}
+% 
+% QCM hides from end-users the complexity of distributed query
+% evaluation and certificate retrival. Instead it presents a high level
+% abstraction of a secure, local database, via a policy language based
+% on relational algebra.  Consider the following example of a web page
+% content filtering application taken from Gunter and Jim
+% \cite{Gunter:DALSI}. Here a ratings server
+% $r_1$ maintains a relation \text{\bf ratings} containing rating
+% information for a large collection of web pages.  An independent
+% server $r_2$ maintains a similar relation. A web browser then defines
+% a local relation in terms of these other two using relational algebra
+% expressions.
+% \begin{eqnarray*}
+% \text{\bf ratings} & = & r_1.\text{\bf ratings} \cap r_2.\text{\bf ratings} \\
+% \text{\bf ok} & = & \pi_{\text{hash}}(\sigma_{\text{rating} =
+%   G}\text{\bf ratings})
+% \end{eqnarray*}
+% The browser will only accept ratings for which the two rating servers
+% agree. In addition, the browser's {\bf ok} table contains only the
+% page hashes for the pages with a $G$ rating.
+% 
+% A web server that hosts a particular page with hash $h$ can obtain
+% certificates from the rating servers for that page. Each certificate is
+% signed by the corresponding rating server, indicated in ABLP style using a
+% \text{\bf says} connective in the formulae below. The certificates assert
+% that a particular tuple is a member of a particular relation. For example
+% \begin{eqnarray*}
+% r_1\,\,\text{\bf says}\,\,r_1.\text{\bf ratings} & \supseteq &
+% \{(\text{\bf hash}: h, \text{\bf rating}: G)\} \\
+% r_2\,\,\text{\bf says}\,\,r_2.\text{\bf ratings} & \supseteq &
+% \{(\text{\bf hash}: h, \text{\bf rating}: G)\} 
+% \end{eqnarray*}
+% These expressions are called \newterm{inclusions} since they only assert a
+% lower bound on the query result. When the page is requested by a browser,
+% the two certificates are sent as well. The browser submits the certificates
+% to a local QCM processor along with the query
+% $\sigma_{\text{hash}=h}\text{\bf ok}$. In this case QCM does not need to
+% contact the remote servers because the certificates contain enough
+% information for it to answer the query directly.
+% 
+% Of course the web browser would need the public keys associated with the
+% two remote servers $r_1$ and $r_2$. Presumably those keys could be obtained
+% from a key server which is itself a kind of remote database. Thus the
+% complete QCM program at the browser would contain statements about the
+% composition of a public key relation as well as the rating relation.
+% Similarly a QCM principal can define a group or role by defining a relation
+% that contains the group's members.
+% 
+% QCM supports distributed credential chain discovery, which the QCM authors
+% call \newterm{policy-directed certificate retrieval} \cite{Gunter:PDCR}.
+% Such distributed queries are satisfied extensionally. For example if a QCM
+% node $a$ defines a relation $\text{\bf ratings} = b.\text{\bf ratings}$
+% that node would answer queries about the membership of $\text{\bf ratings}$
+% by querying $b$. If $b$ defined its $\text{\bf ratings}$ relation in some
+% complex way it might query other nodes as appropriate. However, node $b$
+% would return signed tuples from its $\text{\bf ratings}$ relation rather
+% than a signed policy rule.
+% 
+% QCM's system of distributed credential chain discovery should be contrasted
+% with that described earlier for $\RT_0$. In the $\RT_0$ case distributed
+% queries are satisfied intentionally: policy rules are passed back to the
+% authorizing node where the entire credential chain is computed. This allows
+% $\RT_0$ to make direct use of credentials provided with the request without
+% having to transmit those credentials to other nodes. 
+% \cnote{The discovery stuff is in the implementation subsection of the 
+% $\RT$ section, why not here?}
+% 
+% Although QCM does not support general negation, it does provide a limited
+% form of negation that allows certificate revocation to be handled
+% \cite{Gunter:GCR}. This is done by allowing a set of revoked tuples to be
+% subtracted from a set of otherwise potentially useful tuples. QCM provides
+% for explicit \newterm{non-membership certificates} that can be used to
+% assert that a tuple is not an element of the revoked set.
+% 
+% Secure Dynamically Distributed Datalog (SD3) is a successor of QCM. It uses
+% an extended version of \datalog\ as its policy and credential language. In
+% SD3 predicates are scoped by public keys; rules can refer to predicates in
+% other name spaces by prepending the key to the predicate name. For example
+% suppose that the predicate $E$ under control of key $K$ defines the edge
+% relation of a particular graph. The following SD3 program computes the
+% transitive closure of that graph.
+% \begin{verbatim}
+% T(X, Y) :- K$E(X, Y).
+% T(X, Y) :- T(X, Z), T(Z, Y).
+% \end{verbatim}
+% \cnote{You should be consistent with fonts in datalog(-like) syntax.}
+% 
+% As with QCM the SD3 query evaluator can fetch relations, such as $E$, from
+% remote systems. However, unlike QCM, SD3 provides intentional query
+% responses. In some cases signed \datalog\ rules are returned from a query
+% \cite{Jim:DDQE}.
+% 
+% \subsubsection{Running Example}
+% 
+% Here we demonstrate how SD3 would express the medical records example. We
+% need to first express the information to be processed as a collection of
+% relations. Alice maintains a one-place relation
+% \texttt{records} with tuples storing the keys of those principals who can
+% access her medical records. We can then represent Alice's policy as the
+% following two SD3-style \datalog\ rules.
+% 
+% \begin{itemize}
+% \item \texttt{$K_a$\$records($K_b$).}
+% \item \texttt{$K_a$\$records(X) :- $K_b$\$alice\_delegates(X).}
+% \end{itemize}
+% 
+% \datalog\ has no problems expressing either recursion or intersections
+% (conjunctions). Bob's policy becomes
+% 
+% \begin{itemize}
+% \item \texttt{$K_b$\$team(X) :- $K_b$\$team(Y), Y\$support(X).}
+% \item \texttt{$K_b$\$alice\_delegates(X) :- $K_h$\$medical\_staff(X), $K_b$\$team(X).}
+% \item \texttt{$K_b$\$team($K_c$).}
+% \end{itemize}
+% 
+% The remaining assertions made by the hospital and by Carol are
+% 
+% \begin{itemize}
+% \item \texttt{$K_h$\$medical\_staff($K_d$).}
+% \item \texttt{$K_c$\$support($K_d$).}
+% \end{itemize}
+% 
+% This example does not illustrate much of SD3's expressiveness. All the
+% relations involved are one-place relations containing keys. These
+% correspond to the roles of $\RT$ and the names of SDSI. However, SD3 is
+% more general because the relations involved can be arbitrary.
+% 
+% SD3 distinguishes between global names that are key-qualified and local
+% names that are not. If the hospital database evaluates Dave's request to
+% update Alice's medical records in Alice's context, then the $K_a$ prefix on
+% Alice's policy is superflous. The tuples from the other relations would be
+% signed by the corresponding key and obtained ``externally'' from Alice's
+% context.
+% 
+% \subsubsection{Semantics}
+% 
+% QCM is fundamentally a language about sets. In a database context these
+% sets are the relations in a distributed database. QCM has a type system
+% consisting of application specific basic datatypes, a type for principals,
+% product types and set types. The type system ensures that certain nonsense
+% expressions, such as selecting a field from a relation that doesn't have
+% such a field, are rejected.
+% 
+% The semantics of QCM are described in two parts: one part deals with the
+% network communication and the other part deals with the computations done
+% on a single node \cite{Gunter:ADDUQCM}. I/O automata are used to describe
+% how nodes exchange messages. Each QCM node maintains a set of pending
+% queries, a set of inclusions that it accepts (initialized to the
+% definitions known directly by the node), and a set of requests that the
+% node has made. The automaton specifies how this state changes for each
+% possible input or output action. A corresponding automaton models the
+% network itself. This allows different network models, including potentially
+% hostile models, to be studied in a straight forward way. \pnote{Should we
+% include a figure with some specifics on the I/O automata used?}
+% 
+% The computational aspects of QCM are described with both a denotational
+% semantics and an operational semantics \cite{Gunter:GCR}. These semantics
+% are given for an extension of QCM supporting certificate revocation. The
+% idea is to use a polarity discipline to define both positive and negative
+% names. Negative names describe co-finite sets\footnote{A co-finite set is a
+% set that is the complement of a finite set in an infinite universe.}. In
+% this context a revocation defines a co-finite set of non-membership
+% credentials. \pnote{The formal semantics of QCM does not appear to be
+% spelled out anywhere. In the ``main'' QCM paper, which is unpublished, the
+% authors allude to another paper where the sematics are provided, but they
+% don't give a reference and I can't find any such paper. On the other hand,
+% the semantics in ``Generalized Certificate Revocation'' is complicated by
+% the whole polarity issue.}
+% 
+% QCM does not necessary accept every certificate submitted to it. Doing so
+% invites the possibility of accepting an inconsistent collection of
+% certificates. In such a case there is no model for the relations given and
+% any inclusion can follow. Thus a QCM node first verifies that the contents
+% of a certificate, $(p\,\,\textbf{says}\,\,M \supseteq N)$, is acceptable.
+% This means that every relation symbol in $M$ must be qualified by $p$, $N$
+% is a value, and $M \supseteq N$ is consistent. During evaluation, as more
+% inclusions are computed, no inconsistent acceptance set will be produced
+% \cite{Gunter:ADDUQCM}.
+% 
+% The semantics of SD3 are based on the semantics of the underlying \datalog\
+% \cite{Jim:DDQE}. In the following discussion we identify the keys used to
+% qualify predicates as \newterm{sites}. This is in keeping with the idea
+% that each key corresponds to a principal and each principal manages a
+% local (site specific) name space based on that key.
+% 
+% To describe the semantics of a distributed SD3 program first construct a
+% \newterm{global \datalog\ program} from the SD3 program by replacing each
+% $n$-ary predicate $R$ with an $(n+1)$-ary predicate $R^g$, and each atom of
+% the form $s\$R(t_1, \ldots, t_n)$ with an atom of the form $R^g(s, t_1,
+% \ldots, t_n)$ The semantics of an SD3 program is the minimum model of the
+% corresponding \datalog\ program.
+% 
+% A \datalog\ rule is considered safe if all the variables in the head also
+% appear in the body. This is important because it gaureentees that the
+% program's minimum model is finite and that query evaluation will terminate.
+% Because of the distributed nature of SD3 an additional safety rule is
+% necessary. First define a \newterm{site determined} atom as one in which
+% the site specified is not a variable. Let rules have the form $a\,
+% \text{:-}\, a_1, \ldots, a_n$. A rule is said to be \newterm{site safe} if
+% it is both safe and if for every atom $a_i = x\$R_i(\ldots)$ that is not
+% site determined the variable $x$ occurs in some atom $a_j$ where $j < i$.
+% Thus the first atom in the body of a rule must be site determined. Site
+% safety is a stronger condition than safety. A rule such as $s\$Q(x)\,
+% \text{:-}\, x\$R(x)$ is not site safe even though the corresponding
+% \datalog\ rule is safe.
+% 
+% Site safety is important because a site in a distributed SD3 program is not
+% necessarily aware of all the sites in the entire program. The
+% \newterm{active domain} of a \datalog\ program $P$, denoted
+% $\textit{adom}(P)$ is the set of all constants in $P$. A safe \datalog\
+% program has the same minimum model over its active domain as it does over
+% an infinite domain. An SD3 site $s$, however, does not know the entire
+% active domain but instead can only compute a portion of it,
+% $\textit{adom}_s$, defined recursively as
+% $$
+% \textit{adom}_s = \forall s_1 \in \textit{adom}_s \,\,.\,\,
+%      (\textit{adom}(P_s) \cup \textit{adom}_{s1})
+% $$
+% where $\textit{adom}(P_s)$ is the active domain of the program at site $s$
+% only. It can be shown that if an SD3 program is site safe, the answer to a
+% query at a site $s$ over the accessible part of the active domain at $s$,
+% $\textit{adom}_s$ is the same as over an infinite domain \cite{Jim:DDQE}.
+% Notice that site safety imposes restrictions on the order in which atoms
+% can appear in the body of a rule.
+% 
+% \subsection{Implementation}
+% 
+% Because QCM and SD3 are essentially distributed database applications,
+% their approach to many implementation issues tends to be quite generic. For
+% example, the purpose of the signatures on the certificates used by most
+% trust management systems is to protect the integrity of the credentials
+% those certificates contain. However there are many ways to obtain this
+% protection besides using digital signatures. A node $X$ wishing to query
+% another node $Y$ can connect to node $Y$ and engage in a network protocol
+% that allows the authenticated transmission of data. Such a protocol might
+% use efficient symmetric encryption or message authentication codes instead
+% of more costly digital signature algorithms. This would allow a large query
+% result to pass between the nodes with a minimum of resource consumption. In
+% this way QCM and SD3 can potentially disconnect credentials from the
+% certificates that contain them, even in the case where remote nodes are
+% being queried.
+% 
+% The prototype implementations of QCM and SD3 do not attempt to apply access
+% control to the policy data itself. In other words, there is no support for
+% automated trust negotiation. Anonymous users can query any node and obtain
+% information about the relations maintained by that node. In the case of
+% QCM, where queries are answered extensionally, the actual policy rules held
+% by a node are never revealed, although the results of their evaluation are.
+% 
+% Another consequence of QCM answering queries extensionally is that
+% credentials submitted with the request $C_R$ are only used if they
+% immediately pertain to the query on the authorizing node. Otherwise the QCM
+% processor will not recognize the usefulness of such credentials. When a
+% distributed query is evaluated a remote node might want to use $C_R$ but
+% the orginating node does not pass $C_R$ forward since the general utility
+% of doing so would be unknown. Thus the remote node must look up the
+% components of $C_R$ that it needs on its own. A result of this is that
+% cycles are not detected since doing so would require some sort of
+% distributed cycle detection algorithm. Thus if policy statements refer to
+% each other they will cause a query to loop infinitely.
+% 
+% In contrast SD3 may answer queries intensionally so that a single node
+% obtains a complete set of all relevant rules. This allows all the submitted
+% credentials to be potentially used and it allows cycles in the policy to be
+% handled gracefully.
+% 
+% Jim describes a prototype SD3 system that implements the DNSSEC protocol
+% \cite{Jim:STMSCE}. In order to obtain the performance needed in DNS
+% applications, Jim's implementation uses a number of elaborate optimization
+% techniques. These optimizations add complexity to the implementation and
+% increase the size of the trusted computing base. To deal with this Jim's
+% implementation uses \newterm{certified evaluation}. The output of the SD3
+% query evaluator is checked by a relatively simple proof checker. If the
+% check fails, the results of the query are considered erronous. Since proof
+% checking is easier than proof construction, the proof checker can be small
+% and simple, thus reducing the size of the trusted computing base.
+% 

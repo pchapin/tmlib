@@ -1,0 +1,7 @@
+
++ What is trust management? (Example)
++ Overview of RT_0. (Show example)
++ RT^R
++ Semantics
++ Authorization Algorithm
++ Future Directions

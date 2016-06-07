@@ -1,0 +1,19 @@
+.PS
+
+box width 1.5 height 1.5
+arrow 2.5 "Credentials" above
+box width 5 height 4
+move to 1st box.nw + (0.0, 0.25) "Client" ljust
+move to 2nd box.nw + (0.0, 0.25) "Server" ljust
+move to 2nd box.nw + (0.5, -1.0)
+box width 2.5 height 1.5 "Policy" "Compliance" "Checker"
+move to 3rd box.e
+arrow 0.5
+move to 2nd arrow.e "yes/no" ljust
+
+circle rad 0.65 at 3rd box.s + (0.0, -1.25) "Policy"
+move to 1st circle.n
+arrow to 3rd box.s
+arc -> from 2nd box.w to 3rd box.sw
+
+.PE

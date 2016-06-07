@@ -1,0 +1,14 @@
+# This is a more complex example that involves overlapping intersections
+# but no cycles. The expected output is (E, 35), (E, 70), (F, 65).
+
+A.x, 100
+A.x <- A.r, 2, 5
+A.x <- A.s, 2, 10
+A.r <- B.s ^ C.t, 4, 15
+A.s <- C.t ^ D.e, 4, 20
+B.s <- E, 1, 5
+C.t <- E, 1, 10
+D.e <- E, 1, 30
+C.t <- F, 1, 15
+D.e <- F, 1, 20
+

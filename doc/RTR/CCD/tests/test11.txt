@@ -1,0 +1,11 @@
+# Basic test case using a linked role and multiple paths. In this
+# situation the lowest risk path is not through the linked role.
+# Expected output should be equivalent to (M, 20).
+
+H.discount, 100
+H.discount <- H.preferred, 2, 15
+H.discount <- H.orgs.members, 3, 20
+H.preferred <- AARP.members, 2, 5
+H.orgs <- AARP, 1, 10
+AARP.members <- M, 1, 0
+

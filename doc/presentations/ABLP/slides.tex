@@ -1,0 +1,256 @@
+
+\newcommand{\as}{\textit{ as }}
+\newcommand{\controls}{\textit{ controls }}
+\newcommand{\for}{\textit{ for }}
+\renewcommand{\implies}{\supset}
+\newcommand{\says}{\textit{ says }}
+\newcommand{\serves}{\textit{ serves }}
+\newcommand{\speaksfor}{\Rightarrow}
+
+\startslide{Reference}
+
+``Calculus for Access Control in Distributed Systems'' by Abadi,
+Burrows, Lampson, and Plotkin. 1993. \textit{ACM Transactions on
+  Programming Languages and Systems}. 15(4), pp 706-734.
+
+Some figures and examples taken from ``Trust But Verify: Authorization
+for Web Services'' by Skalka and Wang. 2004. \textit{ACM Workshop on
+  Secure Web Services}. Submitted.
+
+\stopslide
+
+%%%
+
+\startslide{ABLP Logic Overview}
+
+ABLP Logic is a formal system for expressing resource requests and for
+making access control decisions about those requests.
+
+\begin{citemize}
+\item Allows access requests and access control lists to be clearly defined.
+\item Allows one to reason about the authorization system is a precise way.
+\end{citemize}
+
+\stopslide
+
+%%%
+
+\startslide{Principals}
+
+\begin{citemize}
+  \item Users
+  \item Machines
+  \item I/O channels
+  \item Encryption keys
+\end{citemize}
+
+Simple requests have form ``$P \says s$'' where $s$ is a proposition
+being asserted by principal $P$. For example ``$\text{Carol} \says
+\mathrm{\bf read}$'' means Carol requests read access.
+
+Other statements besides requests are also possible.
+
+\stopslide
+
+%%%
+
+\startslide{Syntax: Principal Expressions}
+
+$$\begin{array}{rcl@{\hspace{10mm}}r}
+A,B,C,\ldots &\in& \mathit{Atom} & \gdesc{atomic principals} \\
+P &::=& A \mid  P \wedge P \mid P|P & \gdesc{principals}\\
+\end{array}$$
+
+Principals can be compound.
+
+\begin{citemize}
+  \item For $P_1 \wedge P_2$ read ``$P_1$ and $P_2$''
+  \item For $P_1|P_2$ read ``$P_1$ quoting $P_2$''
+\end{citemize}
+
+\stopslide
+
+%%%
+
+\startslide{Inference Rules: Part 1}
+
+These rules formally define the meaning of the compound principals.
+\begin{mathpar}
+\inferrule[Agreement]{}{\vdash (A \wedge B) \says s \equiv (A \says s)
+  \wedge (B \says s)}
+
+\inferrule[Quote]{}{\vdash (B|A) \says s \equiv B \says (A \says s)}
+\end{mathpar}
+
+For example, the above imply that $(A \wedge B)|C \equiv (A|C) \wedge
+(B|C)$.
+\begin{eqnarray*}
+  ((A \wedge B)|C) \says s & \equiv & (A \wedge B) \says (C \says s) \\
+                           & \equiv & (A \says (C \says s)) \wedge
+                                      (B \says (C \says s)) \\
+                           & \equiv & ((A|C) \wedge (B|C)) \says s
+\end{eqnarray*}
+
+\stopslide
+%%%
+
+\startslide{Syntax: Primitive Formulae}
+
+$$\begin{array}{rcl@{\hspace{10mm}}r}
+p &\in& \mathit{Prop}   & \gdesc{primitive propositions} \\
+s &::=&  p \mid \neg s \mid s \wedge s \mid P \speaksfor P \mid P \says s & \gdesc{formulae}
+\end{array}$$
+
+\begin{citemize}
+  \item Other propositional logic connectives defined in terms of $\neg$
+    and $\wedge$ in the usual way.
+  \item For $P_1 \speaksfor P_2$ read ``$P_1$ speaks for $P_2$''
+\end{citemize}
+
+\stopslide
+
+%%%
+
+\startslide{Inference Rules: Part 2}
+
+\begin{mathpar}
+\inferrule[Taut]{\text{$s$ is a tautology of propositional logic}}{\vdash s}
+
+\inferrule[Modus Ponens]{\vdash s' \\ \vdash s' \implies s}{\vdash s}
+
+\inferrule[Subtext]{}{\vdash A \says (s \implies s') \implies (A \says s
+  \implies A \says s')}
+
+\inferrule[Parrot]{\vdash s}{\vdash A \says s}
+
+\inferrule[Speaksfor]{}{\vdash (A \speaksfor B) \implies ((A \says s)
+  \implies (B \says s))}
+\end{mathpar}
+
+Group membership can be modeled with ``speaks for''. Thus ``$P
+\speaksfor G$'' can be used to indicate that $P$ is a member of group
+$G$.
+
+\stopslide
+
+%%%
+
+\startslide{Example Inference}
+
+\begin{displaymath}
+  K_J \speaksfor J
+\end{displaymath}
+
+A request for $s$ signed by $K_J$ is
+\begin{displaymath}
+  K_J \says s
+\end{displaymath}
+
+Thus
+$$\begin{array}{c}
+  (K_J \speaksfor J) \implies (K_J \says s \implies J \says s) \\
+  K_J \says s \implies J \says s \\
+  J \says s
+\end{array}$$
+
+Thus a message signed by $K_J$ can be taken as the word of $J$.
+Consequently $K_J \speaksfor J$ is a statement of the idea that private
+keys are private.
+\stopslide
+
+%%%
+
+\startslide{Access Control Lists}
+
+Let ``$P \controls s$'' be shorthand for ``$(P \says s) \implies s$.''
+
+An access control list is a list of statements of the form $P \controls
+s$ for various principal expressions $P$.
+\begin{eqnarray*}
+  \text{Carol} & \controls & \mathrm{\bf read} \\
+  (\text{Dave} \wedge \text{Host}) & \controls & \mathrm{\bf enumerate} \\
+  \text{Eric} & \controls & (\text{Carol} \says \mathrm{\bf read})
+\end{eqnarray*}
+
+The last ACE says
+$$\begin{array}{c}
+  (E \says (C \says r)) \implies (C \says r) \\
+  ((E|C) \says r) \implies (C \says r)
+\end{array}$$
+
+\stopslide
+
+%%%
+
+\startslide{Access Control Decisions}
+
+Form conjunction of request and ACL. Use inference rules to derive
+necessary priviledge.
+
+\begin{citemize}
+  \item $\text{Carol} \says \mathrm{\bf read}$: Request
+  \item $\text{Carol} \controls \mathrm{\bf read}$: ACL
+\end{citemize}
+
+$$\begin{array}{c}
+  (C \says r) \wedge ((C \says r) \implies r)
+\end{array}$$
+
+By \textsc{Modus Ponens} $r$ can be derived immediately.
+
+\stopslide
+
+%%%
+
+\startslide{Delegation}
+
+Let there be a distinguished principal $D$ that acts as a delegation
+server. If $A$ wishes to delegate to $B$ then $A$ says
+$$(B \says (A \says s)) \implies (D \says (A \says s))$$
+
+In other words
+$$A \says (B|A \speaksfor D|A)$$
+
+Since $B|A \says s$ and $D|A \says s$ then $((B \wedge D)|A) \says s$.
+Let ``$B \for A$'' be shorthand for $(B \wedge D)|A$. Also let ``$B
+\serves A$'' be shorthand for $(B|A \speaksfor D|A)$.
+
+\stopslide
+
+%%%
+
+\startslide{Delegation Example}
+
+A request comes from $B$ who has been previously authenticated:
+\begin{citemize}
+  \item $K_A \speaksfor A$: Private keys are private.
+  \item $K_A \says (B \serves A)$: Delegation certificate.
+  \item $B|A \says r$: Raw request.
+\end{citemize}
+
+ACL contains:
+\begin{citemize}
+  \item $A \controls (B \serves A)$: $A$ is allowed to delegate to $B$.
+  \item $(B \for A) \controls r$: $B$ is allowed to read on behalf of $A$
+\end{citemize}
+
+\stopslide
+
+%%%
+
+\startslide{Delegation Derivation}
+
+\begin{eqnarray*}
+  (K_A \speaksfor A) \wedge (K_A \says (B \serves A)) & \implies & (A \says
+    (B \serves A)) \\
+  (A \says (B \serves A)) \wedge (A \controls (B \serves A)) & \implies
+    & (B \serves A) \\
+  (B \serves A) \wedge (B|A \says r) & \implies & (D|A \says r) \\
+  (B|A \says r) \wedge (D|A \says r) & \implies & (B \for A) \says r \\
+  (B \for A \says r) \wedge (B \for A \controls r) & \implies & r
+\end{eqnarray*}
+
+Note that $D$ can be fictitious. All that is required is for $A$ and the
+server to agree on a $D$.
+
+\stopslide

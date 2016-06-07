@@ -1,0 +1,193 @@
+\section{Introduction}
+\label{section-introduction}
+
+Distributed applications that span administrative domains have become
+commonplace in today's computing environment. Electronic commerce,
+high performance scientific computing, groupware, and multimedia
+applications all require collaborations between distinct social
+entities.  In such systems each administrative domain, also called a
+security domain, controls access to its own resources and operates
+independently of other administrative domains. The problem of how to
+best specify and implement access control in such an environment has
+been a topic of considerable research. To address this problem the
+idea of \newterm{trust management} was introduced
+\cite{Blaze:DTM} and subsequently developed by many authors,
+providing frameworks in which entities can specify independent access
+control policies that are enforced upon access request.
+
+At the heart of trust management systems is the \emph{authorization
+procedure}, which determines whether resource access should be granted
+or not based on a number of conditions.  The semantics of
+authorization provide meaning to the features supported by trust
+management systems, for both the policy maker and the resource
+requester.  While a number of techniques have been proposed to
+characterize authorization in trust management systems, we argue that
+the most promising are those based on rigorous formal foundations.
+This argument is not new, in fact it has motivated trust management
+research since its inception \cite{woo93authorizations}.  In a
+security setting, entities should be able to specify policies
+precisely, to have an absolutely clear idea of the meaning of their
+policies, and to have confidence that they are correctly enforced by
+authorization mechanisms. Formally well-founded trust management
+systems achieve this, providing a setting in which reliability can be
+rigorously established by mathematical proof. In particular, various
+logics have served as the foundation for trust management
+\cite{Abadi:LAC,Bertino:LFRAACM}. In this paper we survey
+state-of-the-art in trust management authorization, with an emphasis
+on formally well-founded systems.  These systems are compared to each
+other with respect to desirable high-level features of trust
+management.
+
+Our focus is the foundations and features of trust management systems, not
+their application, though we note that trust management systems have been
+shown to enforce security in many real applications. For example, the
+KeyNote system has been shown capable of enforcing the IPsec network
+protocol \cite{Blaze:TMIPS,Blaze:EKTMS}. SPKI/SDSI has been used to provide
+security in component based programming language design \cite{Liu:CSI}.
+Cassandra has been examined in the context of the United Kingdom's proposed
+nationwide electronic health records system \cite{Becker:CFTMAEHR}. In
+addition, the Extensible Access Control Markup Language (XACML)
+\cite{OASIS:XACMLTC} and the Security Assertion Markup Language (SAML)
+\cite{OASIS:SSTC}, both OASIS standards, define XML policy and assertion
+languages that makes use of many trust management concepts.
+
+\subsection{Authorization Frameworks}
+
+
+%In this review we are concerned with authorization: how the decision is
+%made to grant or deny access to a protected resource for a particular
+%request. This review does not directly consider issues of authentication.
+%Authentication is primarily concerned with how a requester proves his or
+%her identity to an authorizer. Trust management systems of the sort we
+%discuss here do not use the identities of requesters as the primary
+%attribute considered in the access control decision and thus authentication
+%does not play as important a role in trust management systems as it does
+%traditionally.
+%
+%Also in this review we are only concerned with distributed systems that
+%span administrative domains. We do not consider authorization as
+%implemented under the control of a single entity, such as an operating
+%system. Applications that are distributed over multiple hosts in a single
+%administrative domain are also outside the scope of this review. Such
+%systems can generally use the traditional approach to access control: a
+%requester first has his or her identity authenticated and then all access
+%requests are evaluated based on that identity. This is feasible because
+%such systems, despite being spread over many hosts, are relatively closed.
+%The list of possible requesters can be managed by the local authority. In
+%contrast we are concerned with environments where the list of requesters is
+%open ended and were an authorizer can not feasibly be expected to know all
+%possible requesters.
+%
+%Our primary focus is on the formal logical structure of trust management
+%systems. That is, we review the logical foundations on which distributed
+%trust management rests. In systems designed for security properties such
+%as soundness, completeness, and tractability should be precisely defined
+%and rigorously proved. No matter how well implemented or carefully
+%deployed a system might be, a loophole in its logical structure might
+%introduce a vulnerability that will eventually be found and exploited.
+%No amount of software engineering or vigilance by system administrators
+%can correct a problem caused by a fundamental error in design.
+
+
+The trust management systems we survey are primarily concerned with
+\emph{authorization}, as opposed to \emph{authentication}.  The latter
+addresses how to determine or verify the identity of actors or message
+signers in a distributed transaction with a high degree of confidence.
+Authorization, on the other hand, is based on calculi of principals
+whose identities are taken for granted.  Although any real
+implementation of an authorization system will rely on authentication
+to establish these identities, and key-to-identity bindings may even
+have an abstract representation in the system, authorization generally
+treats authentication and public key infrastructure as orthogonal
+issues.  Authorization is more properly concerned with non-trivial
+access control policies-- how to specify them, what they mean, and how
+to endow trusted principals with the credentials necessary to satisfy
+them.
+
+Authorization in trust management systems is more expressive than in
+traditional access control systems such as role based access control
+(RBAC) \cite{Sandhu:RBACM}.  In such simpler models, access is based
+directly on identities of principals.  But in a large distributed
+environment such as the Internet, creating a single local database of
+all potential requesters is untenable.  Where there are multiple
+domains of administrative control, no single authorizer can be
+expected to have direct knowledge of all users of the system.
+Furthermore, the Internet is a highly dynamic and volatile
+environment, and no single entity can be expected to keep pace with
+changes in an authoritative manner.  Finally, basing authorization
+purely on identity is not a sufficiently expressive or flexible
+approach, since security in modern distributed systems utilizes more
+sophisticated features (e.g.~delegation) and policies (e.g.~separation
+of duty \cite{Simon:SODRBE}).  These problems are addressed by the use of trust
+management systems.  We now return to some of the applications
+mentioned above, to illustrate how authorization in trust management
+systems is suited to enforcing security in practical computing
+scenarios.
+\begin{description}
+\item[IPsec] Blaze and Ioannidis \cite{Blaze:TMIPS} describe an extension
+  to the IPsec architecture that uses KeyNote to check if packet filters
+  proposed by a remote host comply with a local policy for the creation of
+  such filters. This allows a system administrator to prevent an attacker
+  from negotiating a secure connection and then using that connection to
+  attack vulnerable services. This application is an instance of the more
+  general idea of using a trust management system for firewall management.
+\item[Web Page Content Ratings] Several authors describe the use of trust
+  management systems to implement web page content rating schemes
+  \cite{Gunter:ADDUQCM,Chu:RTMWA}. This is of significant practical
+  interest; the World Wide Web Consortium has considered using trust
+  management concepts in its Platform for Internet Content Selection
+  \cite{Resnick:PIACWC}. In a rating scheme a client delegates the
+  authority to rate web pages to a suitable ratings server. The server
+  issues certificates that bind a web page (via its hash value) to a
+  rating. When a page is fetched, the web server delivers this certificate
+  to the browser where the browser's policy is consulted to determine if
+  the page should be displayed.
+\item[Medical Records] Several trust management systems have been
+  applied to maintaining integrity and privacy in electronic health
+  records \cite{Bacon:MORBACSAS,Becker:CFTMAEHR}, a topic of
+  considerable importance in modern health care \cite{Ota:PPCMI}.
+  Security in this setting involves policies spanning many loosely
+  coupled domains such as clinics, hospitals, laboratories, and
+  emergency services.  
+\end{description}
+
+\subsection{Goals and Outline of the Paper}
+
+A summary and comparison of the features and formal underpinnings of
+authorization procedures in trust management systems is a primary goal
+of this paper, grounded in a review of their foundations in
+authorization logics such as ABLP \cite{Abadi:CACDS}.  This summary
+provides a useful explanation and overview of modern state-of-the-art
+in trust management authorization technology.  Another contribution of
+this survey is the characterization of authorization frameworks as
+\emph{systems} that include other components in addition to the core
+authorization semantics. This distinguishes our presentation from a
+previous survey of authorization logics \cite{Abadi:LAC}. It is
+important to consider these components, since some features of trust
+management systems may be reflected in them rather than in the
+authorization semantics, for example certificate expiration dates may
+be checked when parsing wire format certificates but ignored by the
+authorization semantics. This also sheds light on how much formal
+support is provided for these features in various systems. We
+summarize the components of trust management systems, and compare them
+in light of which features are supported by which components. 
+
+Because trust management is a broad and active field, it is important
+to restrict the scope of our survey to provide sufficient depth as
+well as breadth.  As the title suggests, we are mainly concerned with
+the semantics and implementation of \emph{authorization} in trust
+managements systems, versus other components such as certificate
+storage and retrieval.  We delineate our scope more precisely
+below in \autoref{section-overview-components}.
+
+The remainder of this survey is organized as follows. In
+\autoref{section-overview} we introduce important concepts and terminology,
+summarize the method we use to compare and contrast various systems, and
+introduce a running example. In \autoref{section-features} we highlight
+several features offered by trust management systems.
+\autoref{section-foundations} reviews in more detail the logical basis of
+trust management. \autoref{section-review} reviews several trust management
+systems with a focus on those that are logically well founded.
+\autoref{section-trust-negotiation} gives an overview of trust negotiation,
+an important component of some trust management applications. Finally we
+conclude in \autoref{section-conclusion}.

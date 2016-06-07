@@ -1,0 +1,179 @@
+\section{Conclusion}
+\label{section-conclusion}
+
+Trust management technology responds to the security demands of modern
+distributed systems-- or in the words of previous authors
+\cite{Blaze:RTMDSS}, ``the trust management approach to distributed
+system security was developed as an answer to the inadequacy of
+traditional authorization mechanisms''.  Compared to other simpler
+systems such as identity or role-based access control, trust
+management systems provide modern distributed applications programmers
+a more effective and scalable means of specifying and enforcing
+authorization policies.  At the heart of any trust management system
+is a language for expressing policy and access rights, comprising a
+mixture of features that address the character and requirements of
+modern distributed security.  We have reviewed a number of language
+features, and summarized which systems possess which features (see
+especially Tables \ref{tbl:tmsummary1} and \ref{tbl:tmsummary2}).
+Overall, we conclude that a subset of them are fundamental to any
+trust management system:
+\begin{description}
+\item[Linked local namespaces] No single, monolithic namespace
+exists on the Internet.  Instead, distinct security domains 
+define their own namespaces.  Any trust management system language must provide some means
+to refer to non-local namespaces, within the local namespace.
+\item[Roles] Role membership is a fundamental abstraction
+in trust management systems.  The specification of authorization via roles allows
+policies to be defined independently of identities, so that 
+addressing the needs of unknown future users does not require
+policy to be rewritten.
+\item[Delegation of authority] No single, monolithic policy authority
+exists on the Internet.  Rather, distinct security domains define
+their own local policies, and security domains commonly delegate
+authority over local policy to trusted non-local authorities; any trust management system
+language must provide some way to express this.
+\item[Delegation of rights] In many cases, the users of a system 
+desire to delegate their access rights to other entities, to 
+act on their behalf.  trust management system languages should address this need,
+including important nuances such as whether certain rights
+should be specified as undelegatable by local authorities.
+\item[Certificate revocation] Access rights should never be
+permanently granted, rather authorities should be able to revoke them
+or set finite lifetimes for their use.  While certificate revocation
+appears to be an essentially nonmonotonic feature, this has been
+disproven, as the authors of both PCA \cite{Bauer:ACWPCA} and RT
+\cite{lbi-fc01} have developed monotonic inference rules for
+incorporating revocation in authorization.  Some systems such as
+SPKI/SDSI offer a simpler implementation-based solution
+\cite{RFC-2693}, where revocation is not featured in the authorization
+language but processed during the parsing of certificates into 
+credentials.
+\end{description}
+
+At a higher level, we argue that rigorous formal foundations are a
+necessary design feature of trust management systems, since they allow
+rigorous guarantees of security.  We have shown that graph theories,
+logics, and database formalisms are the most common formalisms for
+trust management system design, though logic stands out as the most
+popular.  Indeed, previous authors have argued that monotonic
+programming logics are uniquely well-suited as trust management
+languages \cite{Li:DCFTML}, and in general the rich semantic domains
+available in logic provide a great deal of flexibility and scalability
+in trust management system applications \cite{polakow-skalka-plas06}.
+A variety of trust management system foundations use domain-specific
+logical constructs originally developed for authentication settings
+\cite{Burrows:LA}, witnessing the evolution of authorization systems
+from earlier access control systems based mainly on authentication.
+
+Many of the systems surveyed in this paper exist primarily in theory,
+and have not yet been deployed.  As trust management systems become
+more commonplace, and theory develops into practice, we believe a
+major challenge will be whole-system assurances.  As we have
+discussed, trust management systems comprise more than just a
+semantics for their core authorization language, including a
+collection of features for storing, collecting, and processing
+certificates.  Significantly, some trust management system features
+are sometimes implemented in these other components, such as when
+certificate revocation or expiration is realized during certificate
+parsing.  And of course, correctness of an entire system depends on
+correctness of all of its components, as well as their interaction.
+Thus, formalisms for assurances of correctness of \emph{systems} must
+transcend the core authorization semantics, and address the myriad
+components of trust management systems.  In many ways QCM and SD3 set
+the standard in this regard \cite{Gunter:DALSI,Jim:STMSCE}, by using
+database theory and technology as a uniform setting for implementing
+certificate storage and retrieval, defining the semantics of
+authorization, and formally modeling systems.  As trust management
+systems mature into vital components of Internet communications and
+commerce, a holistic formal view that takes into account the variety
+of trust management system components will be essential to coherence
+and reliability of these systems.
+ 
+
+% Trust management systems (trust management systems) provide modern distributed
+% applications a means to specify and enforce authorization policies.
+% Through a combination of features, they allow distinct security
+% domains to establish trust relationships for the purposes of access
+% control and resource protection in volatile distributed environments.
+% At the core of any trust management system is the subsystem that governs authorization
+% upon access request-- the authorization decision.  The authorization
+% decision takes as input a policy specification and access rights (aka
+% credentials) of the requester, and determines whether access should be
+% granted on the basis of an authorization semantics.
+% 
+% In this paper we have surveyed current state-of-the-art in trust
+% management, with an emphasis on systems that have a formally
+% well-founded authorization semantics.  Such systems have the advantage
+% of supporting the formal verification of correctness that security
+% concerns demand.  Our survey has focused on features for expressing
+% policies and credentials, and how they are reflected in the
+% authorization semantics.  We have also observed that some features of
+% trust management system authorization are realized in components of authorization
+% decisions that are external to the formal semantics.  For example,
+% credentials usually have a certificate wire format, which is parsed
+% into credential form.  Expired or revoked certificates may be rejected
+% during parsing, whereas the authorization semantics may be strictly
+% monotonic.  Consequently, we have shown how authorization decisions
+% comprise more than just an implementation of a core semantics, and that
+% other decision components contribute to system functionality.
+% 
+% Our survey has covered foundations of trust management, especially
+% formal calculi that underly many authorization semantics.  We have
+% also reviewed a number of current systems, with a focus on three
+% representatives-- SPKI/SDSI \cite{RFC-2693}, RT \cite{Li:DRBTMF}, and
+% QCM/SD3 \cite{Gunter:DALSI,Jim:Strust management systemCE}-- that embody some of the most
+% interesting and advanced features of and approaches to trust
+% management.  We have characterized these systems according to a
+% generic model of authorization decisions, as well as their underlying
+% semantics.  Overall, our survey serves as a resource for understanding
+% trust management systems, what features they possess, and how the behavior of such systems
+% depends on the integration of implementation components including, but
+% not restricted to, a formal core authorization semantics.
+% 
+% %Numerous trust management systems have been described in the literature.
+% %They all solve the distributed authorization problem by allowing an
+% %authorizer to define a policy describing the attributes of allowed
+% %requesters. The authorizer then delegates authority over these attributes
+% %to specific third parties. In addition to this defining characteristic, the
+% %various trust management systems that have been described support a wide
+% %array of additional features.
+% %
+% %To ensure that a system has understandable security properties, it is
+% %desirable for the system to have a precise formal description. Many modern
+% %trust management systems use \datalog\ or \datalogc\ as their semantic
+% %foundation, although modal logics, first order logic, higher order logic,
+% %and graph theory have also been used. In addition, distributed
+% %authorization has been identified as a specific application of distributed
+% %databases, making important results from that field applicable to trust
+% %management.
+% %
+% %Many features of a practical system, including important features such as
+% %certificate revocation and expiration, are often not included in the
+% %logical formalism. Instead these features are often handled outside the
+% %logical core. Consequently such external features can typically be shared
+% %among several cores; the sharing being an implementation detail. For
+% %example, SPKI/SDSI style on-line revocation could be supported just as
+% %easily in an RT based system. Also certificate formats are independent of
+% %the core logic.
+% %
+% %Most trust management systems are just different organizations of the same
+% %basic concepts. A generic implementation might use, for example, a
+% %\datalog\ or \datalogc\ engine as its core logic, $L$ in
+% %\autoref{figure-tmstruct}, with different ``plug-ins'' implementing various
+% %$T_C$, $T_P$, and $T_Q$ components according to the needs of the systems we
+% %have reviewed. Such an implementation could support any of the \datalog\
+% %based systems such as SDSI, RT, SD3, or Binder. This formulation helps to
+% %clarify the significance of issues like extensional vs intensional queries,
+% %credential storage, and policy confidentiality. These matters are largely
+% %independent of any particular trust management system. Regardless of the
+% %name attached to the system, the underlying issues, and their potential
+% %solutions, are essentially the same.
+% %
+% %As the field of distributed authorization matures, it is likely that no
+% %single system that we have reviewed here will prevail above the others.
+% %Instead the concepts and features these systems provide will be mixed and
+% %matched according to the needs of applications. The abundance of trust
+% %management systems described in the literature over the last ten years is a
+% %prelude to a more unified and principled approach to distributed
+% %authorization that we expect to see in the future.
+% 

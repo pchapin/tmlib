@@ -1,0 +1,73 @@
+
+This document describes some issues surrounding authentication and authorization.
+
+Authentication is informally described as the process by which a requester can prove his or her
+identity. However, this definition is problematic. First, what does it mean to speak of an
+identity? In normal day-to-day interactions we assign a collection of attributes to an
+individual and define that collection as an identity. "Jill Jones is the person who knows how to
+change spark plugs, who used to play card games with me in grade school behind my parents shed,
+and who is now married to my brother." For people that we know the collection of attributes we
+can assign to that person is normally very large and uniquely identifies him or her. Nobody else
+in the world will have exactly the same collection of hundreds (thousands?) of attributes.
+
+Now consider the problem of authenticating Jill Jones over the network. Here the requester must
+prove that she has sufficient attributes to distinguish herself as Jill Jones from all other
+entities. In addition these attributes must be such that no other entity could forge all of them
+together.
+
+Notice that Jill's name is not a particularly reliable attribute. For one thing there are many
+people in the world named "Jill Jones." In addition it is easy for a malicious person to claim
+to have that name (it is easy to forge). However, an authorizer might use the name "Jill Jones"
+as a convenient label for the identity---that is, for the collection of attributes constituting
+the particular person he has in mind. In this respect all names are interepreted locally. The
+fact that Jill uses the name "Jill Jones" to refer to herself makes it a good candidate name,
+but an authorizer could use some other name ("Blond Girl", "My Brother's Wife", etc) if desired.
+
+In most computer application we are dealing with limited knowledge in two dimensions. On one
+hand an authorizer has limited knowledge of the requester. In addition, only limited amounts of
+information are exchanged between authorizer and requester on which to base an authentication
+decision. Let's consider several authentication scenerios
+
+1. Password based.
+
+Here the requester proves she has access to some secret information. The authorizer maintains a
+mapping from secret information to a (local) name as a convenience. This doesn't do much to
+prove identity in the usual sense because the authorizer knows very little about the requester.
+In fact the authorizer doesn't even know if a single individual is involved (many individuals
+might know the secret information). The authorizer has to assume that a particular person is the
+one and only individual who knows the secret information before such information can be
+considered a proof of identity.
+
+2. Digitally signed request.
+
+Here the requester signs her request, thus proving he/she has access to a particular private
+key. The corresponding public key can be associated with a name as before. Thus this is not any
+different than #1 above; the secret information is the private key rather than a password.
+
+3. Digitally signed request with certified public key.
+
+Here the requester signs her request and provides a certificate from a CA binding the public key
+to some attribute (for example, a name). In this case the authorizer must trust the CA on two
+counts:
+
+  + To be competent enough to bind keys to attributes correctly.
+  + To act in good faith.
+
+The authorizer must also understand the semantics of the attribute as defined by the CA. For
+example, a CA might bind a key to the name "Jill Jones" but that name can not be properly
+interpreted without understanding the CA's concept of naming. The authorizer can then map (maybe
+using an identity mapping) the certified attribute to a local name and then use the local name
+to define authorizations. Note that since simple names are not globally unique X.509 uses a
+hierarchy of organizations and organizational units to specify a name uniquely. The trick is for
+the authorizer and the CA to agree on this hierarchy.
+
+However, this option provides a lot of flexibility since the authorizer no longer needs to
+maintain a database of all keys of interest (as in #2). He has delegated authority to make (key,
+attribute) bindings to the CA.
+
+So far the purpose of these approaches is to enable the authorizer to associate an "identity
+token" (local name, public key, CA-qualified X.509 distinguished name, etc) with the requester.
+Access control decisions are then made based on the identity token.
+
+In the trust management solution access control is not specified in terms of an identity token.
+Instead access control is defined in terms of a policy.

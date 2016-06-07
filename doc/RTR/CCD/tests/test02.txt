@@ -1,0 +1,9 @@
+# This test is a variation of test01.txt. Here the cycle weight is zero.
+# The algorithm should only find (M, 5) once and not an infinite number
+# of times.
+
+A.r, 100
+A.r <- C.t, 2, 0
+B.s <- A.r, 2, 0
+C.t <- B.s, 2, 0
+C.t <- M, 1, 5

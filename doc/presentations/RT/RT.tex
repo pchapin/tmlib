@@ -1,0 +1,366 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FILE         : RT.tex
+% AUTHOR       : (C) Copyright 2004 by Peter C. Chapin
+% LAST REVISED : 2004-12-01
+% SUBJECT      : Presentation on the RT Framework
+%
+%
+% Send comments or bug reports to:
+%
+%       Peter C. Chapin
+%       University of Vermont
+%       Burlington, VT 05061
+%       pchapin@cs.uvm.edu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass[landscape]{slides}
+
+%\usepackage{amsmath}
+%\usepackage{amssymb}
+%\usepackage{amstext}
+%\usepackage{mathpartir}
+
+\input{slide-macros}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{The RT Trust Management Framework}
+\author{Presented by Peter C. Chapin\\University of Vermont}
+\date{December 1, 2004}
+\maketitle
+
+%%%%%
+
+\startslide{References}
+
+\begin{itemize}
+
+\item N. Li, J. Mitchell, and W. Winsborough. \textit{Design of a Role-based Trust-management Framework}. In Proceedings of 2002 IEEE Symposium on Security and Privacy, pages 114--130. IEEE Computer Society Press, May 2002
+
+\item M. Blaze, J. Feigenbaum, J. Lacy. \textit{Decentralized Trust Management}. In Proceedings of 1996 IEEE Symposium on Security and Privacy, pages 164--173, May 1996
+
+\item D. Ferraiolo and R. Kuhn. \textit{Role-based access controls}. In Proceedings of 15th NIST-NCSC National Computer Security Conference, pages 554--563, Baltimore, MD, October 13-16 1992
+
+\end{itemize}
+\stopslide
+
+%%%%%
+
+\startslide{Outline}
+
+\begin{itemize}
+
+\item Trust Management
+
+\item Role Based Access Control
+
+\item RT: \textbf{R}ole Based \textbf{T}rust Management
+
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Trust Management}
+
+\begin{itemize}
+
+\item Traditional access control uses ``closed world'' assumption: all users are known to the system.
+
+  \begin{itemize}
+  \item Example: Unix or Windows
+  \end{itemize}
+
+\item In a decentralized, distributed system the closed world assumption is unreasonable.
+
+	\begin{itemize}
+	\item Infeasible to maintain a list of all potential users.
+  \item Access must be granted based on certified characteristics of users (group membership, age, eye color, etc).
+  \end{itemize}
+
+\end{itemize}
+\stopslide
+
+%%%%%
+
+\startslide{Who's There?}
+
+Identity not particularly useful.
+
+Example: We don’t know Jill Jones so knowing that she is requesting access isn’t helpful.
+We might rather know that the client
+
+\begin{itemize}
+\item Is UVM CS faculty \textbf{OR}
+\item Is a UVM CS student \textbf{AND} has a GPA $\ge$ 3.5
+\end{itemize}
+
+X.509 and PGP provide identity certificates. Useful in a closed world.
+\stopslide
+
+%%%%%
+
+\startslide{Characteristics of TM Systems I}
+
+Trust management systems provide a way of describing\ldots
+
+\begin{enumerate}
+
+\item Principals: entities to which access can be granted or trust extended. Public keys represent individuals (human and non-human), groups, roles, etc.
+
+\item Actions or permissions: security sensitive operations. Often implicit in a request. Possibly high level. Application specific.
+
+\item Policy: what actions can be done by which principals. Example: UVM students can read, UVM CS students can update.
+
+\end{enumerate}
+
+\stopslide
+
+\startslide{Characteristics of TM Systems II}
+
+\begin{enumerate}
+
+\item Credentials: signed certificates. Proves the specified principal possesses a particular characteristic.
+
+\item Trust relationships: who is trusted to certify what. For example, the UVM registrar is trusted to certify UVM student status.
+
+\end{enumerate}
+\stopslide
+
+%%%%%
+
+\startslide{Delegation}
+
+There are two kinds of delegation.
+
+\begin{itemize}
+
+\item Delegation of trust: Who is trusted to certify characteristics? Example: Doctors can certify height. The AMA can certify doctors.
+
+\item Delegation of authority: Who can act on a principal's behalf in a transaction?
+
+\end{itemize}
+
+First form is an essential part of trust management. Second form is optional, but often useful.
+
+\stopslide
+
+%%%%%
+
+\startslide{Anatomy of a Request}
+
+\input request
+\centerline{\box\graph}
+
+\stopslide
+
+%%%%%
+
+\startslide{Role Based Access Control (RBAC)}
+
+Introduced to simplify administration of access control.
+
+\begin{itemize}
+
+\item Roles define both users and permissions.
+
+\item Easy to look up both role members and role permissions; simply consult the role definition.
+
+\item In contrast groups only define users. Permissions are defined separately (on ACLs, for example) and are thus harder to manage.
+
+\item RBAC not discretionary. Only creator of role can modify role permissions. Resource owners not necessarily involved.
+
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{More RBAC}
+
+Roles can be used in several ways depending on the system's security needs.
+
+\begin{itemize}
+
+\item Organize users into groups. Example: UVM CS students.
+
+\item Represent permissions. Example: Print on network printer. Role members have the indicated permission.
+
+\item Represent attributes. Example: People more than 6 feet tall. Role members have the indicated attribute (ABAC).
+
+\end{itemize}
+
+Some systems allow roles to contain other roles forming role hierarchies.
+
+\stopslide
+
+%%%%%
+
+\startslide{RT Framework}
+
+RT combines ideas from trust management systems and RBAC.
+
+\begin{itemize}
+
+\item Trust management systems provide notion of trust delegation.
+
+\item RBAC provides notion of flexible roles.
+
+\item RT offers several variations: $RT_0$, $RT_1$, $RT_2$, $RT^T$, $RT^D$, $RT^C$, etc.  Variations trade off expressiveness and complexity.
+
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{$RT_0$ Roles}
+
+\begin{itemize}
+\item Role names local to principals (like SDSI/SPKI).
+\item Roles defined by specifying role members.
+\item Some roles defined as part of local policy, some as signed certificates.
+\item Role membership is the union of all policy and certificate definitions.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Membership Assertions I}
+
+$A.R \leftarrow B$
+
+Principal $B$ is in $A$'s role $R$. Example: \texttt{WS.student} $\leftarrow$ \texttt{Alice}
+
+$A.R \leftarrow B.R_1$
+
+Members of $B$'s role $R_1$ are in $A$'s role $R$. This is trust delegation. Example: \texttt{WS.student} $\leftarrow$ \texttt{UVM.student}
+
+\stopslide
+
+%%%%%
+
+\startslide{Membership Assertions II}
+
+$A.R \leftarrow A.R_1.R_2$
+
+$A$'s role $R$ contains all members of $B$'s $R_2$ role if $B$ is a member of $A$'s $R_1$ role. Example: \texttt{WS.student} $\leftarrow$ \texttt{WS.university.student} with an appropriate definition of \texttt{WS.university}.
+
+$A.R \leftarrow B_1.R_1 \cap B_2.R_2 \cap \ldots \cap B_n.R_n$
+
+$A$'s role $R$ contains the entities that are members of all the roles $B_1.R_1$, $B_2.R_2$, etc. Example: \texttt{WS.student} $\leftarrow$ \texttt{UVM.student} $\cap$ \texttt{UVM.gradcollege}.
+
+\stopslide
+
+%%%%%
+
+\startslide{Example}
+
+WS's policy:
+
+\texttt{WS.readsite} $\leftarrow$ \texttt{WS.student}\\
+\texttt{WS.student} $\leftarrow$ \texttt{WS.university.student}\\
+\texttt{WS.university} $\leftarrow$ \texttt{ABU.accredited}
+
+Submitted with Alice's request to read the site:
+
+\texttt{UVMregistrar.student} $\leftarrow$ \texttt{Alice}\\
+\texttt{UVM.student} $\leftarrow$ \texttt{UVMregistrar.student}\\
+\texttt{ABU.accredited} $\leftarrow$ \texttt{UVM}
+
+Access is granted.
+
+\stopslide
+
+\startslide{Datalog}
+
+\begin{itemize}
+
+\item RT semantics defined in terms of Datalog.
+
+\item Datalog is a subset of Prolog that lacks function symbols and negation. Introduced as a database query language supporting recursion.
+
+\item RT assertions can be translated into Datalog rules and facts.
+
+\item Access is granted if the necessary fact can be proven.
+
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Example (Continued)}
+
+\begin{verbatim}
+% Policy
+member(ws, readsite, X) :- member(ws, student, X).
+member(ws, student, X) :- member(ws, university, Y),
+                          member(Y, student, X).
+member(ws, university, X) :- member(abu, accredited, X).
+
+% Credentials submitted with request
+member(uvmregistrar, student, alice).
+member(uvm, student, X) :- member(uvmregistrar, student, X).
+member(abu, accredited, uvm).
+\end{verbatim}
+
+Computing \texttt{member(ws, readsite, alice)} returns ``yes''.
+
+\stopslide
+
+%%%%%
+
+\startslide{$RT_1$}
+
+$RT_1$ adds parameterized roles.
+
+\begin{itemize}
+
+\item \texttt{WidgetsInc.managerOf(Alice)} $\leftarrow$ \texttt{Bob}
+\item \texttt{WidgetsInc.evaluatorOf(?X)} $\leftarrow$ \texttt{WidgetsInc.managerOf(?X)}
+\item \texttt{UVM.recentAlumni} $\leftarrow$ \texttt{UVM.graduated(?Year:[2001..2004])}
+\item \texttt{UVM.graduated(2001)} $\leftarrow$ \texttt{Alice}
+\end{itemize}
+
+Multiple parameters allowed on a role. Parameters are typed and can take on discrete integer, float, or enumeration values.
+
+$RT_1^C$ enriches role parameters by allowing more expressive constraint domains.
+
+\stopslide
+
+%%%%%
+
+\startslide{Other RTs}
+
+\begin{itemize}
+\item $RT_2$. Supports parameterized object sets.
+\item $RT^T$. Supports threshold and separation of duty policies. 
+\item $RT^D$. Supports role activations and delegation of those activations.
+\item $RT^C$. Supports structured resources (semantics requires Datalog with constraints).
+\end{itemize}
+
+The various options can be mixed: $RT_1^D$, $RT_2^{DT}$, etc.
+
+\stopslide
+
+%%%%%
+
+\startslide{Questions}
+
+\begin{center}\Large ?\end{center}
+
+\stopslide
+
+\end{document}

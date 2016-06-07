@@ -1,0 +1,237 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FILE         : modal.tex
+% AUTHOR       : Peter C. Chapin
+% LAST REVISED : 2007-10-23
+% SUBJECT      : A few thoughts on using modal logic in authorization systems.
+%
+% Send comments or bug reports to:
+%
+%       Peter C. Chapin
+%       Department of Computer Science
+%       University of Vermont
+%       Burlington, VT
+%       pchapin@cems.uvm.edu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass{article}
+%\documentclass[12pt]{article}
+
+% Common packages. Uncomment as needed.
+%\usepackage{amsmath}
+\usepackage{amssymb}
+%\usepackage{amstext}
+%\usepackage{amsthm}
+%\usepackage{doublespace}
+%\usepackage{fullpage}
+%\usepackage[dvips]{graphics}
+%\usepackage{listings}
+%\usepackage{mathpartir}
+%\usepackage{url}
+%\usepackage{hyperref}
+
+% The following are settings for the listings package.
+%\lstset{language=Java,
+%        basicstyle=\small,
+%        stringstyle=\ttfamily,
+%        commentstyle=\ttfamily,
+%        xleftmargin=0.25in,
+%        showstringspaces=false}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1.75ex plus0.5ex minus0.5ex}
+
+% Some handy macros.
+\newcommand{\todo}[1]{\textit{TODO: #1}}
+\newcommand{\po}{\preccurlyeq}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{Modal Logic in Trust Management}
+\author{Peter C. Chapin}
+\date{October 23, 2007}
+\maketitle
+
+\section{Introduction}
+
+Trust management systems that use contextual information as part of the authorization decision
+need to contend with the volatility of that information. In a traditional environment, there is
+an implicit assumption that a requester's credentials remain valid for the duration of a
+particular session. Thus the authorizer need not be concerned about rechecking a previously made
+authorization decision throughout a session. However, the validity of contextual information may
+change on a time scale of minutes or even seconds in some cases. For example, a requester might
+move to a different location inside a building, or the temperature on particular sensor might
+change abruptly. In such an environment the authorizer must face the very practical problem of
+monitoring the validity of each authorization decision and preemptively aborting sessions that
+become invalid.
+
+To support practical implementations, it is desirable to have a unified theory of context aware
+authorization that takes into account the time changing nature of the contextual inputs. In a
+traditional trust management system, invalid (expired) credentials are simply discarded before
+the authorization decision is made. While such an approach might be theoretically unsatisfying,
+it is feasible and practical. However, when contextual inputs are used the authorizer will need
+to maintain a complex data structure that reflects the current status of all active sessions.
+For reasons of efficiency this structure will need to be updated incrementally as the contextual
+inputs change. Proving that the algorithms used for this purpose are correct will require a
+reasonable theory together with a well defined notion of correctness.
+
+Authorizers might also be interested in asking meta-questions about their policy. For example,
+given a particular policy and set of contextual inputs, is it possible for a particular
+principal to gain access to a particular resource? A related question might be, will a
+particular principal necessarily have access to a particular resource, regardless of how the
+contextual inputs might change? To frame and answer such questions formally suggests that the
+theory should be based on a modal logic. The purpose of this document is to explore how a modal
+logic might be used to construct a unified theory of context aware authorization.
+
+This document is a collection of loosely related ideas. It is a scratch pad on which these ideas
+can be stated and developed. It is hoped that as these ideas are refined the text of this
+document will evolve to a more formal and comprehensive presentation of the use of modal logic
+in trust management systems.
+
+\section{Problem Scope}
+
+In order to keep the problem focused we first consider a theory in a more limited context. Our
+theory will be applicable to only role based access control systems, specifically those based on
+the $RT$ framework. In such a system role membership is what defines resource access, and the
+authorization decision is thus about computing which principals are in each role.
+
+The second simplification is that we only consider temporal context. That is, the validity of
+credentials depends on the time. Other kinds of contextual inputs will initially be ignored.
+There are several reasons for this.
+
+\begin{enumerate}
+\item Temporal context potentially has many applications. For example employees might only have
+  certain rights during work hours (doctors, emergency services personnel, etc).
+\item Certificate expiration and perhaps revocation could be handled by an appropriate temporal
+  theory. This allows us to create a good theoretical foundation for these important issues that
+  are now largely handled in an ad-hoc manner.
+\item A large body of existing work on handling temporal modalities already exists. We hope to
+  be able to tap into that work.
+\end{enumerate}
+
+We believe that both of these restrictions can probably be lifted once the basic ideas are
+worked out. For example, it would be valuable if the theory had application to other kinds of
+access control models such as ACLs or other access control matrix approaches. In addition, it
+would be valuable if the theory could be used with a collection of contextual inputs, perhaps
+with properties that are quite different than time. Dealing with this more general approach
+would probably require the use of more general modal logics. However, the theory of such logics
+is reasonably well developed.
+
+\section{Instantiation of $RT^R$}
+
+An extension to the $RT$ framework is needed to write policies that make use of contextual
+inputs, and issue credentials that reference them. Here we specify an instantiation of $RT^R$
+that can serve as a base for later modal extensions. This $RT^R$ instantiation treats the
+contextual inputs as time invariant propositions. We assume the authorizer can assign truth
+values to each proposition based on data inputs arriving at the authorizer through some
+unspecified means. We further assume that those inputs are trustworthy; we do not consider at
+this time a mechanism for protecting the contextual inputs.
+
+Let $\mathcal{P}$ be a countable set of proposition symbols $\{ p_0, p_1, \ldots, \}$. The
+interpretation of these symbols is not specified but as an example $p_0$ might be interpreted as
+``the reactor temperature is critical,'' $p_1$ might be interpreted as ``two or more people are
+in the launch control room,'' etc. We assume that all participants in the distributed system
+agree on the meaning of the proposition symbols so that credentials created by a principal will
+be interpreted correctly by other principals\footnote{$RT$ also assumes principals agree on the
+  significance of role names.}. \todo{Can we make this first order instead? That would probably
+  be more useful.}
+
+Let $\mathcal{F}$ be the set of propositional formula defined inductively as follows.
+\begin{enumerate}
+\item The symbols $\top$ (constant true) and $\bot$ (constant false) are formula.
+\item $p_i$ is a formula.
+\item $\neg p_i$ is a formula.
+\item $f_i \wedge f_j$ is a formula where $f_i, f_j \in \mathcal{F}$.
+\item $\mathcal{F}$ is the smallest set that contains all formula generated by the above rules.
+\end{enumerate}
+
+Note that $\mathcal{F}$ is a subset of all possible propositional formula. For example,
+disjunction is not allowed since $\neg (\neg p_i \wedge \neg p_j) \notin \mathcal{F}$.
+
+Following Definition 4.1 in \cite{Skalka:RMDA} we define $\mathcal{K} = \mathcal{F}$. We define
+$\po$ as follows: For a particular formula $f_i$, let $P_i$ be the site of primitive
+propositions used in $f_i$ where a ``primitive proposition'' is either $p_n$ or $\neg p_n$ for
+some $p_n \in P$. Then $f_i \po f_j$ iff $P_i \subseteq P_j$. Furthermore let the bottom element
+of the lattice be $\bot$. Let the top element of the lattice be the conjunction $\top \wedge p_0
+\wedge p_1 \wedge \ldots$ \todo{Prove that $(K, \po)$ as defined here is a complete lattice as
+  required by $RT^R$}.
+
+$RT^R$ also requires two associative and monotonic aggregation operators $\oplus$ and $\otimes$.
+In this instantiation we use $\wedge$ for both of these operators. It is clear that $\wedge$ is
+monotonic in the sense of the ordering relation $\po$ defined above.
+
+\subsection{Example}
+
+Suppose Alice is a doctor at hospital $H$. She is allowed access to emergency room resources
+only when she is on call. Let $p_c$ be true when Alice is on call. The hospital issues the
+following $RT^R$ credential:
+
+$H.e \leftarrow A, p_c$
+
+Suppose further that the hospitals in the local area have formed a federation (with key $F$)
+allowing them to share resources. The federation's membership is defined by the role $F.m$ and
+the federation issues a credential such as
+
+$F.m \leftarrow H, \top$
+
+for each participating hospital. Assume the local police department (with key $P$) wants to
+temporally grant emergency workers access to police reports in the case when an accident has
+occurred. Specifically if $p_a$ is true when an accident is active, and $p_n$ is true when there
+are unstablized injured persons, the police department might issue the credential.
+
+$P.r \leftarrow F.m.e, p_a \wedge p_n$
+
+Using these credentials, $RT^R$ finds the membership of $P.r$ to be the risk assessment $\{ (A,
+\top \wedge p_c \wedge p_a \wedge p_n) \}$. Alice can thus be considered a member of the role
+iff the formula $\top \wedge p_c \wedge p_q \wedge p_n$ evaluates to true.
+
+\section{Role of Modal Logic}
+
+Modal logic operates over a universe of states\footnote{In this document, we might also use the
+  terms \textit{point}, \textit{world}, \textit{situation}, or \textit{instant}.}. Each formula
+is evaluated in the context of a current state. In the case of temporal logic, this state
+represents the current time. Modal formula then make statements about the nature of the states
+(times) that can be reached from the current one. This approach makes sense in our case because
+the authorizer will know the current context and is interested in proving statements or writing
+policy about the states that can be reached from the current context. A situation is only
+relevant if it can arise from the situation that exists \emph{now}. It is not necessary or even
+desirable to consider every possible combination of contextual inputs, if some of those
+combinations can never appear.
+
+Modal logic provides a formal language for talking about the ways in which the universe might
+evolve. The structure of the contextual information---the way in which states might change from
+one to the next---is captured in an accessibility relation that underlies the semantics of the
+modal logic used. The most appropriate proof system to use depends on this structure, and hence
+on the nature and behavior of the contextual inputs.
+
+There is much literature on the structure of time and on the corresponding modal axioms
+necessary to capture that structure. Our initial goal, then, is to combine the ideas of temporal
+logic with the $RT^R$ instantiation above. In this way we will build a system that allows
+temporal reasoning about contextual inputs and role memberships.
+
+\todo{Comment on the use of time intervals to model sessions.}
+
+\section{Examples}
+
+\todo{Describe one (or two?) compelling examples that motivate the theory and demonstrate its
+  utility.}
+
+\section{Implementation Issues}
+
+\todo{Describe how the theory can be used to guide a verifiable implementation that dynamically
+  and incrementally updates session information.}
+
+\todo{Comment on the use of modal logic programming languages.}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

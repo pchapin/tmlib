@@ -1,0 +1,21 @@
+# This case is particularly twisted. Here each time a derived edge is
+# added, there is the potential for discovering more entities in the
+# linked role (and thus adding more derived edges so that yet more
+# entities could be discovered, etc).
+
+A.s, 100
+A.s <- A.s.t, 3, 5
+
+# This gets things started.
+A.s <- B, 1, 5
+
+# C is in A.s by way of the derived edge created from B.t.
+B.t <- C, 1, 5
+
+# D is in A.s by way of the derived edge created from C.t.
+C.t <- D, 1, 5
+
+# E is in A.s by way of the derived edge created from D.t.
+D.t <- E, 1, 5
+
+# etc.

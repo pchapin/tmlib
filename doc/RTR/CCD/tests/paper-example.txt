@@ -1,0 +1,8 @@
+# This is the example from section 2 of the paper.
+
+Store.buyer, 10
+Store.buyer <- Acme.purchaser ^ Acme.employee, 4, 1
+Acme.employee <- Ed, 1, 3
+Acme.purchaser <- Ed, 1, 4
+Acme.purchaser <- Personnel.manager, 2, 2
+Personnel.manager <- Ed, 1, 3

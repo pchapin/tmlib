@@ -1,0 +1,13 @@
+# In this test E can be in the support role A.s two different ways. The
+# first way is direct, but the second way is via a derived edge created
+# by E being in the support role. This opens up the possibility of
+# looping infinitely; the algorithm might continually add new derived
+# edges with ever increasing weights. The expected output should be
+# equivalent to (E, 15).
+
+A.r, 50
+A.r <- A.s.t, 3, 5
+A.s <- E, 1, 5
+A.s <- A.r, 2, 5
+E.t <- E, 1, 5
+

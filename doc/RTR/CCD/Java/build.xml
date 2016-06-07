@@ -1,0 +1,48 @@
+
+<project name="CCD" default="compile" basedir=".">
+
+  <!-- set global properties for this build -->
+  <property name="src" value="."/>
+  <property name="build" value="build"/>
+  <property name="dist"  value="dist"/>
+  <property name="docs"  value="docs"/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}"/>
+  </target>
+
+  <target name="dist" depends="compile">
+    <!-- Create the distribution directory (should this be in init?) -->
+    <mkdir dir="${dist}"/>
+    <copy file="MANIFEST.MF" todir="${dist}"/>
+
+    <!-- Put everything in ${build} into the CCD-${DSTAMP}.jar file -->
+    <jar
+      jarfile="${dist}/CCD-${DSTAMP}.jar"
+      basedir="${build}"
+      manifest="${dist}/MANIFEST.MF"/>
+  </target>
+
+  <target name="docs" depends="compile">
+    <!-- Create the documentation directory (should this be in init?) -->
+    <mkdir dir="${docs}"/>
+
+    <javadoc destdir="${docs}" sourcefiles="${src}/*.java"
+       Overview="overview.html"/>
+  </target>
+
+  <target name="clean">
+    <!-- Delete the ${build}, ${dist}, and ${docs} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${docs}"/>
+  </target>
+</project>

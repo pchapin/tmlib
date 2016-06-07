@@ -1,0 +1,134 @@
+\section{Applications}
+\label{section-application} 
+
+In this section we discuss interesting applications of $\RTR$.
+Details of these applications are avenues for future work; here we
+describe how $\RTR$ could be used to support trust management systems
+that incorporate notions of risk.
+
+\subsection{Trust but Verify}
+
+The Trust but Verify (TbV) framework \cite{skalka-wang-sws04} provides
+a setting for distributed trust management that takes into account a
+notion of \emph{trust} for online authorization decisions, backed up
+by offline \emph{verification}.  Many realistic authorization
+decisions require ``softening'' of security in the online phase; this
+amounts to trusting the validity of certain assertions in this phase,
+that would otherwise be too expensive to verify.  However, online
+trust should be specified so that sound offline verification is
+well-defined, providing formal certainty that offline verification
+supports online trust.
+
+Any authorization decision in the TbV framework is abstractly
+specified as derivability of a target privilege $\priv$ given a
+security context $s$, written $s\vdash\priv$.  Any instance of the TbV
+framework comprises a \emph{trust transformation}, that formalizes the
+definition of trust in terms of a function, mapping initial security
+contexts $s$ to contexts $\cod{s}$, that contain assertions that are
+trusted solely for efficient online verification.  Furthermore, the
+trust transformation should be reversible, via an $\audit$ technique
+that is required to reconstruct a security context that is at least as
+strong as the pre-image $s$ of any trust-transformed security context
+$\cod{s}$.  The $\audit$ technique is the implementation of offline
+verification.  In \cite{skalka-wang-sws04}, the TbV framework is
+developed using ABLP logic \cite{ABLP93}.  However, the $\RT$
+framework is a more modern trust management system, with a variety of
+implementation techniques and variations \cite{Li:2003-02}.  The
+$\RTR$ variation offers a unique dimension of support for TbV, since
+trust can be encoded using definitions of risk in $\RTR$.
+
+The TbV framework is characterized by three conditions, that we
+recount here.  We show how $\RTR$ can be used to instantiate the
+framework in a system that satisfies these conditions.  The first
+condition requires that authorization decisions are decidable:
+\begin{condition}
+\label{cond-decidable}
+Let $s$ be an authorization context; then validity of $s \vdash \priv$
+is decidable.
+\end{condition}
+In $\RTR$, authorization decisions are implemented as role membership
+decisions with an assessed risk, and security contexts are sets of
+credentials $\creds$.  That is, if the role $A.r$ represents a target
+privilege and $B$ is a privilege requester, then authorization amounts
+to discovery of $\wtpath{B}{A.r}{\risk} \in \graph{\creds}$,
+where $\risk$ must be within a specified threshold.
+
+The second condition specifies that auditing reverses trust
+transformation, though since trust transformations can be many-to-one,
+the context returned by auditing need not be the exact preimage
+of trust transformation:
+\begin{condition}
+\label{cond-extrapolate}
+Let $s$ be a trusted context; then success of $\audit(s)$ entails
+$\cod{\audit(s)} = s$.
+\end{condition}
+The last condition sufficiently strengthens the requirements of
+auditing to formally establish that any auditing is a sound
+verification of trust injected by the trust transformation:
+\begin{condition}
+\label{cond-extrapolate}
+Let $s$ be a trusted context; then if $\audit(s)$ succeeds, for all 
+$\priv$ it is the case that $\audit(\cod{s}) \vdash \priv$ implies
+$s \vdash \priv$. 
+\end{condition}
+The condition requires that auditing of a trust-transformed context
+must reconstruct a context that is at least as strong as the initial
+context, pre-trust-transformation.  In $\RTR$, since authorization
+contexts are credentials $\creds$, and the authorization decision
+includes a risk threshold, trust transformation may be implemented as
+the extension of a credential base $\creds$ with additional
+``riskier'' credentials, along with an increase in the tolerable risk
+threshold in chain discovery.  Returning to the example in
+\autoref{section-rtrexamples}, the initial authorization decision
+could be to determine
+$\wtpath{\mathit{Ed}}{\mathit{Store.buyer}}{\risk}$, where $\risk \po
+\mathit{medium}$.  An online trust transformation could add
+$\mathit{Ed}$'s credential $\mathitcred{Acme.purchaser}{Ed}{high}$ to
+the credential base, and tolerate $\risk \po \mathit{high}$.  Auditing
+in this case would entail removing $\mathit{Ed}$'s certificate from
+the credential base, and restoring the risk threshold $\risk \po
+\mathit{medium}$.  In fact, just raising the risk threshold would be
+sufficient, since raising the risk threshold would eliminate the
+possibility of using $\mathit{Ed}$'s certificate in the proof of his
+membership in $\mathit{Store.buyer}$, and in general trust
+transformation and auditing could be implemented in $\RTR$ purely by
+modulation of risk thresholds in chain discovery.
+
+\subsection{Cost/Benefit Analysis}
+
+Risk in $\RTR$ is defined in an abstract manner.  Although the
+examples in this paper have used atomic risk values, it is possible to
+define a risk ordering on compound risk values.  For example, suppose
+both levels of ``trustability'' and expected wait times for retrieval
+of specific credentials are considered components of risk.  The set
+$\mathcal{K}$ could then contain elements of the form $(\risk,t)$,
+where $\risk \in \setdefn{\mathit{low,medium,high}}$ as in
+\autoref{section-rtrexamples} and $t$ is a wait time represented as an
+integer, and:
+$$
+(\risk_1,t_1) \po (\risk_2,t_2) \iff \risk_1 \po \risk_2 \wedge
+t_1 \le t_2
+$$ 
+reflecting that lower wait times, as well as higher confidence in
+validity, define lower risk.  Maximum risk in chain discovery would
+then specify both a tolerable level of trust, and a tolerable wait
+time for any particular credential.
+
+This suggests an \emph{interactive} procedure for chain discovery,
+where the costs of raising the level of one component of risk could be
+balanced against benefits in another risk dimension.  In the above
+scenario, if chain discovery in some instance fails given a threshold
+$(\risk, t)$, chain discovery could be re-run with a higher threshold,
+but notice there is a choice of which element(s) of risk to raise.
+The cost of raising $\risk$ can then be balanced against the benefits
+in the time dimension, by re-running chain discovery with the
+threshold $(\risk',t)$, where $\risk\po\risk'$.  The opposite is also
+clearly the case.  This cost/benefit analysis would be further
+enhanced by optimizing chain discovery.  The backward chain discovery
+algorithm presented in this paper ensures that risks are kept below a
+certain threshold, but does not attempt to optimize risk.  By
+extending chain discovery with optimization techniques, in the
+presence of compound risk, benefit dimensions could be optimized
+within a fixed cost dimension.  For example, optimal wait times could
+be sought given a $\mathit{high}$ level of trust risk.  Development of
+optimizing algorithms is a topic for future work.

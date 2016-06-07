@@ -1,0 +1,295 @@
+%
+% This file contains a table summarizing various trust management systems.
+%
+
+% Width of table cells...
+\newlength{\sumw}
+\setlength{\sumw}{0.80in}
+
+% Less typing...
+\newcommand{\rr}{\raggedright}
+
+% Trick for allowing raggedright in table cells...
+\newcommand{\RBS}{\let\\=\tabularnewline}
+
+
+%%%%%%%%%%%%%%%%%%
+%%%%% PART I %%%%%
+%%%%%%%%%%%%%%%%%%
+
+\begin{sidewaystable}
+\centering
+
+\begin{tabular}{|p{\sumw}||p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|} \hline
+               &
+   PolicyMaker &
+   KeyNote     &
+   SPKI/SDSI   &
+   REFEREE     &
+   QCM         &
+   OASIS
+   \\ \hline \hline
+
+% Add a row for syntax? What would a typical entry look like?
+
+ \rr Formal Foundation &
+   \rr Graph theory                      &  % PolicyMaker
+   \rr Graph theory                      &  % KeyNote
+   \rr Set theory. First order logic     &  % SPKI/SDSI
+   \rr Not formalized                    &  % REFEREE
+   \rr Relational algebra                &  % QCM
+   \rr\RBS First order logic                % OASIS
+   \\ \hline
+
+ \rr Authorization Procedure &
+   \rr Graph search                      &  % PolicyMaker
+   \rr Graph search                      &  % KeyNote
+   \rr Tuple reduction                   &  % SPKI/SDSI
+   \rr Arbitrary                         &  % REFEREE
+   \rr Distributed database query        &  % QCM
+   \rr\RBS Unspecified                      % OASIS
+   \\ \hline
+
+ \rr Authorization Complexity &
+   \rr Undecidable                       &  % PolicyMaker
+   \rr Undecidable                       &  % KeyNote
+   \rr Polynomial                        &  % SPKI/SDSI
+   \rr Potentially undecidable           &  % REFEREE
+   \rr Unpublished                       &  % QCM
+   \rr\RBS Undecidable                      % OASIS
+   \\ \hline
+
+ \rr Public Key Infrastructure &
+   \rr External                          &  % PolicyMaker
+   \rr External                          &  % KeyNote
+   \rr External                          &  % SPKI/SDSI
+   \rr Internal                          &  % REFEREE
+   \rr Internal                          &  % QCM
+   \rr\RBS External (undefined)             % OASIS
+   \\ \hline
+
+ \rr Threshold Policies &
+   \rr Yes                               &  % PolicyMaker
+   \rr Yes                               &  % KeyNote
+   \rr Yes                               &  % SPKI/SDSI
+   \rr No                                &  % REFEREE
+   \rr No                                &  % QCM
+   \rr\RBS No                               % OASIS
+   \\ \hline
+
+ \rr Local Name Spaces &
+   \rr Can be simulated                  &  % PolicyMaker
+   \rr No                                &  % KeyNote
+   \rr Yes                               &  % SPKI/SDSI
+   \rr No                                &  % REFEREE
+   \rr Yes                               &  % QCM
+   \rr\RBS Yes                              % OASIS
+   \\ \hline
+
+ \rr Role-Based Access Control &
+   \rr Can be simulated                  &  % PolicyMaker
+   \rr Can be simulated                  &  % KeyNote
+   \rr Yes                               &  % SPKI/SDSI
+   \rr Can be simulated                  &  % REFEREE
+   \rr Yes                               &  % QCM
+   \rr\RBS Yes                              % OASIS
+   \\ \hline
+
+ \rr Delegation of Rights &
+   \rr Yes                               &  % PolicyMaker
+   \rr Yes                               &  % KeyNote
+   \rr Yes (boolean depth)               &  % SPKI/SDSI
+   \rr Yes                               &  % REFEREE
+   \rr No                                &  % QCM
+   \rr\RBS Yes                              % OASIS
+   \\ \hline
+
+ \rr Certificate Validity &
+   \rr Depends on assertion language     &  % PolicyMaker
+   \rr Internal                          &  % KeyNote
+   \rr External                          &  % SPKI/SDSI
+   \rr Internal                          &  % REFEREE
+   \rr External                          &  % QCM
+   \rr\RBS Internal                         % OASIS
+   \\ \hline
+   
+ \rr Credential Negation &
+   \rr No                                &  % PolicyMaker
+   \rr No                                &  % KeyNote
+   \rr No                                &  % SPKI/SDSI
+   \rr Yes                               &  % REFEREE
+   \rr No                                &  % QCM
+   \rr\RBS No                               % OASIS
+   \\ \hline
+   
+ \rr Credential Revocation &
+   \rr External                          &  % PolicyMaker
+   \rr External                          &  % KeyNote
+   \rr On-line revocation check          &  % SPKI/SDSI
+   \rr External                          &  % REFEREE
+   \rr Internal                          &  % QCM
+   \rr\RBS Internal                         % OASIS
+   \\ \hline
+
+% QCM: In \cite{Gunter:GCR} the base QCM system is extended to support
+% revocation. The formal syntax and semantics of QCM is enhanced and
+% monotonicity is proved.
+
+ \rr Distributed Chain Discovery &
+   \rr No                                &  % PolicyMaker
+   \rr No                                &  % KeyNote
+   \rr No                                &  % SPKI/SDSI
+   \rr Yes                               &  % REFEREE
+   \rr Yes                               &  % QCM
+   \rr\RBS No                               % OASIS
+   \\ \hline
+
+\end{tabular}
+
+\caption{Summary of Trust Management Systems, Part I}
+\label{tbl:tmsummary1}
+\end{sidewaystable}
+
+%%%%%%%%%%%%%%%%%%%
+%%%%% PART II %%%%%
+%%%%%%%%%%%%%%%%%%%
+
+\begin{sidewaystable}
+
+\begin{tabular}{|p{\sumw}||p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|p{\sumw}|} \hline
+               &
+   PCA         &
+   TPL         &
+   SD3         &
+   Binder      &
+   RT          &
+   Cassandra   &
+   \textsc{Protune}
+   \\ \hline \hline
+
+ \rr Formal Foundation &
+   \rr Higher order logic                &  % PCA
+   \rr Prolog                            &  % TPL
+   \rr Datalog                           &  % SD3
+   \rr Datalog                           &  % Binder
+   \rr Set theory. \datalogc             &  % RT
+   \rr \datalogc                         &  % Cassandra
+   \rr\RBS Stratified logic programs        % Protune
+   \\ \hline
+
+ \rr Authorization Procedure &
+   \rr None                              &  % PCA
+   \rr Not published                     &  % TPL
+   \rr Datalog query                     &  % SD3
+   \rr Datalog query                     &  % Binder
+   \rr Graph search. Datalog query       &  % RT
+   \rr Modified SLG resolution           &  % Cassandra
+   \rr\RBS Logic program evaluation         % Protune
+   \\ \hline
+
+ \rr Authorization Complexity &
+   \rr Decidable proof checking          &  % PCA
+   \rr Undecidable                       &  % TPL
+   \rr Polynomial                        &  % SD3
+   \rr Polynomial                        &  % Binder
+   \rr Polynomial                        &  % RT
+   \rr Depends on constraint domain      &  % Cassandra
+   \rr\RBS Potentially undecidable          % Protune
+   \\ \hline
+
+ \rr Public Key Infrastructure &
+   \rr Internal                          &  % PCA
+   \rr External                          &  % TPL
+   \rr External                          &  % SD3
+   \rr External                          &  % Binder
+   \rr External                          &  % RT
+   \rr External                          &  % Cassandra
+   \rr\RBS Internal                         % Protune
+   \\ \hline
+
+ \rr Threshold Policies &
+   \rr No                                &  % PCA
+   \rr Can be simulated                  &  % TPL
+   \rr No                                &  % SD3
+   \rr No                                &  % Binder
+   \rr Yes ($\RT^T$)                     &  % RT
+   \rr Yes                               &  % Cassandra
+   \rr\RBS Can be simulated                 % Protune
+   \\ \hline
+
+ \rr Local Name Spaces &
+   \rr Can be simulated                  &  % PCA
+   \rr No                                &  % TPL
+   \rr Yes                               &  % SD3
+   \rr Yes                               &  % Binder
+   \rr Yes                               &  % RT
+   \rr Yes                               &  % Cassandra
+   \rr\RBS Can be simulated                 % Protune
+   \\ \hline
+
+ \rr Role-Based Access Control &
+   \rr Can be simulated                  &  % PCA
+   \rr Yes                               &  % TPL
+   \rr Can be simulated                  &  % SD3
+   \rr Can be simulated                  &  % Binder
+   \rr Yes                               &  % RT
+   \rr Yes                               &  % Cassandra
+   \rr\RBS Can be simulated                 % Protune
+   \\ \hline
+
+ \rr Delegation of Rights &
+   \rr Can be simulated                  &  % PCA
+   \rr Yes (integer depth)               &  % TPL
+   \rr Can be simulated                  &  % SD3
+   \rr Can be simulated                  &  % Binder
+   \rr Yes ($\RT^D$)                     &  % RT
+   \rr Yes                               &  % Cassandra
+   \rr\RBS Can be simulated                 % Protune
+   \\ \hline
+
+ \rr Certificate Validity &
+   \rr Internal                          &  % PCA
+   \rr External                          &  % TPL
+   \rr External                          &  % SD3
+   \rr External                          &  % Binder
+   \rr External                          &  % RT
+   \rr Internal                          &  % Cassandra
+   \rr\RBS Internal                         % Protune
+   \\ \hline
+   
+ \rr Credential Negation &
+   \rr No                                &  % PCA
+   \rr Yes                               &  % TPL
+   \rr No                                &  % SD3
+   \rr No                                &  % Binder
+   \rr No                                &  % RT
+   \rr\RBS No                            &  % Cassandra
+   \rr\RBS Monotonic                        % Protune
+   \\ \hline
+   
+ \rr Credential Revocation &
+   \rr Monotonic revocation              &  % PCA
+   \rr Internal                          &  % TPL
+   \rr External                          &  % SD3
+   \rr External                          &  % Binder
+   \rr External                          &  % RT
+   \rr Internal                          &  % Cassandra
+   \rr\RBS External                         % Protune
+   \\ \hline
+
+ \rr Distributed Chain Discovery &
+   \rr No                                &  % PCA
+   \rr Yes (ad hoc)                      &  % TPL
+   \rr Yes                               &  % SD3
+   \rr No                                &  % Binder
+   \rr Yes                               &  % RT
+   \rr Yes                               &  % Cassandra
+   \rr\RBS Yes                              % Protune
+   \\ \hline
+
+\end{tabular}
+
+\caption{Summary of Trust Management Systems, Part II}
+\label{tbl:tmsummary2}
+\end{sidewaystable}
+

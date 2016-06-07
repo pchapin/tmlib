@@ -1,0 +1,15 @@
+# This is a variation of test22. In this test, the risk upper bound is
+# reduced so that nothing can be explored through the second
+# intersection. The expected output is just (E, 35).
+
+A.x, 35
+A.x <- A.r, 2, 5
+A.x <- A.s, 2, 10
+A.r <- B.s ^ C.t, 4, 15
+A.s <- C.t ^ D.e, 4, 20
+B.s <- E, 1, 5
+C.t <- E, 1, 10
+D.e <- E, 1, 30
+C.t <- F, 1, 15
+D.e <- F, 1, 20
+

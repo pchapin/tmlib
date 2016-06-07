@@ -1,0 +1,1021 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FILE         : RT0D-Implementation.tex
+% AUTHOR       : Peter C. Chapin, Christian Skalka, and Sean Wang
+% LAST REVISED : 2005-03-30
+% SUBJECT      : TbV implemented using RTD.
+%
+%
+% Send comments or bug reports to:
+%
+%       Peter C. Chapin
+%       University of Vermont
+%       Department of Computer Science
+%       Burlington, VT 05405
+%       pchapin@cs.uvm.edu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass{article}
+
+% Common packages. Uncomment as needed.
+%\usepackage{amsmath}
+%\usepackage{amssymb}
+%\usepackage{amstext}
+%\usepackage{amsthm}
+%\usepackage{doublespace}
+%\usepackage{fullpage}
+%\usepackage[dvips]{graphics}
+%\usepackage{listings}
+%\usepackage{mathpartir}
+%\usepackage{url}
+%\usepackage{hyperref}
+
+% The following are settings for the listings package.
+%\lstset{language=Java,
+%        basicstyle=\small,
+%        stringstyle=\ttfamily,
+%        commentstyle=\ttfamily,
+%        xleftmargin=0.25in,
+%        showstringspaces=false}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1.75ex plus0.5ex minus0.5ex}
+
+% In case I want to change these later.
+\newcommand{\TbV}{Trust-but-Verify}
+\newcommand{\predicate}[1]{\texttt{#1}}
+
+% Use whenever introducing a new term.
+\newcommand{\newterm}[1]{\textit{#1}}
+
+% Macros for credential formatting.
+\newcommand{\memcert}[2]{\texttt{#1} $\leftarrow$ \texttt{#2}}
+\newcommand{\delcert}[3]{\texttt{#1} $-$\texttt{(#2)}$\rightarrow$ \texttt{#3}}
+\newcommand{\activate}[2]{\texttt{#1 as #2}}
+
+\newenvironment{problem}{%
+\vspace{2ex}%
+\centerline{\textit{PROBLEM}}%
+\begin{quote}%
+}%
+{%
+\end{quote}
+}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{Implementing Trust-but-Verify with $RT_0^D$\\
+       Version 1.5}
+% \author{Peter C. Chapin, Christian Skalka, and Sean Wang}
+\date{March 30, 2005}
+\maketitle
+
+\section{Overview}
+\label{sec:overview}
+
+\textit{This section is unfinished. It is very sketchy.}
+
+% This overview should eventually summarize trust management systems in general, describe
+% Trust-but-Verify, and describe how they Trust-but- Verify works in a trust management
+% environment. The scope and nature of our TbV system using RT_0^D should be presented. The
+% overview should end with an outline of the rest of this document.
+
+Li, Mitchell, and Winsborough introduce the RT framework in \cite{Li:2002-05} and elaborate on
+it further in \cite{Li:2003-02} and \cite{Li:2003-04}. Their framework consists of a collection
+of trust management systems with varying features and capabilities. The simplest system in the
+framework, $RT_0$, provides the base from which the more elaborate systems are defined. $RT_0$
+is very similar to SDSI except that $RT_0$ provides for role intersections and does not allow
+linked roles with more than one level of indirection. These terms are defined in more detail in
+section \ref{sec:RT0D}.
+
+In Section \ref{sec:RT0-semantics} we review the Li set theory semantics for $RT_0$. In
+\cite{Li:2003-02} Li, et. al. provides an algorithm for building the credential graph from a
+collection of membership certificates and for computing the elements of all the associated sets.
+In \cite{Li:2005-xx}, a similar set theory semantics is described for SDSI along with a provably
+equivalent semantics using Datalog. In Section \ref{sec:RT0D-semantics} we review the Li Datalog
+semantics for $RT_0^D$. However, to our knowledge, no separate set theory semantics for $RT_0^D$
+has been published.
+
+In this work we separate from each other the two aspects of checking role membership and
+checking role delegations. Thus the semantics in Section \ref{sec:RT0D-semantics} are not
+directly useful to us. Instead we first define a Datalog semantics for $RT_0^D$ that
+conceptually separates membership and delegations, proving its equivlance to the original
+semantics given in \cite{Li:2002-05}. Next we define two largely independent set theoretic
+systems for membership and delegation checking and prove their equivalence to our Datalog
+semantics. Then we describe an algorithm for implementing the set theoretic semantics and prove
+the soundness and completeness of our algorithm with respect to our semantics. Finally we
+present our sample application.
+
+\section{$RT_0^D$}
+\label{sec:RT0D}
+
+The $RT$ framework uses the term ``entity'' to refer to a key holding principal. As in SDSI,
+entities are represented by their public keys.
+
+% Need to say something about the format of role names in RT_0.
+
+Below is a list of $RT_0$ assertion forms. These assertion forms are also used in $RT_0^D$ to
+define the entity membership of a role. In what follows names starting with uppercase letters,
+such as $A$, $B$, and $C$ are entities. Names starting with lower case letters, such as $r$,
+$r_1$, and $r_2$ are local role names. Each assertion has an issuer corresponding to the entity
+making the assertion. The issuer is always the entity on the left side of the arrow. Each
+assertion also contains one or more subjects corresponding to the entity or entities that are
+the target of the assertion. The subject is always the entity or entities on the right side of
+the arrow. Every assertion is either part of the issuer's local policy or is digitally signed by
+the issuer. Signed assertions are called credentials. In some contexts the left side of an
+assertion is called the ``head'' of the assertion and the right side is called the ``body'' of
+the assertion. This terminology follows from the terminology used in logic programming and is
+especially relevant when assertions are translated into Horn clauses.
+
+\begin{eqnarray}
+  A.r & \leftarrow & B \label{eqn:simple-membership} \\
+  A.r & \leftarrow & B.r_1 \label{eqn:simple-delegation} \\
+  A.r & \leftarrow & A.r_1.r_2 \label{eqn:linked-role} \\
+  A.r & \leftarrow & B_1.r_1 \cap B_2.r_2 \cap \ldots \cap B_k.r_k \label{eqn:intersection}
+\end{eqnarray}
+
+Assertions in the form of (\ref{eqn:simple-delegation}) represent simple delegations of trust.
+Such assertions allow the subject to define the members of the issuer's role. Assertions in the
+form of (\ref{eqn:linked-role}) represent linked delegations of trust. They allow the members of
+$A$'s role $r_1$ to add members to $A$'s role $r$. This is sometimes called \newterm{attribute
+  based delegation} since the ability to define $A$'s role $r$ is being delegated to entities
+that have the attribute $A.r_1$. Assertions in the form of (\ref{eqn:intersection}) are called
+\newterm{intersections}. They allow the issuer to define a role in terms of the joint membership
+of an open ended number of other roles.
+
+There are restrictions on linked role assertions. The top level entity in both the head and body
+of the formula must be the same. Also only one level of role indirection is allowed. These
+restrictions do not reduce expressibility; additional roles can be used to simulate other
+possibilities. These restrictions exist to simplify the credential discovery algorithm
+\cite{Li:2003-02}.
+
+% Make explicit the idea that RT_0^D is for handling delegations, etc.
+
+$RT_0^D$ adds the concept of \newterm{role activations}. A role activation consists of an entity
+together with a role in which that entity wishes to act. For example \activate{$A$}{$B.r$} means
+that $A$ wishes to act with the powers of role $B.r$. In an $RT_0^D$ system role activations are
+passed around between entites by way of \newterm{delegation certificates}. Role activations are
+also assigned to requests by delegating one or more activation to the request.
+
+A delegation certificate is a credential signed by the issuer and that assigns a role activation
+to the certificate's subject. For example, the certificate
+\delcert{$A$}{\activate{$C$}{$D.r$}}{$B$} would be signed by $A$ and would give $B$ the ability
+to use the role activation \activate{$C$}{$D.r$} provided $A$ had that ability. Notice that the
+entity mentioned in the role activation ($C$ in this case) does not need to have any direct
+relationship with either the issuer or the subject of the delegation certificate. Notice also
+that multiple role activations can be passed from one entity to another or assigned to a
+request. Thus it would be possible to make a request using role activations mentioning
+different, unrelated entities.
+
+Conceptually an access request is granted in an $RT_0^D$ system if the following conditions
+hold. In what follows a request's \newterm{governing role} is the role for which the original
+requester must be a member in order to gain access.
+
+\begin{enumerate}
+
+\item One of the role activations used with the request allows access in the sense that both of
+  the conditions below are true.
+  \begin{enumerate}
+  \item The entity mentioned in the activation is, in fact, a member of the role mentioned in
+    the activation.
+  \item The role mentioned in the activation is a member of the governing role for the request.
+  \end{enumerate}
+  In effect, this means there must be a path in the credential graph from the entity mentioned
+  in the activation to the governing role for the request that passes through the role mentioned
+  in the activation. We call this the \newterm{membership check}.
+
+\item There is a chain of delegation certificates from the entity mentioned in the activation
+  used above to the immediate requester. If the original requester is making that request
+  directly, this delegation chain consists only of the delegation to the request itself.
+  However, if the immediate requester is not the original requester, the immediate requester
+  must present the necessary delegation certificates to the authorizer. We call this the
+  \newterm{delegation check}.
+
+\end{enumerate}
+
+Complications arise because a request can be made with several role activations. In some cases,
+when intersections are involved, multiple activations are necessary before access can be
+granted. For example suppose entity $A$ is in two roles $B.r_1$ and $C.r_2$. Suppose $D.r$ is
+the governing role for a request and suppose the authorizer has the following policy:
+
+\memcert{D.r}{B.r1 $\cap$ C.r2}
+
+If the request is made using only the activation \activate{A}{B.r1}, request is not granted
+since that single role is insufficient to satisfy the intersection. Instead both
+\activate{A}{B.r1} and \activate{A}{C.r2} are needed. The formal development below handles these
+cases.
+
+\section{Li $RT_0$ Semantics}
+\label{sec:RT0-semantics}
+
+The formal semantics of $RT_0$ are described in \cite{Li:2003-02} using a set theoretic
+approach. For convenience, I reproduce the development of those semantics here, with a few minor
+changes in notation.
+
+$RT_0$ has a countable set of entities (principals, standing for public keys) denoted by
+\textit{Entity}, and a countable set of role names denoted by \textit{RoleName}. From these
+sets, we define the following additional sets
+
+\begin{tabular}{rcl}
+  \textit{Role} & $=$ & 
+  $\{ A.r\, |\, A \in \mbox{\textit{Entity}}, r \in \mbox{\textit{RoleName}} \}$ \\
+  \textit{LinkedRole} & $=$ &
+  $\{ A.r_1.r_2\, |\, A \in \mbox{\textit{Entity}},\, r_1, r_2 \in \mbox{\textit{RoleName}} \}$ \\
+  \textit{Intersection} & $=$ &
+  $\{ f_1 \cap \cdots \cap f_k\, |\, f_i \in \mbox{\textit{Entity}} \cup \mbox{\textit{Role}} \cup \mbox{\textit{LinkedRole}} \}$ \\
+  \textit{RoleExpression} & $=$ &
+  $\{ \mbox{\textit{Entity}} \cup \mbox{\textit{Role}} \cup \mbox{\textit{LinkedRole}} \cup \mbox{\textit{Intersection}} \}$
+\end{tabular}
+
+Let $\mathcal{C}$ be a set of $RT_0$ credentials (either signed credentials or policy
+statements). The semantics of $\mathcal{C}$ is a function mapping roles to sets of entities:
+$\mathcal{S}_\mathcal{C} : \mbox{\textit{Role}} \rightarrow \mathcal{P}(\mbox{\textit{Entity}})$
+where $\mathcal{P}(\mbox{\textit{Entity}})$ is the power set of \textit{Entity}. Intuitively the
+function $\mathcal{S}_\mathcal{C}$ computes the members of a given role. Although the domain of
+$\mathcal{S}_\mathcal{C}$ is \textit{Role}, it is conceptually straightforward to extend this
+definition to a function $\mathcal{S}_\mathcal{C}^e$ with a domain over all role expressions.
+The function $\mathcal{S}_\mathcal{C}^e$ computes the members of any given role expression.
+
+Define $\mathcal{S}_\mathcal{C}$ to be the least function $\mbox{\texttt{mem}} :
+\mbox{\textit{Role}} \rightarrow \mathcal{P}(\mbox{\textit{Entity}})$ that satisfies the
+following system of set inequalities:
+\begin{displaymath}
+\{ \mbox{\texttt{mem}}(A.r) \supseteq \mbox{\texttt{mem}}^e(e)\,|\, A.r \leftarrow e \in \mathcal{C} \}
+\end{displaymath}
+
+Where $\mbox{\texttt{mem}}^e : \mbox{\textit{RoleExpression}} \rightarrow
+\mathcal{P}(\mbox{\textit{Entity}})$ is defined as follows:
+
+\begin{tabular}{rcl}
+$\mbox{\texttt{mem}}^e(B)$ & $=$ & $\{ B \}$ \\
+$\mbox{\texttt{mem}}^e(A.r)$ & $=$ & $\mbox{\texttt{mem}}(A.r)$ \\
+$\mbox{\texttt{mem}}^e(A.r_1.r_2)$ & $=$ & $\bigcup_{B \in \mbox{\texttt{mem}}(A.r_1)} \mbox{\texttt{mem}}(B.r_2)$ \\
+$\mbox{\texttt{mem}}^e(f_1 \cap \cdots \cap f_k)$ & $=$ & $\bigcap_{j = 1 \ldots k} \mbox{\texttt{mem}}^e(f_j)$
+\end{tabular}
+
+\cite{Li:2003-02} details a procedure for computing $\mathcal{S}_\mathcal{C}$ that involves
+initially assigning an empty set to each role in a collection of roles and then iterating the
+above rules until a fixed point is reached.
+
+Access is granted in an $RT_0$ system if the requester is a member of
+$\mathcal{S}_mathcal{C}(r_g)$ where $r_g$ is the governing role for the request.
+
+\section{Li $RT_0^D$ Semantics}
+\label{sec:RT0D-semantics}
+
+The formal semantics of $RT_0^D$ are described in \cite{Li:2002-05} using Datalog rules. Each
+credential form is converted as shown below. The $RT_0$ assertions are shown first, followed by
+the $RT_0^D$ delegation credential forms. In these rules, read the predicate
+\predicate{forRole(C, B, A, r)} as ``\texttt{C} acting as \texttt{B} in role \texttt{A.r}'' or
+``\texttt{C} uses (can use) activation \activate{B}{A.r}.'' Unlike the notation used previously
+the rules shown below follow the conventions of logic programming where variables start with an
+uppercase letter. When presenting Horn clauses in this document the conventions for logic
+programming are followed.
+
+\begin{itemize}
+
+\item \memcert{A.r}{D}
+
+\texttt{forRole(d, d, a, r).}
+
+\item \memcert{A.r}{B.r1}
+
+\texttt{forRole(X, Y, a, r) :- forRole(X, Y, b, r1).}
+
+\item \memcert{A.r}{A.r1.r2}
+\begin{verbatim}
+forRole(X, Y, a, r) :-
+        forRole(Z, Z, a, r1),
+        forRole(X, Y, Z, r2).
+\end{verbatim}
+
+\item \memcert{A.r}{B1.r1 $\cap \ldots \cap$ Bk.rk}
+\begin{verbatim}
+forRole(X, Y, a, r) :-
+        forRole(X, Y, b1, r1),
+        ...,
+        forRole(X, Y, bk, rk).
+\end{verbatim}
+
+\item \delcert{B1}{D as A.r}{B2}
+
+\texttt{forRole(b2, d, a, r) :- forRole(b1, d, a, r).}
+
+\item \delcert{B1}{D as all}{B2}
+
+\texttt{forRole(b2, d, X, Y) :- forRole(b1, d, X, Y).}
+
+This credential delegates all role activations involving $D$ from $B_1$ to $B_2$.
+
+\item \delcert{B1}{all}{B2}
+
+\texttt{forRole(b2, X, Y, Z) :- forRole(b1, X, Y, Z).}
+
+This credential delegates all of $B_1$'s role activations to $B_2$.
+
+\end{itemize}
+
+Requests in $RT_0^D$ are delegated role activations. The access control decision is made in the
+context of the activations delegated to the request only. The powers, or lack of powers, of the
+immediate requester is not relevant (although the immediate requester's ability to use the
+necessary role activations is relevant). For the purposes of delegating activations to a
+request, a dummy entity is constructed to represent the request. This entity is the target of
+one or more delegation certificates. Access is then granted if \texttt{forRole(reqID, X, a, r)}
+is true, where \texttt{reqID} is the dummy entity representing the request and $A.r$ is the
+governing role for the request. The value unified for $X$ is the entity making the original
+request.
+
+Notice that the Li semantics for $RT_0^D$ blend the membership check and the delegation check
+into a single unified computation involving \predicate{forRole}. While this is theoretically
+elegant, it does not lend itself to practical implementation for reasons described in the next
+section.
+
+\section{\TbV}
+\label{sec:TbV}
+
+We propose to implement an $RT_0^D$ system for use with web services that demonstrates \TbV. In
+particular, We propose that the system perform on-line verification of the membership check but
+off-line verification of the delegation check. This presumes that the two forms of checking can
+be performed separately in a meaningful and logically precise way. We provide details on how
+this might be done below. Our rationale for organizing the system in this way is as follows
+
+\begin{itemize}
+
+\item Role membership certificates will be relatively long-lived and thus can be effectively
+  cached. Each node in a network may be able to compute significant parts of the credential
+  graph that can be reused with each independent request. These observations make it seem
+  unlikely that \TbV\ will be able to offer much in the way of a performance enhancement in this
+  area. It also argues that performing the membership check separately has practical application
+  since much of the information needed for that check can be cached.
+
+\item In contrast, delegation certificates will most likely be short lived and will thus need to
+  be re-evaluated often. In addition trusting delegations might present a significant
+  opportunity for enhancing performance. Checking delegation chains during system idle time
+  might also allow the implementation to avoid storing the large number of delegation
+  certificates that are likely to be generated.
+
+\item In a web service environment it is likely that the delegation chains that form as one
+  method calls another will be long. In addition, access control decisions need to be made
+  quickly since the amount of work done at each node may be relatively small. These observations
+  makes trusting the delegation chains seem especially attractive.
+
+\end{itemize}
+
+\section{Logical Presentation}
+
+The following shows how $RT_0$ membership assertions can be translated to Datalog rules. Read
+the predicate \predicate{mem(b, a, r)} as asserting that $B$ is a member of role $A.r$. This
+predicate is essentially the same as the \predicate{isMember} predicate discussed in
+\cite{Li:2002-05}.
+
+\begin{itemize}
+
+\item \memcert{A.r}{B}
+
+\texttt{mem(b, a, r).}
+
+\item \memcert{A.r}{B.r1}
+
+\texttt{mem(X, a, r) :- mem(X, b, r1).}
+
+\item \memcert{A.r}{A.r1.r2}
+
+\texttt{mem(X, a, r) :- mem(Z, a, r1), mem(X, Z, r2).}
+
+\item \memcert{A.r}{B1.r1 $\cap \ldots \cap$ Bk.rk}
+\begin{verbatim}
+mem(X, a, r) :-
+          mem(X, b1, r1),
+          ...,
+          mem(X, bk, rk).
+\end{verbatim}
+
+\end{itemize}
+
+Given a collection of membership certificates, role memberships are computed exactly as in the
+$RT_0$ case. Unlike the presentation in \cite{Li:2002-05}, and repeated in section
+\ref{sec:RT0D-semantics}, role memberships are not described in terms of role activations or
+delegations. However, when a request is made that request will be in the context of one or more
+role activations. We introduce a Datalog predicate \predicate{act(a, b, r)} to represent that
+the role activation \activate{A}{B.r} is part of the request. The activations associated with a
+request are converted to Datalog facts using this predicate. An activation is only valid if the
+entity mentioned in the activation is actually a member of the role mentioned in the activation.
+We express this notion using the general rule:
+
+\texttt{validAct(X, Y, Z) :- act(X, Y, Z), mem(X, Y, Z).}
+
+In other words, \activate{X}{Y.Z} is valid only if it is provided with the request \emph{and}
+entity $X$ is in fact a member of role $Y.Z$. A request is authorized to use the powers of a
+particular role if there is a valid activation for that role or if there is a valid activation
+for a role (or roles) that eventually lead to the governing role for the request. The
+credentials known to the authorizer can be converted into authorization rules as follows:
+
+\begin{itemize}
+
+\item General rule relating valid activations to authorizations.
+
+\texttt{auth(X, Y, Z) :- validAct(X, Y, Z).}
+
+\item \memcert{A.r1}{B.r2}
+
+\texttt{auth(X, a, r1) :- auth(X, b, r2).}
+
+\item \memcert{A.r}{A.r1.r2}
+
+\texttt{auth(X, a, r) :- mem(Z, a, r1), auth(X, Z, r2).}
+
+\item \memcert{A.r}{B1.r1 $\cap \ldots \cap$ Bk.rk}
+\begin{verbatim}
+auth(X, a, r) :-
+          auth(X, b1, r1),
+          ...,
+          auth(X, bk, rk).
+\end{verbatim}
+\end{itemize}
+
+A request passes the membership check if a query of the form \texttt{auth(X, a, rg)} proves true
+where $A.r_g$ is the governing role for the request. The logical variable $X$ unifies to an
+entity representing the original requester. Notice that the $RT_0$ assertions generate
+\predicate{auth} rules that are almost identical to the role membership rules. These rules
+describe role inclusion; which roles entail other roles. The authorization rules do not track
+the individual entities that are role members. Instead each valid activation implies an
+authorization and the \predicate{auth} rules then allow those implied authorizations to flow
+through the credential graph appropriately.
+
+To summarize an $RT_0^D$ membership check is performed as follows: Each $RT_0$ assertion known
+to the authorizer (either as local policy or presented with the request as a signed certificate)
+is converted into \predicate{mem} and \predicate{auth} Datalog rules as described above. Each
+activation in the request is converted to a Datalog fact using the \predicate{act} predicate.
+The generic rules relating activations and role memberships to valid activations and relating
+valid activations to role authorizations are included in the final Datalog program. A query of
+the form described in the previous paragraph is made. If the query proves true, the membership
+check passes; otherwise it fails.
+
+Note that \predicate{validAct} is not strictly necessary. The rule with \predicate{validAct} as
+its head can be inline expanded into the appropriate \predicate{auth} rule. The
+\predicate{validAct} predicate is included in this presentation only for the sake of conceptual
+clarity.
+
+To evaluate the delegation check, the immediate requester must prove to the authorizer that
+he/she can use the activation(s) that are necessary to make the membership check pass. To this
+end, the system must compute which activations are delegated to whom. The predicate
+\predicate{has\_activation(A, B, C, r)} is true when entity $A$ can use the activation
+\activate{B}{C.r}. This predicate is essentially identical to the \predicate{forRole} predicate
+described in Section \ref{sec:RT0D-semantics}. Delegation certificates are converted to Datalog
+rules as follows:
+
+\begin{itemize}
+
+\item \delcert{B1}{D as A.r}{B2}
+
+\texttt{has\_activation(b2, d, a, r) :- has\_activation(b1, d, a, r).}
+
+\item \delcert{B1}{D as all}{B2}
+
+\texttt{has\_activation(b2, d, X, Y) :- has\_activation(b1, d, X, Y).}
+
+\item \delcert{B1}{all}{B2}
+
+\texttt{has\_activation(b2, X, Y, Z) :- has\_activation(b1, X, Y, Z).}
+
+\end{itemize}
+
+The fact that each entity implicitly has activations related to the roles for which that entity
+is a member is expressed with a generic rule that exists regardless of what credentials are
+present.
+
+\texttt{has\_activation(A, A, X, Y) :- mem(A, X, Y).}
+
+This rule says that if an entity $A$ is a member of some role $X.Y$, then $A$ can use the
+activation \activate{A}{X.Y}. This rule provides the source of authority for the role
+activations used by the various entities.
+
+The delegation check is done by modifying the generic rule describing valid activations:
+
+\texttt{validAct(X, Y, Z) :- act(X, Y, Z), mem(X, Y, Z).}
+
+so that an activation is only considered valid if the above condition is met \emph{and} if the
+immediate requester has the activation. Let $I$ be the immediate requester. Then
+
+\begin{verbatim}
+validAct(X, Y, Z) :-
+            act(X, Y, Z),
+            has_activation(i, X, Y, Z),
+            mem(X, Y, Z).
+\end{verbatim}
+
+must replace the earlier generic rule. The authorization decision is then recomputed; some of
+the previously ``valid'' activations may no longer be valid, but access may still be granted if
+the remaining valid activations are sufficient.
+
+We now show the following result:
+
+\textbf{Proposition}: \textit{The Datalog semantics described here are equivalent to the Li
+  Datalog semantics given in Section \ref{sec:RT0D-semantics} in the following sense: For any
+  set of credentials $\mathcal{C}$, a request is authorized by these semantics iff it is
+  authorized by the Li semantics.}
+
+% It may be sufficent to only show one direction of the iff (soundness): If we authorize a
+% request, the Li semantics authorizes it. The other direction (completness) would also be nice:
+% If the Li semantics authorizes a request, we do so. Soundness is necessary to maintain
+% security (we would be no less secure than a system based on Li's semantics). Completeness is
+% necessary to maintain the full expressiveness of the Li system.
+
+\section{Algorithmic Presentation}
+
+\textit{This material is out of date. It needs revision.}
+
+% This section is intended to describe the algorithms used to implement our system. The
+% set-theory semantics could be covered here (if we actually end up using them.}
+
+If an activation is a member of a role, then an entity that uses that activation can take the
+actions for which that role is the governing role. The special activation
+\activate{$A$}{nobody.norole} is used to indicate that entity $A$ is a \newterm{direct member}
+of the role in the $RT_0$ sense. Direct membership is important to track in order to properly
+handle linked roles.
+
+A straightforward extension to the algorithm given in \cite{Li:2003-02} allows role activation
+memberships to be computed. The modified algorithm copies role activations instead of entites
+and uses the following additional rule
+
+\begin{itemize}
+
+\item Whenever an entity, $A$, is added to a role, $B.r$, as a direct member, the activation
+  \activate{$A$}{$B.r$} is also added.
+
+\end{itemize}
+
+When the modified algorithm completes the sets associated with each role contain all activations
+that would allow that role to be used.
+
+\begin{problem}
+This doesn't work properly for intersections. In that case, the fact that one needs to be in several different roles ``at the same time'' is lost.
+\end{problem}
+
+This process can also be expressed using Datalog rules. In particular, the predicate
+\predicate{mem} described below can be used to compute the role activations that are members of
+each role.
+
+\begin{verbatim}
+% mem(A, Role, Name, E, R)
+%     A    = Owner of role being defined.
+%     Role = Role being defined.
+%     Member role activation is "Name as E.R"
+
+% Generic rule: direct role members can activate that role.
+mem(A, Role, X, A, Role) :- mem(A, Role, X, nobody, norole).
+
+% A.r <- B
+mem(a, r, b, nobody, norole).
+
+% A.r1 <- B.r2
+mem(a, r1, Name, E, R) :- mem(b, r2, Name, E, R).
+
+% A.r <- A.r1.r2
+mem(a, r, Name, E, R) :-
+     mem(a, r1, X, nobody, norole),
+     mem(X, r2, Name, E, R).
+     
+% Intersections not yet supported.
+\end{verbatim}
+
+The membership check can be implemented by using the membership certificates alone to compute
+the role activates that are members of the relevant governing role. That computation can be done
+using either the modified algorithm mentioned above or by constructing a Datalog program from
+the membership certificates and executing an appropriate query.
+
+In practice each network node will manage a credential graph as a persistant data
+structure\footnote{Persistent in the sense that it will persist between independent procedure
+  calls.}. The role activations in each role will thus be known to the system (or computed by
+the system) before an individual request is evaluated. It is not necessary to execute an entire
+Datalog query (or its equivalent) for every request. For each request the following algorithm
+performs the membership check.
+
+\begin{verbatim}
+clear the list of acceptable activations.
+let G be the governing role for access.
+let S be the set of activations in G.
+let S' be the set of activations submitted with the request.
+FOREACH (E as R) in S LOOP
+  IF (E as R) in S' THEN
+    add (E as R) to the list of acceptable activations.
+  ENDIF
+DONE
+\end{verbatim}
+
+When this algorithm terminates if the list of acceptable activations is empty, access is denied.
+Otherwise access is granted pending the delegation check.
+
+The delegation check makes use of the delegation certificates to compute which entities have
+been delegated which role activations. A \newterm{delegation graph} can be computed in a manner
+analogous to the computation of the credential graph. In general this graph can be a rich data
+structure since an entity could be delegated activations from multiple sources and then make a
+request along with delegating some arbitrary subset of those activations to the next node in the
+network. As before this process can be expressed using a Datalog predicate,
+\predicate{has\_activation} as described below.
+
+\begin{verbatim}
+% has_activation(A, Name, E, R)
+%     A = Target of delegation (subject).
+%     Delegated role activation is "Name as E.R"
+
+% Generic rule: Direct members can activate their own roles.
+has_activation(A, A, E, R) :- mem(E, R, A, nobody, norole).
+
+% A --(C as D.r)--> B
+has_activation(b, c, d, r) :- has_activation(a, c, d, r).
+\end{verbatim}
+
+The \predicate{has\_activation} predicate is idential in meaning and use to the
+\predicate{forRole} predicate introduced in \cite{Li:2002-05}. Notice that the authority to use
+a role activation ultimately requires that the entity in the activation be a direct member of
+the appropriate role.
+
+The following algorithm performs the delegation check. It is executed for each request after the
+membership check algorithm mentioned above.
+
+\begin{verbatim}
+STEP 1: Build delegation graph.
+  FOREACH (delegation certificate) LOOP
+    add node for issuer and subject.
+    add edge for certificate, labeled by activation in certificate.
+    IF (entity in activation == issuer of certificate) THEN
+      add activation to the subject node.
+    ENDIF
+  DONE
+
+STEP 2: Compute delegated activations for each entity.
+  DO
+    FOREACH (node in delegation graph) LOOP
+      FOREACH (edge leaving the node) LOOP
+        IF (edge labeled by activation in the node) THEN
+          copy activation to subject node.
+        ENDIF
+      DONE
+    DONE
+  UNTIL fixpoint reached.
+  
+STEP 3: Check delegation.
+  FOREACH (E as R) in list of acceptable activations LOOP
+    IF (E as R) is in immediate requester's delegations THEN
+      RETURN access is granted.
+    ENDIF
+  DONE
+  RETURN access is denied.
+\end{verbatim}
+
+That this algorithm produces the same result as the Datalog computation should be proven. Notice
+that the algorithm above references the role membership information in two ways. First it makes
+use of the list of acceptable activations computed during the membership check. Second it
+initializes the delegated activations for the nodes in the graph by using a special rule (the IF
+statement in Step 1).
+
+\section{Examples}
+
+\subsection{$RT_0$ without intersections}
+
+The following example uses $RT_0$ features only. The first three rules are the policy of a web
+site that is only accessible to UVM students and their parents. The following three credentials
+are submitted with a request from \texttt{John} to read the site. What if \texttt{John} only has
+the last credential? Will credential chain discovery find the links between \texttt{UVM.student}
+and \texttt{Alice}?
+
+\texttt{WS.uvm-student} $\leftarrow$ \texttt{UVM.student} \\
+\texttt{WS.read} $\leftarrow$ \texttt{WS.uvm-student} \\
+\texttt{WS.read} $\leftarrow$ \texttt{WS.uvm-student.parent}
+
+\texttt{UVM.student} $\leftarrow$ \texttt{UVMregistrar.student} \\
+\texttt{UVMregistrar.student} $\leftarrow$ \texttt{Alice} \\
+\texttt{Alice.parent} $\leftarrow$ \texttt{John}
+
+It is interesting to translate these policy statements and credentials into Datalog rules.
+
+\begin{verbatim}
+member(ws, uvm-student, X) :- member(uvm, student, X).
+member(ws, read, X) :- member(ws, uvm-student, X).
+member(ws, read, X) :- member(ws, uvm-student, Y), member(Y, parent, X).
+
+member(uvm, student, X) :- member(uvmregistrar, student, X).
+member(uvmregistrar, student, alice).
+member(alice, parent, john).
+\end{verbatim}
+
+The query being made is \texttt{member(ws, read, john)}. This query succeeds. Consult my paper
+notes for the detailed SLD resolution process. The process is a tree with two branches. The
+first branch fails bacause John is not a UVM student. However, the second branch succeeds. Note
+that during the processing of the first branch, rule 4 is consulted. This rule might need to be
+fetched with credential chain discovery. My paper notes also demonstrate the credential graph.
+
+\subsection{TbV example using $RT_0^D$}
+
+The following example is taken from the Trust-But-Verify paper and reworked in an $RT_0^D$
+framework. It's interesting to compare what's going on here with straight $RT_0$ and with the
+example from the TbV paper (certain aspects of the example can't be captured in $RT^D$ as far as
+I can see).
+
+The players are \texttt{Joe}, a doctor; \texttt{M}, an intermediate web service; and
+\texttt{MDB}, the medical database. Joe holds the following credential
+
+\texttt{MDB.doctor} $\leftarrow$ \texttt{Joe}
+
+This credential asserts that Joe is a doctor in the eyes of the medical database. It is signed
+by \texttt{MDB}. The intermediate web service has the following policy
+
+\texttt{M.priv\_1} $\leftarrow$ \texttt{MDB.doctor}
+
+This states that \texttt{MDB.doctors} can use \texttt{priv\_1}. The medical database has the
+following policy
+
+\texttt{MDB.priv\_2} $\leftarrow$ \texttt{MDB.doctor}
+
+This states that \texttt{MDB.doctors} can use \texttt{priv\_2}. Here I'm assuming that
+\texttt{priv\_1} and \texttt{priv\_2} are different. For example, \texttt{priv\_1} might pertain
+to using medical diagnostic software whereas \texttt{priv\_2} would be at a lower level\ldots
+perhaps referring to the reading of raw data. I think this is realistic but it doesn't impact
+the example much either way. One can take \texttt{priv\_1} $=$ \texttt{priv\_2} if desired.
+
+Joe would like to use the medical diagnostic software on \texttt{M} and thus sends the following
+to \texttt{M}
+
+\texttt{MDB.doctor} $\leftarrow$ \texttt{Joe} \\
+\texttt{Joe} $-$\texttt{Joe as MDB.doctor}$\rightarrow$ \texttt{[request for priv\_1]} \\
+\texttt{Joe} $-$\texttt{Joe as MDB.doctor}$\rightarrow$ \texttt{M}
+
+The first credential is a standard $RT_0$ credential that Joe provides to prove he's a doctor.
+The next two credentials are $RT^D$ ``delegation credentials.'' The have the form
+
+\texttt{ISSUER} $-$\texttt{ROLE ACTIVATION LIST}$\rightarrow$ \texttt{TARGET}
+
+Where \texttt{TARGET} can be an entity to which the activated role is being delegated or
+\texttt{TARGET} can be a request. In $RT^D$ one delegates roles to requests to indicate which
+role (or roles) is to be used in evaluating the request. Such delegation certificates are signed
+by the issuer. In a pure $RT_0$ system, requests are signed by the requestor; this is just an
+elaboration on that idea.
+
+The first delegation credential above states that Joe, in his role as an \texttt{MDB.doctor}, is
+making a request for \texttt{priv\_1}. The second delegation credential states that Joe is
+passing his role activation of \texttt{MDB.doctor} on to \texttt{M}.
+
+When \texttt{M} receives these credentials it notes the role activation being used in the
+request (the sender of the request is not relevant yet) and first verifies that a) the entity
+mentioned in the activation is, in fact, a member of the role mentioned in the activation, and
+b) the role mentioned in the activation has the necessary access. In effect, \texttt{M} must
+verify that there is a path in the credential graph from Joe to \texttt{M.priv\_1} that goes
+through \texttt{MDB.doctor}. It could do this with a modification of the algorithm in the $RT$
+credential chain discovery paper. However, the complication is that there might be several role
+activations mentioned in a request so several possible paths in the credential graph would have
+to be checked.
+
+Next \texttt{M} must verify that a ``chain of delegation'' exists from the entity mentioned in
+the role activation to the requesting entity. In this case, \texttt{M} needs to find a chain of
+delegation from Joe to Joe. This is trivial. Everything checks, so Joe is allowed
+\texttt{priv\_1}. Notice that \texttt{M} does not need the second delegation certificate.
+
+In the process of executing its service, M needs to consult the medical database. It sends the
+following credentials to the database
+
+\texttt{M} $-$\texttt{Joe as MDB.doctor}$\rightarrow$ \texttt{[request for priv\_2]} \\
+\texttt{MDB.doctor} $\leftarrow$ \texttt{Joe} \\
+\texttt{Joe} $-$\texttt{Joe as MDB.doctor}$\rightarrow$ \texttt{M}
+
+\texttt{M} makes and signs its request as \texttt{M} (remember that \texttt{M} has no access to
+Joe's private key) but it includes a role activation of \texttt{Joe as MDB.doctor} in the
+request. This means that \texttt{M} is making the request on behalf of Joe. \texttt{M} also
+sends a copy of the \texttt{MDB.doctor} $\leftarrow$ \texttt{Joe} credential to \texttt{MDB} to
+support its request. It also sends a copy of the delegation credential Joe gave it, proving that
+Joe has delegated his authority as a doctor to \texttt{M}.
+
+The medical database verifies this by first proving that \texttt{MDB.doctor} has
+\texttt{priv\_2} and that Joe is a member of \texttt{MDB.doctor}. The medical database then
+verifies that a chain of delegation exists from Joe to the entity that made the request
+(\texttt{M} in this case). Such a chain does exist, with the help of the delegation credential
+signed by Joe, and so access is allowed. \texttt{M}, however, can't make this request on its
+own. \texttt{MDB} does not grant \texttt{M} access to the database. Although \texttt{M} could
+issue a request using \texttt{Joe as MDB.doctor} as the role activation, without a valid
+delegation certificate signed by Joe, the request will fail.
+
+Some observations:
+
+\begin{enumerate}
+
+\item When Joe delegates his authority to \texttt{M}, \texttt{M} could use that authority for
+  any purpose whatever. This is probably correct since Joe does not necessary know exactly what
+  \texttt{M} needs to do with his authority (the inner workings of \texttt{M} are hidden from
+  Joe). That said, it is still necessary for Joe to know enough about how \texttt{M} works to
+  know that he has to send a delegation certificate to \texttt{M}.
+
+\item If \texttt{M} keeps a copy of Joe's delegation certificate, \texttt{M} could act as Joe in
+  his role as a doctor later on in ways that Joe does not know about (or approve of). This
+  problem could be mitigated by expiring delegation certificates relatively quickly.
+
+\item Overall, Joe has to trust \texttt{M} not to abuse the authority Joe passes to it. This is
+  a decision Joe must make. The medical database will accept requests from anywhere provided
+  they are accompanied with appropriate delegations. This is quite different from the
+  formulation in the TbV paper where the medical database explicitly decides which
+  intermediaries to accept by way of carrier control lists. I don't see any way for $RT^D$ to
+  reproduce this. In $RT^D$ it is always the requestor who decides about the delegation and who
+  takes the corresponding risk.
+
+\item With $RT^D$ there are two chains that need to be discovered. The first chain proves that
+  the original requestor has the necessary access. The second chain proves that the immediate
+  requestor has the necessary delegations. In the TbV paper, the trust transformation used
+  involved, essentially, trusting that this second chain exists. It seems to me that such a
+  trust transformation would be natural in $RT^D$ as well.
+
+\end{enumerate}
+
+\subsection{TbV example using straight $RT_0$}
+
+There doesn't seem to be a totally satisfactory solution to this problem if one stays strictly
+in the domain of $RT_0$. It is interesting to reflect on the reasons for that. Here are my
+thoughts.
+
+First, the players are as before: Joe, \texttt{M}, and \texttt{MDB}. Joe holds the credential
+
+\memcert{MDB.doctor}{Joe}
+
+\texttt{M}'s policy looks like
+
+\memcert{M.priv\_1}{MDB.doctor}
+
+\texttt{MDB}'s policy looks like
+
+\memcert{MDB.valid\_services}{M} \\
+\memcert{MDB.priv\_2}{MDB.valid\_services.priv\_1}
+
+This says that the entities that can execute \texttt{priv\_1} on a valid service are entitled to
+execute \texttt{priv\_2} in the medical database. Furthermore this policy asserts that
+\texttt{M} is a valid service. Here, as in the TbV example, it's the database that defines where
+acceptable delegations come from. I think this technique could also be used in the example in
+the previous section to obtain the same effect. Notice also that the database trusts the
+intermediate service not to include any inappropriate entities in that service's
+\texttt{priv\_1} role. This extension of trust is analogous to the trust Joe extends to the
+service in the other example. However, the medical database can be less trusting by using role
+intersections.
+
+\memcert{MDB.priv\_2}{MDB.valid\_services.priv\_1 $\cap$ MDB.doctor}
+
+Thus only doctors with access to \texttt{priv\_1} on the intermediate service can access
+\texttt{priv\_2} on the database. Of course, \texttt{M}'s policy in this example only gives
+doctors \texttt{priv\_1} anyway, but the database can't necessarily control that.
+
+Anyway the problem comes when the requests are made. Joe signs his request to \texttt{M} and
+sends his credential proving that he's a doctor. \texttt{M} deduces that Joe can access
+\texttt{priv\_1} and begins executing the service. Now when \texttt{M} needs to invoke a method
+on the database, it can't sign its request with Joe's private key. Thus it is \texttt{M} asking
+for \texttt{priv\_2}, not Joe, and that request fails. It is true that \texttt{M} can send
+\memcert{MDB.doctor}{Joe} and a signed copy of its policy, \memcert{M.priv\_1}{MDB.doctor} to
+the database. This information would allow the database to deduce that Joe has access to
+\texttt{priv\_2}. However, neither of these credentials are signed by Joe. Thus the database has
+no evidence that Joe is involved in this transaction. The credential \memcert{MDB.doctor}{Joe}
+is probably public (the database might already know it, since it's a credential that it issued).
+For all the database can tell, \texttt{M} is faking the whole thing.
+
+Of course one might argue that this is part of the trust the database is extending to
+\texttt{M}. But my feeling is that this trust is excessive. If the database grants access it
+will be doing so without any way to verify, even in principle, that Joe was ever involved. Under
+such circumstances, the database might as well not enforce any access control at all, outside of
+the restriction that it will only accept requests from valid services. In effect, the database
+relies on the service to restrict access to doctors... which is probably not the intent of the
+example.
+
+You might say that \texttt{M} could just send a copy of the signed request it got from Joe on to
+the database. The problem with that is the request Joe made of \texttt{M} is for
+\texttt{priv\_1} but the request being made on the database is for \texttt{priv\_2}. Remember
+that \texttt{priv\_1} is probably more abstract than \texttt{priv\_2}; the database is unlikely
+to understand the connection. All this would prove is that Joe, at some point in the past, made
+some possibly unrelated request to \texttt{M}. That doesn't seem like sufficient grounds for the
+database to conclude that \texttt{M} is requesting \texttt{priv\_2} on Joe's behalf.
+
+Now it seems to me that the example in the TbV paper suffers from this problem as well. In the
+example shown in that paper \texttt{priv\_1} $=$ \texttt{priv\_2}, and is called simply
+\texttt{priv}. In section 4.6 the paper talks about \texttt{J} sending a request in role
+\texttt{R} to \texttt{WS}
+
+\begin{verbatim}
+(K_J says R says priv) ^ (K_R says J => R)
+\end{verbatim}
+
+This is logged. Later \texttt{WS} propagates the request to \texttt{WS'}. Here I expand the
+logged statement since I'm not worried about trust transformations right now.
+
+\begin{verbatim}
+(K_{WS} says R says ((K_J says R says priv) ^ (K_R says J => R))) ^
+  (K_R says WS => R)
+\end{verbatim}
+
+\texttt{J}'s signature on his original request for \texttt{priv} is used to justify accessing
+\texttt{priv} on \texttt{WS'}. This only works if the two \texttt{priv}s are, in fact, the same.
+However, since the two \texttt{priv}s are on different services they are not the same (even if
+they have the same name) so \texttt{WS'} is granting access inappropriately.
+
+Perhaps you are saying that \texttt{J} asserts \texttt{priv} on \texttt{WS'} when sending his
+request to \texttt{WS}. The problem with that, though, is it requires \texttt{J} to know about
+\texttt{priv} on \texttt{WS'}. It seems like that would be an implementation detail inside
+\texttt{WS} and thus hidden from \texttt{J}. It's probably reasonable for \texttt{J} to know
+that he must delegate his authority to \texttt{WS}, but it may not be reasonable to expect him
+to know exactly what \texttt{WS} is going to do with that authority. For example, we wouldn't
+want \texttt{J} to have to modify the form of his requests if \texttt{WS}'s implementation of
+the service it provides changes.
+
+\subsubsection{Medical example using $RT_1^C$}
+
+\texttt{MDB.read(patient = ?P)} $\leftarrow$ \texttt{Hospital.doctorOf(patient = ?P)} \\
+\texttt{Hospital.doctorOf(patient = Alice)} $\leftarrow$ Joe \\
+\texttt{Hospital.doctorOf(patient = Alice)} $\leftarrow$ Joe.helpers \\
+\texttt{Hospital.doctor} $\leftarrow$ \texttt{Hospital.staff} $\cap$ \texttt{AMA.certified} \\
+\texttt{Hospital.staff} $\leftarrow$ \texttt{Joe} \\
+\texttt{AMA.certified(valid $\in$ [$t_1$, $t_2$])} $\leftarrow$ \texttt{Joe}
+
+\subsection{Gradebook example}
+
+Another good example using $RT_1$ or $RT_1^C$ would be that of an on-line gradebook. Access to
+the grades can be parameterized so that a student could only access his/her grades or so that an
+advisor could only access his/her advisees grades.
+
+\section{Implementation Notes}
+
+A demonstration implementation that provides TbV on RT in a web service context would be nice.
+This will probably involve taking an existing system supporting web services, augmenting it to
+support RT authorization, and then adding TbV support after that.
+
+Note that the performance of the implementation is important. Since the claim is that TbV allows
+authorization decisions to be made more quickly, any demonstration of that claim will have to be
+in an environment with ``realistic'' performance.
+
+It appears that one can call prolog from Java (for example Java Server Pages) using the JPL
+module in SWI-Prolog. Thus it might be possible to connect a logic language implementation of RT
+to a system like Tomcat. The performance of such an arrangement might be poor, however (not
+sure).
+
+Here is a list of acronyms of interest to the web services field. Probably most of these
+technologies are not directly related to the TbV project. They are interesting to consider
+anyway.
+
+\begin{verbatim}
+WSDL   : Web Services Description Language
+SOAP   : Simple Object Access Protocol
+           (XML format to carry messages)
+UDDI   : Universal Description Discovery and Integration
+ebXML  : ?
+XML-RPC: "precursor of SOAP"
+OAGI   : Open Applications Group, Inc.
+           (Defines XML document formats)
+
+BTP    : Business Transaction Protocol
+SAML   : Security Authorization Markup Language
+XKMS   : XML Key Management Specification
+BEEP   : Blocks Extensible Exchange Protocol
+           (IETF session layer protocol)
+WSS    : Web Services Security
+           (an OASIS standard)
+
+*** Microsoft Proposals(?) ***
+WS-License
+  (credential management)
+  
+WS-Security
+  (propagating security credentials)
+  
+WS-Inspection
+  (discovering web services at a particular target)
+  
+WS-Referral/WS-Routing
+  (directing messages through different nodes)
+\end{verbatim}
+
+
+\section{Additional Considerations}
+\label{sec:additional}
+
+\subsection{Trust Arithmetic}
+
+An immediate requester may receive role activations from several sources. More than one of these
+activations may provide the authority to grant a particular request. In a \TbV\ system, the
+proper delegation of role activations is initially trusted. However, some delegations might be
+more trust worthy than others. By assigning weight factors to the various activations and their
+sources, an authorizer can make an immediate decision about what level of trusting is
+acceptable. Combining these weight factors in a meaningful and precise way is done using
+\newterm{trust arithmetic}. In this section we describe this process.
+
+\subsection{Trust Specification Language}
+
+In this document we describe a system were delegations are trusted and role memberships are not.
+However, the system could be made more general by allowing trust to be applied at various
+levels. For example, some delegations might be trusted while others are not. Some role
+memberships might be trusted while others are not. Such a system needs a way for the user to
+specify, in a logically precise manner, exactly what is to be trusted. Obviously the system also
+needs to be able to take into account the trust factors the user specifies.
+
+\bibliographystyle{plain}
+\bibliography{access_control}
+
+\end{document}

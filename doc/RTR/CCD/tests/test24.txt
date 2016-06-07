@@ -1,0 +1,10 @@
+# This example gives E multiple ways of being in the intersection.
+# The expected output is (E, 25), (E, 65).
+
+A.r, 100
+A.r <- B.s ^ C.t ^ D.e, 4, 5
+B.s <- E, 1, 5
+C.t <- E, 1, 5
+D.e <- E, 1, 50
+D.e <- A.s, 2, 5
+A.s <- E, 1, 5

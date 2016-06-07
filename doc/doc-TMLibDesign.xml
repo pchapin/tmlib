@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+  "http://www.docbook.org/xml/4.4/docbookx.dtd" [
+]>
+
+<!-- FILE        : doc-TMLibDesign.xml
+     LAST REVISED: 2009-01-21
+     AUTHOR      : (C) Copyright 2009 by Peter C. Chapin
+
+This is the documentation chapter that describes the overall design of TMLib It
+would be useful for users and developers alike. -->
+
+<chapter>
+  <title>TMLib Design Overview</title>
+
+  <sect1>
+    <title>Why SPARK Ada?</title>
+
+    <para>It is assumed that TMLib will be used in security sensitive applications. Consequently
+      significant attention has been given to security issues in the design and implementation
+      of TMLib. Ada in general, and SPARK Ada in particular, is an excellent language for
+      creating software with high security requirements. The design of the language greatly
+      reduces the number of bugs that typically plague software. Also we hope to make use of
+      SPARK Ada's facilities for constructing semi-formal proofs of correctness to further
+      enhance the quality of TMLib.</para>
+
+    <para>However, these considerations should preclude implementing TMLib in some other
+      language <emphasis>in addition to SPARK Ada</emphasis>. Not all applications demand the
+      same level of security. Implementations in a more popular, easier to use language are
+      encouraged. For this reason the TMLib library also includes a version written in
+      Python.</para>
+
+  </sect1>
+
+  <sect1>
+    <title>TMLib Structure</title>
+
+    <!-- It would be nice to include some sort of figure here. -->
+
+    <para>Each distinct instance of TMLib is called a <emphasis>node</emphasis>. The programs
+      that use the services of a particular node are called the
+        <emphasis>applications</emphasis> of that node, or more simply just applications. In the
+      current implementation TMLib is linked into individual processes. Thus there is a one to
+      one correspondence between applications and nodes. For this reason this document usually
+      refers to applications in the singular, talking about <emphasis>the</emphasis> application
+      using a node. It would be possible to create a server that wraps TMLib. In fact, such a
+      server may be added later in a future version of this library. In that case all
+      applications that submit policy to the server or that make queries against the server are
+      considered part of the same node.</para>
+
+    <para>Each node contains a single public/private key pair called the <emphasis>node
+        key</emphasis>. Thus there is a one to one correspondence between the principles in a
+      trust management system (keys) and nodes. A future version of TMLib may allow a node to
+      manage multiple key pairs and thus appear as multiple principals. This ability will be
+      important when a large node is an authorization server for many unrelated
+      applications.</para>
+
+    <para>Every node maintains a database that holds the node key, the public keys of other
+      nodes, and cached policy statements. In the current version of TMLib each node's database
+      is independent. However, nodes have the ability to query each other and thus policy stored
+      in one node's database can find its way to the database of another node. TMLib renders its
+      authorization decision based on information in its local database only, but distributed
+      decisions are possible because of the inter-node queries.</para>
+
+    <para>The communication channel between the application and TMLib is assumed to be secure.
+      TMLib makes no attempt to encrypt or sign data on this channel. In the current
+      implementation this security requirement is relatively easy to meet since all
+      communication between the application and TMLib is done via ordinary function calls within
+      one process. However, if a TMLib server is being used, the applications would have to
+      communicate with the node in a secure manner such as over a trusted internal network or by
+      way of a secure network protocol. TMLib does not concern itself with this issue.</para>
+
+    <para>The communication channel between TMLib nodes, however, is not assumed to be secure.
+      Using the node key TMLib digitally signs local policy statements (producing
+        <emphasis>certificates</emphasis>) that it transmits over such a channel. Note, however,
+      that it is not necessary for the private part of the node key to be on-line. A node can
+      use the key off-line where it is less susceptible to compromise, and then send only
+      previously prepared certificates when the node is running. In fact, this would be a common
+      practice.</para>
+
+    <para>TMLib assumes that the policy statements are public information. Thus it does not
+      encrypt certificates transmitted between nodes and it will send certificates to anonymous
+      requesters. Some applications may not want this behavior; they may regard their security
+      policy as confidential. To support this TMLib allows such applications to disable
+      automatic certificate dissemination. A more comprehensive solution would involve putting
+      certificate dissemination under the control of a policy. The security literature refers to
+      this as "trust negotiation." Incorporating trust negotiation into TMLib is an area for
+      future work.</para>
+
+    <para>TMLib allows applications to provide certificates directly instead of requiring that
+      TMLib locate appropriate certificates itself. In fact, since the best way to locate
+      certificates dynamically is an open research question, I assume that applications will
+      often want to provide them. The mechanism by which the application obtains certificates is
+      application specific and thus can not be described here.</para>
+
+    <para>TMLib regards locally created policy and policy statements obtained by valid
+      certificates to be equivalent. Policy statements that are provided locally (by the
+      application) are implicitly trusted and need not be signed; otherwise such policy
+      statements are not treated any differently than those contained in certificates. TMLib
+      assumes there exists a fixed, global policy that is distributed over many nodes and that
+      at any particular time it has access to a subset of that policy. Some of those policy
+      statements have been provided to TMLib by the application, either as local policy or as
+      certificates (that TMLib checks before using), and some of those policy statements have
+      been retrieved dynamically from other TMLib nodes.</para>
+
+    <para>TMLib will cache policy statements that it has obtained, adding policy statements as
+      it learns about them. Policy statements remain in the TMLib cache until one of the
+      following occurs:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The policy statement is explicitly removed by the application.</para>
+      </listitem>
+
+      <listitem>
+        <para>The policy statement times out because it was provided in a certificate that
+          expired.</para>
+      </listitem>
+
+      <listitem>
+        <para>The policy statement is revoked because it was provided in a certificate that is
+          revoked. Revocation is a complex and difficult issue and is described in more detail
+          elsewhere.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Note specifically that a node's cache persists between invocations of the node. Thus a
+      node benefits from cached policy statements collected in previous runs.</para>
+
+    <!-- It might be better to have a node automatically throw out local policy statements
+      between each run. This will make it easier for applications that delete policy
+      from one run to the next. -->
+
+    <para>In addition to local policy statements and certificates, an application also sends
+      queries to TMLib. These queries can take various forms, described in more detail later,
+      but they would typically be queries for access control decisions ("Can Alice print on my
+      printer?"). After a finite amount of time, perhaps involving communication with other
+      TMLib nodes, TMLib will render its decision as either "Yes" or "No." TMLib also provides a
+      signature verification service so that an application can first ask TMLib to check the
+      digital signature on a request before submitting a query based on that request. Note that
+      applications are free to submit queries without checking any signatures in cases where the
+      validity of the request can be verified in some other way (for example, when the
+      application is communicating with a client over a secure, authenticated channel). Note
+      also that TMLib does not enforce its decisions. The application is free to ignore the
+      result of a query.</para>
+
+  </sect1>
+
+  <sect1>
+    <title>TMLib's Logical Engine</title>
+
+    <para>Most modern trust management systems base their authorization decision on the
+      evaluation of a logic program. Specifically, to ensure that the authorization decision is
+      decidable and tractable, and to ensure that the system is monotonic, many trust management
+      systems use Datalog for their semantic definition.</para>
+
+    <para>Datalog is a Turing incomplete subset of Prolog in which there is no negation and no
+      function symbols (with non-zero arity). It can be shown [include reference] that Datalog
+      programs can be evaluated to their minimum model in polynomial time. Furthermore the lack
+      of negation forces the result of Datalog evaluation to be monotonic. That is, the addition
+      of new rules and facts will never invalidate any conclusions made without those
+      additions.</para>
+
+    <para>Monotonicity is important in a distributed authorization system because it is, in
+      general, impossible for a single node to gather complete knowledge about the entire world.
+      If it were possible for additional statements to negate conclusions made without those
+      statements, then there would be a risk of granting access to a requester when in fact that
+      access would have been denied if complete knowledge of all policy was known. In a
+      monotonic system it is still possible to deny access that might be allowed with more
+      complete information but this does not represent a security risk. Thus TMLib's behavior is
+      sound but not necessarily complete.</para>
+
+    <para>For maximum generality TMLib's core is a specialized Datalog engine. It is specialized
+      in the sense that it is adapted for use with TMLib and optimized for the kind of queries
+      that are typical in a trust management application (such queries usually involve a high
+      rules to facts ratio [but maybe not if there is extensive caching of facts; this is
+      something to revisit]). By implementing TMLib's core in terms of a pure Datalog
+      evaluation, TMLib can support the semantics of several different, but related trust
+      management systems that have been described in the literature. In this sense, TMLib is not
+      an implementation of any one trust management system, but rather an implementation of
+      trust management functionality in general. The code modules that feed the core engine with
+      facts, rules, and queries are responsible for translating the trust management language
+      used externally into a common internal language (Datalog) for evaluation. By providing
+      multiple modules, TMLib can thus support several trust management systems
+      simultaneously.</para>
+
+    <para>In addition the core engine is able to dynamically locate policy statements that might
+      help it answer queries. Thus unlike an ordinary Datalog evaluator, the core engine does
+      not assume the entire knowledge base is available. As the engine fetches additional policy
+      statements from remote nodes, it installs those statements into its knowledge base for
+      future use.</para>
+
+    <para>[More on how the Datalog engine is implemented. Note techniques used for enhancing
+      performance since authorization speed is considered a critical performance
+      parameter.]</para>
+
+    <para>The trust management literature also provides examples of how more powerful trust
+      management systems can be implemented using more powerful logic languages. The use of
+      Datalog with Constraints and LolliMon have been advocated by some authors [provide
+      references]. It is my intention to eventually support these more powerful systems by
+      enhancing the trust management engine accordingly. This is an area for future work.</para>
+  </sect1>
+
+  <sect1>
+    <title>Node Database</title>
+
+    <para>Each TMLib node maintains a database of public keys and policy statements. The public
+      key database is used to verify signatures on certificates. Note that TMLib assumes the
+      principals in the system are identified by their keys. Although names can be assigned to
+      keys for convenience, there is no semantic significance to those names. [Say something
+      more about how public keys are distributed?]</para>
+
+    <para>The policy database contains policy statements obtained from valid certificates (that
+      is, certificates that have valid signatures, are not expired, and have not been revoked),
+      and policy statements specified by the node's application. These policy statements are in
+      the form of Datalog facts and rules. Thus the policy database constitutes the knowledge
+      base from which the Datalog engine answers queries.</para>
+
+    <para>Of course policy statements in the policy database are decorated with validity
+      information such as expiration times. Periodically a node sweeps through its cache and
+      removes policy statements that have expired (or perhaps attempts to refresh them from
+      remote nodes). Future queries naturally do not consider the expired statements.</para>
+
+  </sect1>
+
+  <sect1>
+    <title>Policy and Certificate Formats</title>
+
+    <para>One of the strengths of TMLib is that it is partially independent of any specific
+      trust management language or certificate format. The library contains modules that can
+      process certificates in various formats and that can translate statements in (potentially)
+      several trust management languages into a form that is understandable to the core engine.
+      Users are even allowed, if they desire, to issue certificates that directly refer to
+      Datalog facts and rules without regard to any specific trust management syntax. This
+      allows a very high degree of flexibility and interoperability between potentially
+      different systems and different applications.</para>
+
+    <para>However, TMLib can't convert between systems arbitrarily. All systems that are
+      compatible with TMLib need to have a semantics expressible in terms of pure Datalog.
+      Furthermore multiple nodes must agree on the meaning of the various Datalog predicates
+      (relations) that are used in order for the decisions rendered by TMLib to be
+      significant.</para>
+
+    <para>[Provide more details on the certificate formats and trust management systems that are
+      supported.]</para>
+
+  </sect1>
+
+  <sect1>
+    <title>Administrative Application</title>
+
+    <para>Fundamentally TMLib is a library of functions that can be called by an application
+      that is interested in trust management services. However, there are a number of
+      administrative tasks that any node must support in order for the system to be usable.
+      Accordingly TMLib comes with an administrative application that allows its user to do the
+      following things.</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Create or delete a node key and export the public part of that key.</para>
+      </listitem>
+      <listitem>
+        <para>Manage the public key database by allowing the user to view, remove, import, and
+          export public keys.</para>
+      </listitem>
+      <listitem>
+        <para>Manage the policy database by allowing the user to view, remove, import, and
+          export policy statements. In addition the user can view and modify the attributes of
+          policy statements such as expiration time.</para>
+      </listitem>
+      <listitem>
+        <para>Execute test queries against the node database.</para>
+      </listitem>
+      <listitem>
+        <para>Set node parameters such as the policy dissemination policy.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>In effect the administrative application allows one to manually populate the node
+      database and execute trust management queries. It also allows one to configure the system.
+      In the current implementation the node database is stored in a collection of files.
+      However, the code that accesses it is abstract so that a future version that, for example,
+      uses a conventional database server for such storage could be easily made.</para>
+
+    <para>Notice that since the administrative application is linked against TMLib it is
+      essentially a special kind of node. Any other application is also able to manipulate TMLib
+      administratively. This is not a security issue because TMLib assumes its applications can
+      be trusted. A TMLib node thus allows its application full access to its internal
+      structure. However, a TMLib node does <emphasis>not</emphasis> allow another TMLib node
+      such access.</para>
+  </sect1>
+
+</chapter>

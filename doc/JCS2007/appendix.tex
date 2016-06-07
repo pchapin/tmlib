@@ -1,0 +1,348 @@
+\appendix
+
+\newcommand{\ocamlitem}[2]{\noindent\hspace{6pt}\ttt{#1}: #2\smallskip}
+
+\section{Definition of $\checkmem$}
+\label{appendix-checkmem}
+
+In this appendix we describe our OCaml implementation of the
+$\checkmem$ algorithm.  As described in the text, the implementation
+is in a procedural style, but exploits higher order functions and
+types available in OCaml.
+
+\subsection{Type Definitions}
+\label{appendix-checkmem-types}
+
+To abstract the definition of risk orderings in the implementation, we
+parameterize the implementation by a module \ttt{Risk}, that satisfies
+the following type signature \ttt{RISK}.
+\begin{verbatimtab}
+  module type RISK =
+    sig
+      type risk
+      val lt : risk -> risk -> bool
+      val plus : risk -> risk -> risk
+      val times : risk -> risk -> risk
+      val bot : risk
+      val top : risk
+    end
+\end{verbatimtab}
+
+Any concrete instance \ttt{Risk} of \ttt{RISK} implements the risk
+ordering provided in an instance of $RT^R$, insofar as each component
+of the module implements a component of a given risk ordering, as
+follows.
+\medskip
+
+\ocamlitem{Risk.risk}{the set of risk values $\mathcal{K}$.}
+
+\ocamlitem{Risk.lt}{the risk ordering $\po$.}
+
+\ocamlitem{Risk.plus}{risk aggregation $\riskplus$.}
+
+\ocamlitem{Risk.times}{intersection aggregation $\isectplus$.}
+
+\ocamlitem{Risk.bot}{the bottom element $\bot$.}
+
+\ocamlitem{Risk.top}{the top element $\top$.}
+
+\medskip
+
+Roles, role expressions, credentials, risk assessments, and thresholds
+are then specified as follows.  Let types \ttt{entity} and
+\ttt{role\_name} be arbitrary identifiers with equality operations,
+e.g.~\ttt{string}s.  We define:
+\begin{verbatimtab}
+type role = entity * role_name
+type role_expr =     
+    Ent of entity                           
+  | Role of role                            
+  | Link of entity * role_name * role_name  
+  | Isect of role_expr list                 
+type cred = Cred of role * Risk.risk * role_expr 
+type risk_assessment = (entity * Risk.risk) list 
+type threshold = role_expr -> Risk.risk 
+\end{verbatimtab}
+
+
+Now we specify types that are specific to the $\checkmem$ 
+algorithm: search risks, solution monitors, and search risk
+propagaters.  
+\begin{verbatimtab}
+type search_risk = role * risk
+type monitor = (entity * risk) -> unit 
+type propagater = (role * risk) -> unit
+\end{verbatimtab}
+Nodes are specified as records identified by constant role
+expressions, with mutable fields for maintaining data structures
+relevant to the algorithm, and a visited flag.
+\begin{verbatimtab}
+type node = { 
+    id : role_expr;  
+    mutable monitors : monitor list; 
+    mutable propagaters : propagater list; 
+    mutable search_risks : search_risk list;
+    mutable solution : risk_assessment;
+    mutable visited : bool
+  }
+\end{verbatimtab}
+
+\begin{fpfig*}[t]{Search Risk Propagation Functions}{figure-propagation}
+\footnotesize
+\medskip
+\begin{verbatimtab}
+  let risk_notify nd (r,k) = 
+    if not (subsumed (r,k) nd.search_risks) 
+    then 
+      begin
+        add_search_risks [(r,k)] nd;
+        apply_all nd.propagaters (r,k)
+      end
+
+  let make_propagater nd k' = (fun (r,k) -> risk_notify nd (r, Risk.plus k k')) 
+\end{verbatimtab}
+\smallskip
+\end{fpfig*}
+
+\subsection{Auxiliary Functions and Data Structures}
+\label{appendix-checkmem-auxfns}
+
+The $\checkmem$ algorithm uses two global mutable data structures, 
+identified by global variables in our implementation:
+
+\medskip
+
+\ocamlitem{q}{global queue data structure for storing nodes to be 
+searched.}
+
+\ocamlitem{nodes}{global list of all nodes created 
+during the course of authorization.}
+
+\smallskip
+
+
+
+The $\checkmem$ algorithm uses a library of auxiliary functions
+whose semantics we describe below.  The definitions are not 
+particularly relevant and are omitted for brevity, but we 
+describe their argument lists and semantics as follows.   
+Recall that in OCaml, argument lists can be written in a
+``curried'' style, e.g.~\ttt{f x y} instead of \ttt{f(x,y)}.
+
+\medskip
+
+\ocamlitem{make\_target a r}{sets membership checking of entity \ttt{a} in 
+role \ttt{r} as main target of the authorization decision.}
+
+\ocamlitem{issuer\_retrieve r}{retrieves all certificates in 
+$\creds$ for which \texttt{r} is the issuer.}
+
+\ocamlitem{add\_monitor m nd}{adds a solution monitor \ttt{m} 
+to \ttt{nd.monitors}.}
+
+\ocamlitem{add\_propagater p nd}{adds a search risk propagater \ttt{p} 
+to \ttt{nd.propagaters}.}
+
+\ocamlitem{add\_search\_risks risks nd}{adds \ttt{risks} 
+to \ttt{nd.search\_risks}.}
+
+\ocamlitem{add\_new\_solution (b,k) nd}{given solution element 
+\ttt{(b,k)} that is 
+not subsumed by \ttt{nd.solutions}, returns canonical union of 
+$\{\ttt{(b,k)}\}$ and \ttt{nd.solutions}.}
+
+\ocamlitem{apply\_all fs x}{apply all functions in the list \ttt{fs}
+to \ttt{x}.}
+
+\ocamlitem{apply\_to\_all f l}{apply \ttt{f} to all elements of list \ttt{l}.}
+
+\ocamlitem{aggregate\_all rs k}{transforms search risks or assessment \ttt{rs} 
+so that every element \ttt{(x,k')} becomes \ttt{(x,Risk.plus k' k)}}
+
+\ocamlitem{subsumed (x,k) risks}{a predicate that holds iff there exists
+\ttt{(x,k')} in \ttt{risks} such that \ttt{Risk.lt k' k}.}
+
+\ocamlitem{produce\_node f}{if \ttt{nodes} contains a node \ttt{nd} 
+identified by \ttt{f}, returns \ttt{nd}, otherwise returns an initialized
+node identified by \ttt{f}, and adds it to \ttt{nodes}.}
+
+\ocamlitem{enqueue\_unvisited nd}{adds \ttt{nd} to \ttt{q} and
+sets the flag \ttt{nd.visited} to true if \ttt{nd.visited} is false, otherwise
+a noop.}
+
+\ocamlitem{below\_thresh thresh risks}{a predicate that holds iff 
+search risks \ttt{risks} are below threshold \ttt{thresh}
+(\autoref{def-below-thresh}).}
+
+\ocamlitem{searchable thresh q}{a predicate that holds iff queue \ttt{q}
+contains at least one node whose search risks are below threshold
+\ttt{thresh}.}
+
+\ocamlitem{getnext thresh q}{gets the next searchable node from queue
+\ttt{q}.}
+
+\begin{fpfig*}[t]{Solution Monitor Functions}{figure-monitors}
+\footnotesize
+\medskip
+\begin{verbatimtab}
+  let soln_notify nd (b,k) thresh = 
+    if (Risk.lt k (thresh nd.id)) && not (subsumed (b,k) nd.solution)
+    then
+      begin
+        add_new_solution (b,k) nd;
+        apply_all nd.monitors (b,k)
+      end
+        
+  let make_nmonitor nd k thresh = 
+    (fun (b,k') -> soln_notify nd (b, Risk.plus k k') thresh)
+  
+  let make_lmonitor nd thresh =
+    match nd.id with
+      Link(a,r1,r2) -> 
+        (fun (b,k) -> 
+  	  let m = make_nmonitor nd k thresh in
+    	  let nd' = produce_node (Role(b,r2)) in
+            begin
+  	      apply_to_all m nd'.solution;
+  	      add_monitor m nd';
+  	      add_search_risks (aggregate_all nd.search_risks k) nd';
+  	      add_propagater (make_propagater nd' k) nd;
+  	      enqueue_unvisited nd';
+  	   end
+        )	   
+    | _ -> raise BadNode
+\end{verbatimtab}
+\smallskip
+\end{fpfig*}
+
+\begin{fpfig*}{Node Processing ($\checkmem$) Function Definitions}{figure-checkmem}
+\footnotesize
+\medskip
+\begin{verbatimtab}
+  let process_cred nd thresh (Cred(_,k,f)) = 
+    let m = make_nmonitor nd k thresh in 
+    let nd' = produce_node f in 
+    begin
+      apply_to_all m nd'.solution;
+      add_monitor m nd';
+      apply_to_all (risk_notify nd') (aggregate_all nd.search_risks k);
+      add_propagater (make_propagater nd' k) nd;
+      enqueue_unvisited nd'
+    end
+  
+  let process_isect nd m nd' = 
+    begin
+      add_monitor m nd';
+      add_search_risks nd.search_risks nd';
+      add_propagater (make_propagater nd' Risk.bot) nd;
+      enqueue_unvisited nd'
+    end
+
+  let rec checkmem b r thresh = 
+    begin
+      Queue.clear q;
+      nodes := [];
+      make_target b r;
+      enqueue_unvisited (produce_node (Role r));
+      while (searchable thresh q) do
+        let nd = getnext thresh q in 
+        match nd.id with 
+  	  Ent(a) -> soln_notify nd (a, Risk.bot) thresh
+        | Role(r) -> 
+  	    begin
+  	      add_search_risks [(r,Risk.bot)] nd;
+  	      apply_to_all (process_cred nd thresh) (issuer_retrieve r)
+  	    end
+        | Link(a,r1,r2) -> 
+  	    let nd' = produce_node (Role(a,r1)) in 
+  	    let m = make_lmonitor nd thresh in
+  	    begin
+  	      apply_to_all m nd'.solution;
+  	      add_monitor m nd';
+  	      add_search_risks nd.search_risks nd';
+  	      add_propagater (make_propagater nd' Risk.bot) nd;
+  	      enqueue_unvisited nd'
+  	    end	      
+        | Isect(fs) -> 
+  	    let m = make_imonitor nd thresh in
+  	    let nds = List.map produce_node fs in
+  	    apply_to_all (process_isect nd m) nds
+      done
+    end
+\end{verbatimtab}
+\smallskip
+\end{fpfig*}
+
+\subsection{Propagaters and Role Monitors}
+\label{appendix-checkmem-monitors}
+
+To propagate search risks along search paths, we define functions
+for notifying nodes of new risks, and for making propagaters for 
+a given node and risk.  These functions are defined in 
+\autoref{figure-propagation}.
+
+\medskip
+
+\ocamlitem{risk\_notify nd (r,k)}{notifies the node \ttt{nd} to 
+add a new search risk \ttt{(r,k)}, and applies all of 
+\ttt{nd.propagaters} to \ttt{(r,k)}.}
+
+\ocamlitem{make\_propagater nd k'}{returns search risk propagater for 
+node \ttt{nd} and risk \ttt{k'}.}
+
+\smallskip
+
+To propagate solutions along solution paths, we define functions
+to notify nodes of solutions, and functions to generate solution
+monitors.  Note that node, linking, and intersection monitors
+are not defined explicitly, but are returned by higher order 
+functions for making them.  All of these functions are defined 
+in \autoref{figure-monitors} except for \ttt{make\_imonitor} which
+is omitted for brevity.
+
+\medskip
+
+\ocamlitem{soln\_notify nd (b,k) thresh}{notifies node \ttt{nd} to
+add a new solution element \ttt{(b,k)}, and applies all of 
+\ttt{nd.monitors} to \ttt{(b,k)}.  Raises a \ttt{Solved}
+exception if membership of \ttt{b} in 
+\ttt{nd.id} is the target of authorization as set by \ttt{make\_target}.}
+
+\ocamlitem{make\_nmonitor nd k thresh}{returns a node monitor for 
+node \ttt{nd} and risk \ttt{k}.}
+
+\ocamlitem{make\_lmonitor nd thresh}{returns a linking monitor for 
+node \ttt{nd}.}
+
+\ocamlitem{make\_imonitor nd thresh}{returns an intersection monitor for 
+node \ttt{nd}.}
+
+
+
+\subsection{Node Processing}
+\label{appendix-checkmem-processing}
+
+Putting all the pieces together, we can now define the \ttt{checkmem}
+function that implements node processing.  To make the code more 
+readable, we have factored out some blocks as auxiliary functions.
+These functions are defined in \autoref{figure-checkmem}.  The invocation
+of \ttt{make\_target} sets the goal of the authorization decision; 
+if it is discovered before the queue is empty, an exception is raised
+and computation is aborted.
+
+\medskip
+
+\ocamlitem{process\_cred nd thresh c}{does all the work for processing
+a credential \ttt{c} that defines a role identifying \ttt{nd} in 
+the role case of \ttt{checkmem}.}
+
+\ocamlitem{process\_isect nd m nd'}{given \ttt{nd} identified by 
+an intersection role, does most of the work of processing a node
+\ttt{nd'} identified by a component of the intersection.}
+
+\ocamlitem{checkmem b r thresh}{implementation of the $\checkmem$ 
+algorithm.}
+
+
+
+

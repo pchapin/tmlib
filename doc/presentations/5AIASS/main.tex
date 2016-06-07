@@ -1,0 +1,310 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FILE         : main.tex
+% AUTHOR       : (C) Copyright 2007 by Peter C. Chapin
+% LAST REVISED : 2007-03-27
+% SUBJECT      : Presentation given at 5AIASS
+%
+% This is a presentation on RT^R.
+%
+% Send comments or bug reports to:
+%
+%       Peter C. Chapin
+%       University of Vermont
+%       Burlington, VT 05405
+%       pchapin@cems.uvm.edu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass[landscape]{slides}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{stmaryrd}
+\usepackage{mathpartir}
+
+\input{slide-macros}
+\input{ces_macros}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{Risk Assessment in Distributed Authorization\footnote{Based on a paper to appear in \textit{Journal of Computer Security}}}
+\author{Peter Chapin, Christian Skalka, X. Sean Wang\\University of Vermont}
+\date{March 27, 2007}
+\maketitle
+
+%%%%%
+
+%%%%%
+
+\startslide{Outline}
+
+\begin{itemize}
+
+\item Trust Management and $RT_0$
+\item $RT^R$ Framework
+\item Credential Chain Discovery in $RT^R$
+\item Future Work
+
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Trust Management}
+Authorization in a distributed system must be based on general certified attributes, not just identities.
+\begin{itemize}
+\item Authorizer writes policy describing characteristics of authorized users.
+\item Requester provides digitally signed credentials certifying requester's attributes.
+\item Authorizer checks if requester has the correct characteristics; that is, \textit{complies with policy}.
+\item Authorizer may need to obtain additional credentials dynamically.
+\end{itemize}
+\stopslide
+
+%%%%%
+
+\startslide{$RT_0$\footnote{Li, Mitchell, Winsborough. \textit{Design of a Role Based Trust Management Framework}, 2002 IEEE Symposium on Security and Privacy}}
+Credential forms
+\begin{mathpar}
+\cred{A.r}{B}{}
+
+\cred{A.r}{B.s}{}
+
+\cred{A.r}{A.s.t}{}
+
+\cred{A.r}{B_1.r_1 \cap B_2.r_2 \cap \cdots \cap B_n.r_n}{}
+\end{mathpar}
+
+\begin{itemize}
+\item Policies and credentials have the same form.
+\item Each principal has a local name space for roles.
+\item Meaning of a role, $\mathcal{S}(A.r)$, is the set of entities that are members of that role.
+\end{itemize}
+\stopslide
+
+%%%%%
+
+\startslide{$RT_0$ Example}
+A hotel $H$ wishes to offer discounts to its preferred customers and to members of certain organizations.
+
+\begin{mathpar}
+\cred{H.\mathit{discount}}{H.\mathit{preferred}}{}
+
+\cred{H.\mathit{discount}}{H.\mathit{orgs}.\mathit{members}}{}
+
+\cred{H.\mathit{orgs}}{\mathit{AAA}}{}
+\end{mathpar}
+
+A later marketing decision by $H$ adds $\cred{H.\mathit{preferred}}{\mathit{AAA}.\mathit{members}}{}$.
+
+Mary has credential $\cred{\mathit{AAA}.\mathit{members}}{M}{}$. This proves compliance with policy two different ways.
+\stopslide
+
+%%%%%
+
+\startslide{Example Credential Graph}
+\input rt0example
+\centerline{\box\graph}
+
+\begin{mathpar}
+\cred{H.d}{H.p}{}
+
+\cred{H.d}{H.o.m}{}
+
+\cred{H.p}{A.m}{}
+
+\cred{H.o}{A}{}
+
+\cred{A.m}{M}{}
+\end{mathpar}
+\stopslide
+
+%%%%%
+
+\startslide{Problem}
+
+Not all credentials are created equal.
+
+\begin{itemize}
+\item Some might be signed by questionable keys.
+\item Some might be near expiration.
+\item Some might be assumed to exist, but not actually be in hand.
+\end{itemize}
+
+Existing trust management systems regard credentials as either completely valid or completely invalid. \textit{This is not realistic.}
+\stopslide
+
+%%%%%
+
+\startslide{Introducing Risk}
+
+Assigning risks to credentials gives a way to express uncertainties about the credentials.
+
+\begin{itemize}
+\item Credentials signed by marginal authorities have high risk.
+\item Risk of a credential might increase as its expiration time approaches. For example: $R = R_0(2^{(t - T_i)/(T_e - T_i)} - 1)$
+\item Credentials that are presumed to exist or that have unchecked signatures have high risk.
+\item Credentials that are part of local policy have very low risk.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{$RT^R$ Framework}
+
+$RT^R$ extends $RT_0$ by assigned risk values to credentials.
+
+\begin{itemize}
+\item Let $(\mathcal{K}, \po)$ be a complete lattice over some set $\mathcal{K}$ of risk values with partial ordering $\po$.
+\item Credentials now $\cred{A.r}{f}{\risk},\,\risk \in \mathcal{K}$
+\item Let $\oplus$ be an associative, commutative, monotonic \textit{risk aggregration operator} over $\mathcal{K}$.
+\item Meaning of a role is now a set of risk associations called a \textit{risk assessment}. $\mathcal{S}(A.r) = \{(B, \risk_1), (B, \risk_2), (C, \risk_1)\}$
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Canonical Risk Assessments}
+
+\begin{itemize}
+\item Equivalence of risk assessements: $R \cup \{(A, \risk_1), (A, \risk_2)\} = R \cup \{(A, \risk_1)\}$ where $\risk_1 \po \risk_2$.
+\item A risk assessment $R$ is \textit{canonical} if there is no $(A, \risk_1), (A, \risk_2) \in R$ such that $\risk_1 \po \risk_2$.
+\item Thus any equivalence class of risk assessments has a unique canonical form. \textit{Use this canonical form to represent the meaning of a role.}
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{Credential Graph Cycles}
+Canonical risk assessments are finite even with cycles in the credential graph.
+
+\input cycle
+\centerline{\box\graph}
+
+$\mathcal{S}(A.r) = \{(E, 1), (E, 10)\} = \{(E, 1)\}$
+\stopslide
+%%%%%
+
+\startslide{Example Revisited}
+
+\input rtrexample
+\centerline{\box\graph}
+
+$\mathcal{S}(H.d) = \{(M, 19)\}$
+
+\stopslide
+
+%%%%%
+
+\startslide{Bounded Proof Search}
+
+Given a collection of credentials find a \textit{credential chain} that proves some entity $E$ is in a particular role $A.r$ with a bounded risk.
+
+Abort search in directions where risk is too high.
+
+\begin{itemize}
+\item Reduces searching and speeds up the authorization decision.
+\item In a distributed search, one may be able to avoid fetching credentials that are not useful.
+\item If risks represent wait times, the search finds a credential chain where no certificate takes longer than a given bound to verify.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Search Algorithm}
+
+Algorithm is a modification of that in [Li et. al.]\footnote{Li, Winsborough, Mitchell, \textit{Distributed Chain Discovery in Trust Management}, Journal of Computer Security, February 2003}
+
+\begin{itemize}
+\item Modified breadth-first-search of credential graph.
+\item Starts at role $A.r$ and works toward the entities.
+\item Graph mutates as search progresses (derived edges added).
+\item Accumulated risks tracked; search abandoned where risks excessive.
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Search Algorithm Example: 1}
+
+\input search01
+\centerline{\box\graph}
+
+$\risk_M = 20$
+\stopslide
+
+%%%%%
+
+\startslide{Search Algorithm Example: 2}
+
+\input search02
+\centerline{\box\graph}
+
+$\risk_M = 20$
+\stopslide
+
+%%%%%
+
+\startslide{Search Algorithm Example: 3}
+
+\input search03
+\centerline{\box\graph}
+
+$\risk_M = 20$
+\stopslide
+
+%%%%%
+\startslide{Search Algorithm Example: 4}
+\input search04
+\centerline{\box\graph}
+
+$\risk_M = 20$
+\stopslide
+%%%%%
+
+\startslide{Search Algorithm Example: 5}
+
+\input search05
+\centerline{\box\graph}
+
+$\risk_M = 20$
+\stopslide
+
+%%%%%
+
+\startslide{Future Work}
+
+\begin{itemize}
+\item Who assigns risks: the authorizer or the issuer?
+\item Can risks be used to encode certificate validity concerns?
+\item Can risks be used to do cost/benefit analysis?
+\begin{itemize}
+\item Let risk values have the form $(\risk, t)$
+\item Let $(\risk_1, t_1) \po (\risk_2, t_2) \Leftrightarrow (\risk_1 \po \risk_2) \wedge (t_1 \po t_2)$
+\item If a search fails, one can try again raising either $\risk$ or $t$ in the threshold.
+\end{itemize}
+\item How well does $RT^R$ work in the real world?
+\end{itemize}
+
+\stopslide
+
+%%%%%
+
+\startslide{Questions?}
+\centerline{http://www.cs.uvm.edu/$\sim$pchapin/RMDA.pdf}
+\stopslide
+
+\end{document}

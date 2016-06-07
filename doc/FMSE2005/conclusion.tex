@@ -1,0 +1,66 @@
+\section{Conclusion}
+\label{section-conclusion}
+
+We now conclude with comments on related work and a short summary of
+the paper.
+
+\subsection{Related Work}
+
+Many trust management systems have been developed by previous
+authors. In such a system resource owners write policy statements
+using a suitable policy language that describes the attributes of
+authorized users. When a request is made, the requesting entity
+provides signed credentials that prove the requester complies with the
+policy.  Proofs are constructed automatically, and implement a formal
+semantics.  Previous systems include BAN \cite{BAN} and ABLP logic
+\cite{ABLP93}, PolicyMaker \cite{Blaze96a}, KeyNote \cite{RFC-2704},
+SDSI/SPKI \cite{rivest-lampson-96}, \cite{ellison-etal-rfc99}, and RT
+\cite{Li:2002-05}, \cite{Li:2003-02}, \cite{Li:2003-04}, to name a
+few.  However, our focus is not on trust management, but 
+trust management extended with risk assessment.
+
+Proof carrying carrying authorization (PCA)
+\cite{bauer-phd,Appel99ccs} is a framework for specifying and
+enforcing webpage access policies.  It is based on ABLP logic, but
+includes primitives for detecting timestamp expiration.  While this
+capability reflects some sense of risk assessment, it is not as
+general as the notion of risk expressed in our system.
+
+In \cite{anderson-ms-thesis}, semantics for a number of $\RT$ variants
+are obtained via embedding in constraint datalog.  An implementation
+of ``confidence levels'', similar to our notion of risk assessment, is
+suggested via the use of constraints, though not developed in detail.
+While it is possible that many interesting risk assessment schemes can
+be defined using $\RT_1$ or $\RT_2$, we believe that defining a new
+$\RT$ variant to explicitly capture the notion of risk assessments is
+appealing in various respects.  In particular, we are able to define
+risk in a general manner, and isolate issues related to online
+authorization with components of risk.
+
+Dealing with trustworthiness in distributed systems has been an active
+research area (see, e.g., \cite{grandison-ieeecst00}). In
+\cite{josang-ndss99}, an algebra is provided for reasoning about trust
+in certificate chains. Our notion of risk is related to the notion of
+trust, and some relevant operators of \cite{josang-ndss99} may be
+directly incorporated into our framework.  Comparative expressiveness
+of risk and trust operators is an interesting research topic, but
+is beyond the scope of this paper.
+ 
+\subsection{Summary}
+
+In this paper we have defined $\RTR$, a role-based trust management
+framework with formal risk assessment.  This system is a variation on
+$\RT$ \cite{Li:2003-04}, and includes the capability to associate
+credentials with risk, and to assess risk levels of authorization as
+the aggregated risks of authorization components.  Risks are defined
+in an abstract manner, under the requirement that the set of risks be
+a complete lattice, with a monotonic aggregation operator.  A formal
+semantics has been given, that associates role membership with risk
+levels.  An algorithm has also been defined for implementation of this
+semantics, providing an automatic risk assessed authorization
+procedure.  The algorithm is specialized for functionality in a
+distributed environment, and can be parameterized by risk thresholds,
+specifying a maximum tolerable risk for authorization.  The algorithm
+is directed, to avoid proof paths whose aggregate risks exceed the
+given threshold, hence to risk as little as possible during the course
+of authorization.

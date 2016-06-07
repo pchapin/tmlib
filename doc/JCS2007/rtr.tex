@@ -1,0 +1,426 @@
+\section{The System $\RTR$}
+\label{section-rtr}
+
+The system $\RTR$ is $\RT_0$ extended with a formal definition of risk
+assessments.  In this section we define and characterize the syntax
+and semantics of $\RTR$.  We define a set theoretic semantics for
+$\RTR$, since this allows an easy correspondence with the graph
+theoretic characterization of $\RTR$ for distributed chain discovery
+given in the next section.  Unlike $\RT_0$, the semantics of $\RTR$ not
+only takes into account role membership, but the risk associated with
+role membership.  This semantic representation allows formal 
+discussion of \emph{thresholds}, the specification of tolerable 
+risk levels for role membership on a per-role basis.
+
+\subsection{Syntax and Semantics}
+
+The system $\RTR$ is defined as a framework, parameterized by a
+\emph{risk ordering}, which is required to be a complete lattice
+$(\mathcal{K},\po)$.  We let $\risk$ and $\risks$ range over elements
+and subsets of $\mathcal{K}$ respectively, and let $\top$ and $\bot$
+denote the top and bottom elements of the lattice.  Any instantiation
+of $\RTR$ is expected to specify a set of lattice elements and a
+decidable risk ordering $\po$.  Intuitively, $\po$ allows comparison
+between greater and lesser risk, e.g.~if one credential is more
+trusted than another, or less computationally expensive to retrieve.
+Also, operations for \emph{aggregating} risks-- that is, combining
+risks in proofs of authorization-- must be specified.  The system
+provides two forms of aggregation, risk aggregation and intersection
+aggregation.  Each of these are total functions from pairs of risks to
+risks.  The latter is provided for combining risks in intersection
+role definitions, while the former handles all other forms of
+aggregation.  We believe this distinction should be made, because
+intersection roles can represent agreement between principals, which
+in practice may reduce risk.  Also, this distinction is necessary to
+encode certain features such as delegation depth as observed in
+\autoref{section-examples}.  To ensure termination and flexibility of
+our chain discovery algorithm we require that both forms of
+aggregation be monotonic and associative.
+\begin{definition}
+An \emph{instance of $\RTR$} is obtained by defining a complete
+lattice $(\mathcal{K},\po)$, where $\mathcal{K}$ is a set of
+\emph{risks} and $\po$ is a decidable \emph{risk order relation}.  We
+let $\risk$ and $\risks$ range over elements and subsets of
+$\mathcal{K}$ respectively, and let $\top$ and $\bot$ denote the top
+and bottom elements of the lattice.  The instantiation also includes
+two associative and monotonic \emph{aggregation}
+operators: \emph{risk aggregation} $\riskplus$,
+%\emph{linking aggregation} $\linkplus$, 
+and \emph{intersection aggregation} $\isectplus$.
+\end{definition}
+As an example, we can instantiate $\RTR$ with the usual $\le$ 
+ordering on natural numbers plus $\omega$ as an upper bound,
+and specify that addition is the sole aggregation operation.
+\begin{example}
+\label{example-ponat}
+Let $\ponat \defeq (\nat \cup \setdefn{\omega}, \le)$ where $\le$ is
+the usual relation on natural numbers extended such that $n \le
+\omega$ for all $n \in \nat$.  Let $\riskplus = \isectplus = +$,
+with $+$ extended such that $n + \omega = \omega$ for all $n \in \nat \cup
+\setdefn{\omega}$.  
+These definitions together specify an instance of $\RTR$.
+\end{example}
+
+The basis of risk assessment is the association of risk with
+individual credentials, since credentials are the fundamental
+assertions used in authorization decisions.  Thus, credentials in
+$\RTR$ are of the form $\cred{A.r}{f}{\risk}$ where $\risk$ is the
+risk associated with the credential.  The manner in which risks are
+assigned to credentials is left unspecified, but we discuss some
+concrete possibilities in \autoref{section-risk-assignment}.  In
+essence, the aggregation of risks associated with credentials used in
+an authorization decision constitutes the risk of that decision.
+\begin{definition}
+Given an instance of $\RTR$, we let $\creds$ range over finite sets of
+\emph{credentials}, and $c$ range over individual credentials of the
+form $\cred{A.r}{f}{\risk}$.  We refer to credential forms type 1
+through 4 as in \autoref{section-rt}.
+\end{definition}
+
+Formally, the semantics of $\RTR$ associates risk $\risk$ with the
+membership of entities $B$ in roles $A.r$.  Thus, the meaning of roles
+$A.r$ are finite sets of pairs of the form $(B,\risk)$, called
+$\mathit{RiskAssessment}$s.  Note that any $\mathit{RiskAssessment}$
+may associate more than one risk with any entity, i.e.~there may exist
+$(A,\risk_1),(A,\risk_2) \in R$ such that $\risk_1 \ne \risk_2$.  This
+reflects the possibility of more that one path to role membership,
+each associated with incomparable risk.  Taking the glb of
+incomparable risks in risk assessments as a semantic basis of $\RTR$
+is unsound, since the glb will assess a lesser risk of membership than
+is in fact possible to obtain through any path.
+
+\begin{definition}
+\label{def-risk-assessment}
+Sets of type $\mathit{RiskAssessment}$, denoted $R$, are finite
+collections of pairs of the form $(B,\risk)$. For any
+$\mathcal{A}\subseteq \mathit{Entities}$, the type
+$\mathit{RiskAssessment}(\mathcal{A})$ denotes the set of risk
+assessments $R$ such that $(A,\risk) \in R$ implies $A \in
+\mathcal{A}$.
+\end{definition}
+
+Of course, if a risk assessment associates two distinct but comparable
+risks with a given role membership, the lesser of the two can be taken
+as representative.  In other words, risk assessments can be taken as a
+set of lower bound constraints on risk in authorization.  Not only is
+this idea logically appealing, but it also ensures that the semantics
+of $\RTR$ is constructive in the presence of cyclic credentials.
+Otherwise, if every path with different risk were explicitly
+represented, the monotonic aggregation of risk along a cycle could
+generate an infinitely large set of increasingly expensive risk
+assessments for a given role membership.  In
+\autoref{section-rtr-discovery} we show that this semantic
+specification does not disallow the use in practice of a
+higher-than-minimal authorization path.  We define an equivalence
+relation to capture the idea, inducing equivalence classes identified
+by \emph{canonical} risk assessments containing no $(A,\risk_1)$ and
+$(A,\risk_2)$ where $\risk_1 \po \risk_2$.  Furthermore, the canonical
+representation of any assessment $R$, denoted $\hat{R}$, is decidable
+since assessments are finite and $\po$ is decidable.
+\begin{definition}
+Equivalence classes of risk assessments are obtained by the 
+following axiom schema:
+$$
+R \cup \setdefn{(A,\risk_1),(A,\risk_2)} = R \cup \setdefn{(A,\risk_1)} 
+\qquad \text{where } \risk_1 \po \risk_2 
+$$ 
+We call \emph{canonical} those risk assessments $R$ where there
+exist no $(A,\risk_1), (A,\risk_2) \in R$ such that $\risk_1 \po \risk_2$,
+and observe that any equivalence class of risk assessments has 
+a unique canonical form.  We extend the 
+ordering $\po$ to risk assessments as follows:
+\begin{eqnarray*}
+R_1 \po R_2 &\iff& \forall (A,\risk_1) \in \hat{R_1} . \exists
+\risk_2.  (A,\risk_2) \in \hat{R_2} \wedge \risk_1 \po \risk_2
+\end{eqnarray*}
+\end{definition}
+Hereafter we restrict our consideration to canonical risk assessments
+without loss of generality.  
+
+The semantic definition is defined via several auxiliary operations.
+Canonical risk assessments are combined by taking their canonical
+union:
+\begin{definition}
+The \emph{canonical union} of risk assessments is denoted $\uplus$, 
+i.e.~define $R_1 \uplus R_2 = \hat{R}\text{, where } R = R_1 \cup R_2$.
+\end{definition}
+Entire risk assessments may be aggregated together, or incremented by
+some risk.  We therefore extend aggregation to risk assessments for
+notational convenience as follows.  Note that these operations 
+preserve canonical form of risk assessments.
+\begin{definition}
+\label{def-aggregation-risk-assessments}
+Letting $\star$ range over $\setdefn{\riskplus, \isectplus}$,
+aggregation is extended to risk assessments as follows:
+\begin{eqnarray*}
+R \star \risk &\ \defeq\ & \hat{R'}\text{ where } R' = \setdefn{(A,\risk' \star \risk) \ \mid\ (A,\risk') \in R}\\
+R_1 \star R_2 &\ \defeq\ &\hat{R'}\text{ where } R' = 
+\setdefn{(A,\risk_1 \star \risk_2) \ \mid\ 
+(A,\risk_1), (A,\risk_2) \in R_1 \times R_2} 
+\end{eqnarray*}
+\end{definition}
+
+Now we can specify the semantics of $\RTR$, via interpretations that
+map roles to risk assessments.  
+\begin{definition}
+A \emph{role interpretation} is a total function of type:$$
+\mathit{Role} \rightarrow \mathit{RiskAssessment}
+$$ 
+Letting $f$ and $g$ be role interpretations, define:
+$$
+f \po g \quad\iff\quad f(A.r) \po g(A.r) \text{ for all roles } A.r
+$$
+\end{definition}
+An interpretation is taken to be a solution to a set of credentials if
+it maps each role to the ``right'' risk assessment, given the intended
+meaning of the given credentials.  This meaning is characterized by
+the functionals $\bounds$ and $\expr$, defined in
+\autoref{figure-rmem}, and the following definition.
+
+\begin{definition}[Semantics of $\RTR$] 
+\label{def-solution}
+Given a set $\creds$ of $\RTR$ credentials, the \emph{solution
+$\credsmean{\creds}$ of $\creds$} is the least role interpretation
+$\rmem$ such that $\bounds[\rmem] \po \rmem$, where $\bounds$
+and the auxiliary function $\expr$, mapping interpretations to 
+interpretations, are defined in \autoref{figure-rmem}.
+\end{definition}
+
+We discuss several extended examples of the system in
+\autoref{section-examples}.  Here is a brief example illustrating the
+semantics.
+\begin{example}
+\label{example-solution}
+Assume given the instance of $\RTR$ as defined in \autoref{example-ponat},
+and let $\creds$ consist of the following:
+\begin{mathpar}
+\cred{A.r_0}{B.r_3}{2}
+
+\cred{A.r_0}{C.r_1.r_2}{1}
+
+\cred{C.r_1}{D}{3}
+
+\cred{B.r_3}{E}{4}
+
+\cred{D.r_2}{F}{0}
+\end{mathpar}
+Then $\credsmean{\creds}$ is the interpretation mapping every
+role to $\varnothing$, except:
+\begin{mathpar}
+\credsmean{\creds}(C.r_1) = \setdefn{(D,3)}
+
+\credsmean{\creds}(B.r_3) = \setdefn{(E,4)}
+
+\credsmean{\creds}(D.r_2) = \setdefn{(F,0)}
+
+\credsmean{\creds}(A.r_0) = \setdefn{(E,6), (F,4)}
+\end{mathpar}
+\end{example}
+
+\rmemfig
+
+\subsection{Existence of a Solution}
+\label{section-rtr-solution}
+
+The semantics of $\RTR$ just defined is meaningful only if any
+credential set $\creds$ has a solution.  We establish this by an
+inductive construction that converges to a fixpoint, obtained by
+iterating $\bounds$ over an initial empty risk assessment.  
+\begin{definition}
+A \emph{partial role interpretation over
+$\creds$} is a function of type: 
+$$\mathit{Roles}(\creds) \rightarrow
+\mathit{RiskAssessment}(\mathit{Entities}(\creds)))$$ 
+The family of
+partial role interpretations over $\creds$ denoted
+$\setdefn{\rmem_i}_{i \in \mathbb{N}}$ is defined inductively by
+taking $\rmem_0(A.r) = \varnothing$ for every role $A.r$, and letting:
+$$
+\rmem_{i+1}(A.r) = \bounds[\rmem_i](A.r)
+$$ 
+for every $A.r$.  
+\end{definition}
+The argument for existence of a solution proceeds by showing that this
+construction converges to a fixpoint, which is clearly a solution of
+$\creds$.  
+
+To show that the construction converges to a fixpoint, we observe that
+$\bounds$ is monotonic over a lattice of partial role
+interpretations over given $\creds$.  The lattice is induced by a
+relation that is similar to $\po$, but with an important difference.
+In each iteration, the solution is built up by adding
+new elements $(A,\risk)$ to the interpretations of roles.  However,
+the use of canonical union ensures any such element is added only if
+$\risk$ is lesser than or incomparable with existing elements of the
+solution, rather than greater than as would be possible if $\bounds$
+were monotonic in $\po$.  Hence, we define an appropriate ordering
+denoted $\rmempo$:
+\begin{definition}
+Define $\rmempo$ as a relation on risk assessments:
+\begin{eqnarray*}
+R_1 \rmempo R_2 &\iff& \forall (A,\risk_1) \in \hat{R_1} . \exists
+\risk_2.  (A,\risk_2) \in \hat{R_2} \wedge \risk_2 \po \risk_1
+\end{eqnarray*}
+The relation is extended pointwise to partial role interpretations,
+i.e.~given that $f$ and $g$ are partial role interpretations, define $f
+\rmempo g \iff \forall A.r \in \dom(f) . f(A.r) \rmempo g(A.r)$.
+\end{definition}
+We observe that $\rmempo$ is a partial order, since $\po$ is:
+\begin{lemma}
+The relation $\rmempo$ is a partial order on both risk assessments and
+partial role interpretations.
+\end{lemma} 
+It is essential to show that $\bounds$ is monotonic over this ordering
+of partial role interpretations.  The property is immediate, since 
+both $\bounds$ and $\expr$ are defined via operations that preserve
+canonical forms when combining risk assessments, i.e.~$\uplus$, 
+and $\riskplus$ and $\isectplus$.
+\begin{lemma}
+The function $\bounds$ is monotonic in $\rmempo$ over
+partial role interpretations.
+\end{lemma}
+
+Now we show that $\rmempo$ induces a complete lattice structure 
+on risk assessments and partial role interpretations.  This allows
+us to assert the existence of a solution, since this result
+and monotonicity of $\bounds$ in $\rmempo$ implies that 
+$\setdefn{\rmem_i}_{i \in \mathbb{N}}$ converges to a fixpoint.
+\begin{lemma}
+\label{lemma-assessmentlattice}
+Given finite $\creds$, the posets
+\begin{eqnarray*}
+&(\mathit{RiskAssessment}(\mathit{Entities}(\creds)),\rmempo) \\
+& \text{and} \\
+&(\mathit{Roles}(\creds) \rightarrow
+\mathit{RiskAssessment}(\mathit{Entities}(\creds)),\rmempo)
+\end{eqnarray*}
+are complete lattices. 
+\end{lemma}
+\begin{proof}
+We begin by showing that the first poset is a complete lattice. 
+Given $\mathcal{A} = \mathit{Entities}(\creds)$ and $\mathcal{R} \subseteq
+\mathit{RiskAssessment}(\mathcal{A})$.  For each entity $A \in \mathcal{A}$
+let $\risks_A = \setdefn{\risk\ |\ \exists R \in \mathcal{R}
+. (A,\risk) \in R}$
+%, let: 
+%$$\risks_A =
+%\setdefn{\risk\ |\ \exists R \in \mathcal{R} . (A,\risk) \in R}$$ 
+and let $\risk_A$ be the glb of $\risks_A$, which must exist since 
+we require risk orderings to be complete lattices.  Let
+$R_{\mathcal{R}} = \setdefn{(A,\risk_A) \mid A \in \mathcal{A}}$.
+Clearly $R_{\mathcal{R}}$  is an element of 
+$\mathit{RiskAssessment}(\mathcal{A})$,
+and is a lub of $\mathcal{R}$.  The existence of a glb for 
+$\mathcal{R}$ follows dually.  The second poset is clearly also 
+a complete lattice, since the ordering in that poset is just
+the pointwise extension of $\rmempo$ for risk assessments.
+\end{proof}
+
+Of course, a remaining issue is whether $\setdefn{\rmem_i}_{i \in
+\mathbb{N}}$ converges to a fixpoint in a \emph{finite} number of
+iterations.  This is obviously true if we restrict our consideration
+to finite risk domains $\mathcal{K}$, since any set of partial role
+interpretations forms a finite lattice under $\rmempo$ by the
+preceding result.  In case $\mathcal{K}$ is infinite, the situation is
+complicated somewhat.  However, any finite set of credentials $\creds$
+can only be combined in a finite number of ways to obtain role
+membership, yielding a finite number of possible membership risks,
+unless credentials are cyclic, but encountering cycles only obtains
+increased risk of existing memberships due to monotonicity of risk
+aggregation.  These increased risks will be ignored by $\bounds$ since
+it preserves canonical forms of risk assessments.  Hence, the lattice
+of partial role interpretations relevant to a sequence
+$\setdefn{\rmem_i}_{i \in \mathbb{N}}$ is effectively finite, even if
+$\mathcal{K}$ is infinite.  The details of the argument are mostly
+tedious and are omitted here for brevity.  We assert:
+\begin{lemma}
+Given finite $\creds$, there exists finite $n$ such that $\rmem_n$ is 
+a fixpoint of $\bounds$.
+\end{lemma}
+A solution is than effectively constructed from this fixpoint.
+Specifically, given finite $\creds$, let $\rmem_n$ be the
+least fixpoint of the sequence $\setdefn{\rmem_i}_{i \in \mathbb{N}}$, 
+and define:
+$$
+\begin{array}{rclr}
+\credsmean{\creds}(A.r) &=& \rmem_\omega(A.r) \qquad &  A.r \in \mathit{Roles}(\creds) \\
+\credsmean{\creds}(A.r) &=& \varnothing & A.r \not\in \mathit{Roles}(\creds)
+\end{array}
+$$
+
+\subsection{Thresholds and Constrained Solutions}
+
+In an authorization setting that takes risk into account, acceptable
+levels of risk should be specifiable as a component of policy.
+Furthermore, these levels should be specifiable on a per-role basis,
+to allow a fine-grained view of risk tolerance.  We believe this level
+of flexibility is desirable, since it allows the disparate entities
+maintaining particular roles to assign different levels of risk
+tolerance, or allows a local authorizer to associate different levels
+of risk with different entities, both of which are likely scenarios.
+To formalize this in our model, we introduce thresholds $\thresh$,
+which are mappings from roles to risks.    
+\begin{definition}
+A \emph{threshold} $\thresh$ is a total function of type:
+$$
+\mathit{Role} \rightarrow \mathcal{K}
+$$ 
+We write $\thresh_\top$ to denote the threshold such that 
+$\thresh_\top(A.r) = \top$ for all $A.r$, and we write
+$\shadowmap{\thresh}{A.r}{\risk}$ to denote $\thresh'$
+such that $\thresh'(A.r) = \risk$, and 
+$\thresh'(B.r') = \thresh(B.r')$ for all $B.r' \ne A.r$. 
+\end{definition}
+
+Incorporating thresholds into the model is not simply a matter of
+eliminating those elements of role solutions that exceed the given
+threshold.  The problem is that some role memberships that are not
+explicitly constrained by a threshold may nevertheless be eliminated
+by it, due to a dependence on other constrained role memberships; see
+\autoref{example-threshold-solution} below.  Therefore, we make a slight
+modification to $\bounds$, to take into account threshold constraints.
+\begin{definition}
+Given some $\thresh$, the \emph{$\thresh$-constrained solution
+$\credsmean{\creds}^\thresh$ of $\creds$} is the least role
+interpretation $\rmem$ such that: 
+$$\bounds_\thresh[\rmem] \po \rmem$$
+where for all $A.r$: 
+\begin{eqnarray*}
+& \bounds_\thresh[\rmem](A.r) \\
+& = \\
+& \setdefn{(B,\risk)\ \mid\ (B,\risk) \in \bounds[\rmem](A.r) \text{\ and\ } \risk \po \thresh(A.r)}
+\end{eqnarray*}
+\end{definition}
+The existence of threshold constrained solutions is established by 
+nearly the same argument as that given in \autoref{section-rtr-solution}.
+\begin{lemma}
+$\credsmean{\creds}^\thresh$ exists for arbitrary $\thresh$ and $\creds$.
+\end{lemma}
+
+Here is a brief example illustrating threshold constrained solutions,
+highlighting non-local effects of constraints on role membership.
+Note that even though all members of $A.r_0$ in the full solution are
+below the given threshold, one of them will be eliminated in the
+threshold constrained solution, due to its dependence on the role
+$B.r_3$.  That is, since $(E,4)$ is eliminated from $B.r_3$'s solution
+by the given threshold constraint, $(E,6)$ cannot be established
+as part of $A.r_0$'s solution.  
+\begin{example}
+\label{example-threshold-solution}
+Assume given the instance of $\RTR$ and credential set $\creds$
+specified in \autoref{example-solution}.  Define:
+$$
+\thresh = \shadowmap{\shadowmap{\thresh_\top}{A.r_0}{10}}{B.r_3}{3}
+$$ 
+Then $\credsmean{\creds}^\thresh$ is the interpretation mapping
+every role to $\varnothing$, except:
+\begin{mathpar}
+\credsmean{\creds}^\thresh(C.r_1) = \setdefn{(D,3)}
+
+\credsmean{\creds}^\thresh(D.r_2) = \setdefn{(F,0)}
+
+\credsmean{\creds}^\thresh(A.r_0) = \setdefn{(F,4)}
+\end{mathpar}
+\end{example}
+
+

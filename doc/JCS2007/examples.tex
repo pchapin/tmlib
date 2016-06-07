@@ -1,0 +1,407 @@
+\section{Examples}
+\label{section-examples}
+
+In this section we present some instances of $\RTR$ that illustrate
+how the system is used, and how it is able to capture a variety of
+risk management schemes.  
+
+\subsection{Bound-of-Risks}  
+\label{section-examples-bounds}
+
+In \cite{Den:latt}, an information flow security model is presented
+where all static data is assigned to a security class.  Security
+classifications of variables are then assigned based on the
+combination of security classes of data flowing into those variables,
+as determined by an abstract program interpretation.  Security classes
+are identified by elements in a complete lattice, where
+``class-combination'' is defined as the lub of combined classes.
+
+We propose that an adaptation of this model is useful in the context
+of authorization risk assessment.  We do not propose an abstract
+interpretation of authorization, incorporating some form of
+``may-analysis'', but rather a purely dynamic authorization and risk
+assessment model, so in this sense we differ from the model proposed
+in \cite{Den:latt}.  Nevertheless, we may adopt the use of least upper
+bounds as a ``class-combination'' mechanism-- in our terminology,
+risk aggregation-- that assesses the risk of any authorization
+decision as the least upper bound of risks associated with all
+credentials used in the decision.  Thus, we define each of
+$\riskplus$ and $\isectplus$ as the lub operator on
+risks in the given partial ordering.
+
+Consider a risk ordering where three classifications $\mathcal{K} =
+\setdefn{\mathit{low,medium,high}}$ are defined, and the following
+relations are imposed:
+$$
+\mathit{low} \po \mathit{medium} \po \mathit{high}
+$$ 
+Imagine also that an online vendor called $\mathit{Store}$
+maintains a purchasing policy whereby representatives of the
+$\mathit{Acme}$ corporation have $\mathit{buyer}$ power only if they
+are both employees and official purchasers.  Since this policy is
+maintained locally, it is associated with a $\mathit{low}$ risk of
+usage, hence $\mathit{Store}$ could specify:
+\begin{mathpar}
+\mathitcred{Store.buyer}{Acme.purchaser \cap Acme.employee}{low}
+\end{mathpar}
+Imagine further that $\mathit{Ed}$ attempts to make a purchase from
+$\mathit{Store}$, providing certificates claiming $\mathit{employee}$
+and $\mathit{purchaser}$ status.  However, if we assume that these
+certificates can possibly be faked, or that role membership within the
+$\mathit{Acme}$ corporation has a volatile status, higher risk can be
+assigned to these certificates:
+\begin{mathpar}
+\mathitcred{Acme.employee}{Ed}{medium}
+
+\mathitcred{Acme.purchaser}{Ed}{high}
+\end{mathpar}
+We also assume that a less risky path of establishing $\mathit{Ed}$'s
+membership in the $\mathit{Acme.purchaser}$ role is through a
+$\mathit{manager}$ certificate obtained directly from the issuer
+$\mathit{Personnel}$, and via $\mathit{Acme}$'s own policy
+specifying $\mathit{purchaser}$ power for all $\mathit{manager}$s:
+\begin{mathpar}
+\mathitcred{Acme.purchaser}{Personnel.manager}{low}
+
+\mathitcred{Personnel.manager}{Ed}{low}
+\end{mathpar}
+Although using $\mathit{Ed}$'s certificate asserting his membership in
+the $\mathit{Acme.purchaser}$ role will incur a $\mathit{high}$ risk,
+because of the less risky path to this relation, the risk assessment of
+this set of credentials will find that establishing $\mathit{Ed}$'s
+membership in the $\mathit{Store.buyer}$ role requires a lower bound of
+$\mathit{medium}$ risk.  The solution for this set of credentials 
+is as follows:
+\begin{eqnarray*}
+\mathit{Store.buyer}&:& \setdefn{(\mathit{Ed, medium})}\\
+\mathit{Acme.employee}&:& \setdefn{(\mathit{Ed, medium})}\\
+\mathit{Acme.purchaser}&:& \setdefn{(\mathit{Ed, low})}\\
+\mathit{Personnel.manager}&:& \setdefn{(\mathit{Ed, low})}
+\end{eqnarray*}
+Of course, in certain cases it may be preferable to use the
+certificate $\mathit{Ed}$ provides, instead of going through
+$\mathit{Personnel}$-- if wait times for distributed communication
+with that node are prohibitively long, for example.  In this case it
+should be specified that a $\mathit{high}$ level of risk will be
+tolerated in the credential chain.  This is accomplished by defining
+an appropriate threshold.  Although the semantics do not explicitly
+list a $\mathit{high}$ risk membership in $\mathit{Store.buyer}$, it
+does exist, and may be used in practice as discussed in
+\autoref{section-rtr-discovery}.
+
+Returning to the example, for the purposes of illustration we imagine
+that the risk ordering is extended with an element $\mathit{moderate}$,
+that is incomparable with $\mathit{medium}$, inducing the lattice:
+\begin{center}
+\risklattice
+\end{center}
+We also imagine that $\mathit{Store}$ has cached an old certificate,
+establishing $\mathit{Ed}$'s membership in the $\mathit{Acme.employee}$
+role with $\mathit{moderate}$ risk:
+\begin{mathpar}
+\mathitcred{Acme.employee}{Ed}{moderate}
+\end{mathpar}
+In this case, since $\mathit{moderate}$ and $\mathit{medium}$ are 
+incomparable, the risk assessment will reflect that $\mathit{Ed}$'s
+membership in the $\mathit{Store.buyer}$ and $\mathit{Acme.employee}$
+roles can be established via two paths with incomparable risk:
+\begin{eqnarray*}
+\mathit{Store.buyer}&:& \setdefn{(\mathit{Ed, medium}),(\mathit{Ed, moderate})}\\
+\mathit{Acme.employee}&:& \setdefn{(\mathit{Ed, medium}),(\mathit{Ed, moderate})}
+\end{eqnarray*}
+
+\subsubsection{Agreement Decreases Risk}
+
+In case a PGP-like scheme of allowing agreement to reduce risk is
+desired, intersection aggregation can be modified appropriately
+without having to change risk aggregation.  For example, returning to
+the risk ordering comprising just
+$\setdefn{\mathit{high},\mathit{medium},\mathit{low}}$, and specifying
+that $\isectplus$ be commutative, we could define:
+\begin{mathpar}
+\mathit{low} \isectplus \mathit{low} = \mathit{low} 
+
+\mathit{low} \isectplus \mathit{medium} = \mathit{low} 
+
+\mathit{low} \isectplus \mathit{high} = \mathit{low} 
+
+\mathit{medium} \isectplus \mathit{medium} = \mathit{low} 
+
+\mathit{medium} \isectplus \mathit{high} = \mathit{medium} 
+
+\mathit{high} \isectplus \mathit{high} = \mathit{medium} 
+\end{mathpar}
+Intersection aggregation thus defined is both monotonic 
+and associative as can easily be checked.  Given these
+definitions and the following credentials:
+\begin{mathpar}
+\mathitcred{Store.buyer}{Acme.purchaser \cap Acme.employee}{low}
+
+\mathitcred{Acme.employee}{Ed}{medium}
+
+\mathitcred{Acme.purchaser}{Ed}{high}
+\end{mathpar}
+role memberships will reflect the reduction in risk achieved
+via intersection:
+\begin{eqnarray*}
+\mathit{Store.buyer}&:& \setdefn{(\mathit{Ed, medium})}\\
+\mathit{Acme.employee}&:& \setdefn{(\mathit{Ed, medium})}\\
+\mathit{Acme.purchaser}&:& \setdefn{(\mathit{Ed, high})}\\
+\end{eqnarray*}
+
+\subsection{Sum-of-Risks}
+\label{sec:sum-of-risks}
+
+An alternative to the bound-of-risks model is a sum-of-risks model,
+where credentials are assigned numeric risk values and the total risk
+for any authorization decision is the sum of all risks associated with
+the credentials used in the decision.  Thus, we take the risk ordering
+in this model to be the lattice of natural numbers up to $\omega$
+induced by $\leq$, and we take $\riskplus$ and
+$\isectplus$ to be addition.  This model is useful in case risk is
+considered additive, or in case the number of credentials used in an
+authorization decision is an element of risk, the more the riskier.
+
+Imagining a similar situation as above, the following risks could 
+be assigned, where 1 is considered ``not risky'' and 4 is considered
+``risky'':
+\begin{mathpar}
+\mathitcred{Store.buyer}{Acme.purchaser \cap Acme.employee}{1}
+
+\mathitcred{Acme.employee}{Ed}{3}
+
+\mathitcred{Acme.purchaser}{Ed}{4}
+
+\mathitcred{Acme.purchaser}{Personnel.manager}{2}
+
+\mathitcred{Personnel.manager}{Ed}{3}
+\end{mathpar}
+Note that $\mathit{Ed}$'s certificate claiming membership in the role
+$\mathit{Acme.purchaser}$ is still assigned higher risk than both
+the certificate establishing his $\mathit{manager}$ status and the
+certificate establishing $\mathit{purchaser}$ rights for
+$\mathit{manager}$s.  However, the sum-of-risks model will still
+ascertain that the use of $\mathit{Ed}$'s certificate will be the least
+risky way to establish his membership in the $\mathit{Store.buyer}$
+role.  The solution of the given credentials will comprise the following
+risk assessments:
+\begin{eqnarray*}
+\mathit{Store.buyer}&:& \setdefn{(\mathit{Ed, 8})}\\
+\mathit{Acme.employee}&:& \setdefn{(\mathit{Ed, 3})}\\
+\mathit{Acme.purchaser}&:& \setdefn{(\mathit{Ed, 4})}\\
+\mathit{Personnel.manager}&:& \setdefn{(\mathit{Ed, 3})}
+\end{eqnarray*}
+If a pure count of credentials used in authorization is the 
+basis of risk assessment, this model can be formally obtained 
+in the sum-of-risks model by associating risk 1 with every 
+credential.
+
+Just as in the bound-of-risks model, intersection aggregation can be
+modified to interpret agreement as reducing risk.  For example,
+$\isectplus$ can be defined as the average of its operands, or some
+other fraction of their sum.
+
+\subsection{Delegation Depth and Width}
+
+In $\RT_0$, type 2 credentials allow delegation of authority across
+domain boundaries.  For example, the credential
+$\cred{A.r_0}{B.r_1}{}$ allows the entity $A$ to delegate authority to
+define a role within its namespace to the entity $B$, which may denote
+a different security domain.  Furthermore, $B$ is able to delegate
+authority to define $A.r_0$ to another entity $C$ via the credential
+$\cred{B.r_1}{C.r_2}{}$.  However, as observed by various authors,
+trust is not necessarily transitive, so that $A$ may wish to prevent
+$B$ from from further delegation of authority to define $A.r_0$ to $C$
+or anyone else.  This sort of control might also be more fine-grained,
+in that $A$ might wish to allow one level of delegation of authority
+to define $A.r_0$, from $B$ to $C$ for example, but no further, so
+that $C$ should not be allowed to delegate authority to define $A.r_0$
+to another entity.  The idea clearly generalizes to delegations of
+arbitrary depth.
+
+The system $\RT$ as originally conceived \cite{Li:2003-04} does not
+allow delegation depth to be restricted in this way.  An extension of
+$\RT_0$ called $\RT_+$ \cite{hong-zhu-wang-aina05} was proposed to
+allow expression of delegation depth policies.  Here, we show how to
+specify similar delegation depth control policies in an instance of
+$\RTR$.
+
+Assume given $\ponat$ as defined in \autoref{example-ponat} as a risk
+ordering.  The encoding is then based on a numeric representation of
+depth for individual credentials.  We consider the specification of
+risk values and aggregation operations by considering each credential
+type in turn.  Type 1 credentials define a role membership directly
+within a namespace, so the delegation depth associated with those
+credentials is 0.  Hence, all credentials match the schema:
+$$
+\cred{A.r}{B}{0}
+$$
+
+Type 2 credentials do allow delegation of role definition authority,
+so type 2 credentials have a delegation depth of 1 if the delegation
+crosses namespaces.  Otherwise the depth of a type 2 credential is 
+0.  Hence, all type 2 credentials match the schemas:
+\begin{eqnarray*}
+&\cred{A.r_1}{A.r_2}{0}\\
+&\cred{A.r_1}{B.r_2}{1} \quad A \ne B
+\end{eqnarray*}
+Naturally, risk aggregation is defined as addition, so that depth is
+added as credential edges are crossed:
+$$
+\risk_1 \riskplus \risk_2 \defeq \risk_1 + \risk_2
+$$
+
+Type 3 credentials allow indirect delegation.  Recall that an $\RT_0$
+credential of the form $\cred{A.r_1}{B.r_2.r_3}{}$ allows us to assert
+that $C \in A.r_1$ if $D \in B.r_2$ and $C \in D.r_3$.  In our view,
+this means that $B$ is thereby capable of delegating to $D$ the
+authority to define $A.r_1$, and therefore also $A$ delegates to $B$
+the authority to define the role.  So firstly, this means that 
+type 3 credentials should be assigned a delegation depth of 1 if 
+$A$ and $B$ are distinct namespaces, and 0 otherwise:
+\begin{eqnarray*}
+&\cred{A.r_1}{A.r_2.r_3}{0}\\
+&\cred{A.r_1}{B.r_2.r_3}{1} \quad A \ne B
+\end{eqnarray*}
+Secondly, given some credential $\cred{A.r_1}{B.r_2.r_3}{}$, linking
+aggregation should sum the delegation depth associated with
+determining $D \in B.r_2$ with the delegation depth associated
+with determining $C \in D.r_3$ to determine $C \in A.r_1$.  Hence, 
+linking aggregation is also defined as addition:
+\begin{mathpar}
+\risk_1 \linkplus \risk_2 \defeq \risk_1 + \risk_2 
+\end{mathpar}
+We note that our model differs from the $\RT_+$ model with respect to
+risk aggregation and depth of type 3 credentials.  In that paper, type
+3 credentials are always assigned depth 1, and the depth associated
+with determining $D \in B.r_2$ is ignored in linking aggregation.  The
+authors do not clarify the reasons for these choices, but we believe
+they are flawed.  Regarding the depth of type 3 credentials, consider
+the following $\RT_0$ example:
+\begin{mathpar}
+\cred{A.r_1}{A.r_2.r_3}{}  
+
+\cred{A.r_2}{A.r_3}{}
+
+\cred{A.r_3}{B}{}
+\end{mathpar}
+These credentials allow us to establish that $B \in A.r_1$ with no
+delegation of authority, whereas the scheme in $\RT_+$ would assign
+a delegation depth of 1.  Multiple links within the same namespace
+would extend the spurious depth, allowing arbitrarily large
+overestimates of delegation depth.
+
+Underestimates of delegation depth are also possible given the scheme
+in $\RT_+$, as follows.  Consider the following credentials, where
+$C_1.s_1 \longleftarrow \cdots \longleftarrow C_n.s_n$ denotes $n-1$
+type 2 credentials in the obvious manner.
+\begin{mathpar}
+\cred{A.r_1}{B.r_2}{}
+
+\cred{B.r_2}{C_1.s_1}{}
+
+C_1.s_1 \longleftarrow \cdots \longleftarrow C_n.s_n
+
+\cred{C_n.s_n}{D}{}
+\end{mathpar}
+Assuming that $A$, $B$, $D$, and $C_1,\ldots,C_n$ all denote distinct
+namespaces, establishing $D \in A.r_1$ involves a delegation depth of
+$n+1$.  However, there is an easy attack that $B$ can use to 
+reduce an $n+1$ delegation depth to a depth of 2:
+$B$ could eliminate $\cred{B.r_2}{C_1.s_1}{}$, and 
+add the following credentials:
+\begin{mathpar}
+\cred{B.r_2}{B.r_3.r_4}{}
+
+\cred{B.r_3}{B}{}
+
+\cred{B.r_4}{C_1.s_1}{}
+\end{mathpar}
+In contrast, our monotonicity requirements on aggregation prevents
+such an attack.
+
+In intersection roles, depth of components should not be summed,
+instead each component should be considered an independent ``branch''.
+Intersection aggregation is therefore defined as the max height
+of its operands:
+\begin{mathpar}
+\risk_1 \isectplus \risk_2 \defeq \mathit{max}(\risk_1,\risk_2)
+\end{mathpar}
+Like the other credential forms, type 4 credentials are assigned a
+depth risk on the basis of whether they cross domain boundaries.
+Since role expressions of any form may be intersected, we need to
+specify the \emph{subjects} of role expressions:
+\begin{eqnarray*}
+\subjects(A) &=& \varnothing \\
+\subjects(A.r) &=& \setdefn{A} \\
+\subjects(A.r_1.r_2) &=& \setdefn{A}\\
+\subjects(f_1 \cap \cdots \cap f_n) &=& \subjects(f_1) \cup \cdots \cup \subjects(f_n)
+\end{eqnarray*}
+and we assign depth risks to type 4 credentials as follows:
+\begin{mathpar}
+\cred{A.r}{f_1 \cap \cdots \cap f_n}{0} \quad \text{ if } \subjects(f_1 \cap \cdots \cap f_n) \subseteq \setdefn{A}
+
+\cred{A.r}{f_1 \cap \cdots \cap f_n}{1} \quad \text{ if } \subjects(f_1 \cap \cdots \cap f_n) \nsubseteq \setdefn{A}
+\end{mathpar}
+
+\subsubsection{Controlling Delegation Width} 
+
+The designers of SPKI/SDSI provided a simple scheme of boolean control
+for delegation, expressible in our model by specifying a threshold
+$\thresh$ such that $\thresh(A.r) = \omega$ if it was desired that
+authority over the role $A.r$ could be delegated, and $\thresh(A.r) =
+0$ if not.  The complexity of full integer depth control as in our
+general model was not adopted, in part because depth control does not
+control delegation \emph{width}, hence does not address problems of
+proliferation \cite{ellison-etal-rfc99}.  Any given principal may
+delegate authority to an unlimited number of other principals:
+$$
+\cred{A.r}{B_1.s_1}{} \qquad \cdots \qquad \cred{A.r}{B_n.s_n}{}
+\qquad A \ne B_1 \ne \cdots \ne B_n
+$$ and notions of delegation depth provide no control on the size of
+$n$.  Furthermore, this ``fanning out'' can continue more than one
+level deep in the credential chain, in that authority over any role
+$B_i.r_i$ may in turn be delegated to an arbitrary number of
+principals, and so on.
+
+However, forms of width control can be obtained by appropriate
+instantiations of $\RTR$.  In particular, limits can be placed on the
+sets of principals to which authority can be delegated for a given
+role definition.  Letting $\mathcal{P}$ be the set of principals, we
+take the set of risks $\mathcal{K}$ to be the powerset of
+$\mathcal{P}$, risk ordering $\po$ to be set containment, and both
+forms of aggregation $\setdefn{\riskplus, \isectplus}$ to be set
+union.  Credential risks are then defined as the set of subjects in
+the credential, so that all credentials adhere to the following
+schema:
+$$
+B.s \xleftarrow{\subjects(f)} f
+$$
+
+Now, suppose that $A$ wished to specify that only principals in the
+set $\setdefn{B,C,D}$ should be allowed any sort of authority over the
+role $A.r$.  In this case a threshold $\thresh$ would be defined such
+that $\thresh(A.r) = \setdefn{B,C,D}$, and suppose that $\thresh$ maps
+all other roles to $\mathcal{P}$ for the purposes of the example.
+Hence, given the following set of credentials:
+\begin{mathpar}
+\cred{A.r}{B.s}{\setdefn{B}}
+
+\cred{B.s}{C.q}{\setdefn{C}}
+
+\cred{B.s}{E.q}{\setdefn{E}}
+
+\cred{C.q}{E}{\varnothing}
+
+\cred{E.q}{D}{\varnothing}
+\end{mathpar}
+The $\thresh$-constrained solution is as follows:
+\begin{eqnarray*}
+E.q &:& \setdefn{(D,\varnothing)}\\
+C.q &:& \setdefn{(E,\varnothing)}\\
+B.s &:& \setdefn{(D,\setdefn{E}),(E,\setdefn{C})}\\
+A.r &:& \setdefn{(E,\setdefn{B,C})}
+\end{eqnarray*}
+Note that $D$ cannot be established as a member of $A.r$, since it can
+be so only under the authority of $E$ which is disallowed by the
+width threshold for $A.r$.

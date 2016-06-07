@@ -1,0 +1,287 @@
+\section{$\RTR$ Credential Chain Discovery}
+\label{section-chain-discovery}
+\label{section-rtr-discovery}
+
+In this section we discuss an algorithm for authorization with risk in
+a distributed environment.  Following $\RT$ credential chain discovery
+\cite{Li:2003-02}, our technique is to characterize credential sets
+graph-theoretically, except that our credential graphs are
+risk-weighted multigraphs, to accommodate risk assessments.
+Credential graphs are shown to be a full abstraction of solutions as
+in \autoref{def-solution}, and the $\RTR$ discovery algorithm is shown
+to correctly reconstruct credential graphs.
+
+In addition to theoretical correctness, our chain discovery algorithm
+has two important practical features:
+\begin{enumerate}
+  \item The algorithm need not verify a role membership in a
+  risk-optimal fashion, but rather is parameterized by 
+  a risk threshold, that is a maximum tolerable risk for role 
+  membership verification.
+ \item The discovery procedure is \emph{directed}, in the sense that
+it is aborted along search paths whose risk overruns the maximum
+threshold.
+\end{enumerate}
+The first feature allows end-users to modulate tolerable levels of
+risk in authorization.  The second feature reaps any efficiency
+benefits intended by associating risks with credentials, as high risk
+may be associated with high expense, e.g.~if risks are wait times.
+
+
+\subsection{Credential Graphs}
+\label{section-credential-graphs}
+
+We begin by defining an interpretation of credential sets $\creds$ as
+a credential graph.  More precisely, sets of credentials are
+interpreted as a weighted multigraph, where nodes are role
+expressions, edges are credentials, and weights are risks.
+Authorization is implemented by determining reachability, via risk
+weighted paths, where the aggregation of edge risk along the path is
+the risk of authorization.  Reachability is predicated on simple
+paths, since traversing cycles can only increase risk, and any path
+with a cycle would otherwise generate an infinite number of risk
+weighted paths.  Allowing the latter would preclude a constructive
+definition of credential graphs, since chains are distinguished by
+risk and cycle traversal increases risk monotonically.
+\begin{definition}[Risk weighted credential chains]
+Let $\graph{} = (\nodes{}, \wtedges{})$ be a weighted multigraph with
+nodes $f \in \nodes{}$ and edges $\wtedge{f_1}{f_2}{\risk} \in
+\wtedges{}$ weighted by elements $\risk$ of a given risk ordering.
+The pair:
+$$((f_1,\ldots,f_n), \risk_1 \oplus \cdots \oplus \risk_{n-1})$$ is a
+\emph{risk weighted path in $\graph{}$} iff for all $i \in [1..n-1]$,
+there exists $\wtedge{f_i}{f_{i+1}}{\risk_i} \in \wtedges{}$.  A
+weighted path $((f_1,\ldots,f_n), \risk)$ is \emph{simple} iff no node
+is repeated in $(f_1,\ldots,f_n)$.  We write $\wtpath{f}{f'}{\risk}$,
+pronounced ``there exists a credential chain from from $f$ to $f'$
+with risk $\risk$'', iff $((f,\ldots,f'), \risk)$ is a simple risk
+weighted path.  We write $\wtpath{f}{f'}{\risk} \in \graph{}$ iff
+$\wtpath{f}{f'}{\risk}$ holds given $\graph{}$.
+\end{definition}
+
+The definition of credential graphs is founded on the definition of
+risk weighted chains, since edges derived from linked and intersection
+credentials are supported by them.  
+\begin{definition}[Credential graph]
+\label{def-credentialgraph}
+Given $\creds$, its \emph{credential graph} is a weighted multigraph
+$\graph{\creds} = (\nodes{\creds}, \wtedges{\creds})$, where:
+$$
+\nodes{\creds} = \bigcup\limits_{\cred{A.r}{e}{\risk}} \setdefn{A.r,e}
+$$
+And $\wtedges{\creds}$ is the least set of risk-weighted edges satisfying 
+the following closure properties:
+\begin{enumerate}
+\item If $\cred{A.r}{e}{\risk} \in \creds$ then 
+$\wtedge{e}{A.r}{\risk} \in \wtedges{\creds}$.
+\item If $B.r_2, A.r_1.r_2 \in \nodes{\creds}$ and
+$\wtpath{B}{A.r_1}{\risk}$, then
+$\wtedge{B.r_2}{A.r_1.r_2}{\risk} \in \wtedges{\creds}$.
+\item If $D,f_1\cap \cdots \cap f_n \in \nodes{\creds}$ and for each
+$i \in [1..n]$ there exists 
+$\wtpath{D}{f_i}{\risk_i}$, then $\wtedge{D}{f_1 \cap \cdots \cap
+f_n}{\risk} \in \wtedges{\creds}$, where $\risk = \risk_1 \oplus
+\cdots \oplus \risk_n$.
+\end{enumerate}
+\end{definition}
+
+The definition of credential graphs can be made constructive by
+iterating closure over an initial initial edge set
+$\wtedges{\creds}^0$:
+$$
+\wtedges{\creds}^0 = \setdefn{\wtedge{A.r}{e}{\risk} \mid 
+\cred{A.r}{e}{\risk} \in \creds}
+$$ 
+In rules (2) and (3), the paths predicating membership in
+$\wtedges{\creds}$ are called \emph{support paths}, and the edges are
+called \emph{derived}.  On each iteration, add a new weighted edge
+according to closure rule (2) or (3).  Since $\creds$ is finite, and
+support paths must be simple, the process will reach a fixpoint in
+a finite number of iterations; this fixpoint is $\wtedges{\creds}$.
+
+We observe that the characterization of credential sets $\creds$
+is sound and complete with respect to the set theoretic semantics
+given in the previous section.  These results will form a 
+bridge with the semantics of $\RTR$ for establishing correctness
+of credential chain discovery.  The statement of soundness reflects
+the fact that while risk assessments of credential sets express
+minimum risk bounds of role membership, the credential graph 
+does not preclude reachability via paths of higher risk.
+\begin{theorem}[Soundness]
+For all $B,A.r$, if $\wtpath{B}{A.r}{\risk} \in \graph{\creds}$, then
+$(B,\risk') \in \credsmean{\creds}(A.r)$ with $\risk' \po \risk$.
+\end{theorem}
+The statement of completeness reflects that any assessed risk is the
+weight of some related path in the graph:
+\begin{theorem}[Completeness]
+For all $A.r$, if $(B,\risk) \in \credsmean{\creds}(A.r)$, then 
+$\wtpath{B}{A.r}{\risk} \in \graph{\creds}$.
+\end{theorem}
+
+\subsection{Backward Chain Discovery Algorithm}
+
+As discussed in \cite{Li:2003-02}, any role $A.r$ is defined by its
+credentials.  In centralized chain discovery, all credentials are
+maintained locally by assumption.  In distributed chain discovery,
+some credentials may be stored remotely.  \emph{Backwards} chain
+discovery assumes that the credentials defining a role $A.r$ are
+obtained through the entity $A$, so that chains need to be
+reconstructed ``backwards'', beginning with the governing role of an
+authorization decision.  We now define a backwards credential chain
+discovery algorithm $\checkmem$ for $\RTR$, possessing features
+described at the beginning of \autoref{section-rtr-discovery}.  We
+abstract the details of credential retrieval and risk assignment,
+other than its ``backwards'' nature, assuming that remote
+risk-weighted credentials can always be retrieved on demand (and
+cached, presumably).  While forwards and mixed discovery techniques
+for $\RT$ are also discussed in \cite{Li:2003-02}, analogous
+techniques for $\RTR$ are beyond the scope of this paper.  For brevity
+and clarity in the presentation, we textually describe the algorithm
+$\checkmem$.
+
+\subsubsection{Definition of $\checkmem$}
+
+\newcommand{\threshold}{\risk_{\mathrm{max}}}
+
+The algorithm $\checkmem(A,f,\threshold)$ reconstructs a proof graph,
+to check membership of $A$ in role $f$ within a given threshold
+$\threshold$.  The algorithm maintains the following mutable
+datastructures: a solution of type $\mathit{RoleExpressions}
+\rightarrow \mathit{RiskAssessment}$, an association of \emph{solution
+monitors} with graph nodes, discussed below, and an association of
+sets of \emph{search risks} with graph nodes.  Search risks are the
+accumulated risks along any discovery path to the given node; it is
+important to note that search risk associations are different than
+risk assessments.  When a node is first encountered during search, it
+is added to the queue for future search.  No node is added to the
+queue more than once.
+
+Initially, the solution is a default mapping to the empty risk
+assessment, and every node is associated with an empty set of solution
+monitors and search risks.  To begin the search, the node $f$ is added
+to the queue, and associated with the search risk $\bot$.
+
+Nodes are taken from the queue individually for searching, but not
+indiscriminately; rather, only nodes that have a search risk below the
+threshold $\risk$ are searched.  In this way, the algorithm
+short-circuits discovery along paths that are too risky. 
+Over-threshold nodes are not removed from the queue, since
+future discovery might find a less risky path to that node.  Hence,
+nodes wait in the queue until they are the next below-threshold node
+to be searched.  The algorithm runs until there are no below-threshold
+nodes left in the queue, or until a solution for $A$ in $f$ 
+below threshold $\threshold$ is found.
+  
+Solution monitors propagate solution elements $(A,\risk)$ forward
+along discovered edges, aggregating edge risks as they go; their
+control flow structure mimics the discovered graph structure.
+Whenever a monitor notifies a node $f$ to add a solution element
+$(A,\risk)$, if there does not exist $\risk' \po \risk$ such that
+$(A,\risk')$ is already in $f$'s solution (in which case we
+say it is \emph{canonically new}), the solution is added to $f$, 
+and all of $f$'s solution
+monitors are applied to the new solution.  There are three classes of
+solution monitors:
+\begin{enumerate}
+  \item A \emph{role monitor} for a given role $A.r$ and 
+edge risk $\risk$ is a function abstracted on solution 
+elements $(B,\risk')$, that notifies $A.r$ to add
+$(B,\risk' \oplus \risk)$ to its solutions.
+  \item A \emph{linking monitor} for a given linked role $A.r_1.r_2$
+is a function abstracted on solution elements $(B,\risk)$, that
+creates a role monitor for $A.r_1.r_2$ and $\risk$, applies
+it to each known element of $B.r_2$'s solution, and adds it to
+$B.r_2$'s solution monitors to propagate solutions yet to be
+discovered.  Finally, given all search risks $\risk'$ of $A.r_1.r_2$,
+$\risk' \oplus \risk$ is added to $B.r_2$'s search risks, and $B.r_2$
+is added to the queue if it hasn't already been.
+  \item An \emph{intersection monitor} for a given intersection role
+$f_1 \cap \cdots \cap f_n$ is a function abstracted on solution
+elements $(B,\risk)$, that creates a role monitor for $f_1 \cap \cdots
+\cap f_n$ and $\bot$, and applies it to each element 
+$(B,\risk')$ in the canonical form of the assessment $R_1 \oplus
+\cdots \oplus R_n$, where each $R_i$ is the assessment of $f_i$ in the
+current solution.
+\end{enumerate}
+
+Whenever nodes are taken from the queue according to the above
+described discipline, they are processed depending on their
+form:
+\begin{enumerate}
+  \item To process an entity $A$, the node $A$ is notified to 
+add $(A,\bot)$ as a solution to itself.
+  \item To process a role $A.r$, the credentials defining $A.r$ are
+retrieved.  For each such credential $\cred{A.r}{f}{\risk}$, a role
+monitor for $A.r$ and $\risk$ is created, is applied to all of $f$'s
+known solutions, and is added to $f$'s solution monitors for
+propagating solutions still to be discovered.  Finally, given all 
+search risks $\risk'$ of $A.r$, $\risk' \oplus \risk$ is added to $f$'s
+search risks, and $f$ is added to the queue if it hasn't already been.
+  \item To process a linked role $A.r_1.r_2$, a linking monitor for
+$A.r_1.r_2$ is created, is applied to all of $A.r_1$'s known
+solutions, and is added to $A.r_1$'s solution monitors.  Every
+search risk $\risk$ of $A.r_1.r_2$ is added to
+$A.r_1$'s search risks, and $A.r_1$ is added to the queue if it hasn't
+already been.
+  \item To process an intersection role $f_1 \cap \cdots \cap f_n$, an
+intersection monitor for $f_1 \cap \cdots \cap f_n$ is created, and
+added to each $f_i$.  Every search risk $\risk$ of $f_1 \cap \cdots
+\cap f_n$ is added to each $f_i$'s search risks, and
+each $f_i$ is added to the queue if it hasn't already been.
+\end{enumerate}
+When node processing for an invocation $\checkmem(A,f,\threshold)$
+halts, the algorithm returns true iff there exists $(A,\risk)$ in the
+solution of $f$ such that $\risk \po \threshold$.
+
+\subsubsection{Properties}
+
+Assuming that defining credentials can always be obtained for any
+role, we assert that $\checkmem$ satisfies the following properties,
+demonstrating that it correctly reconstructs credential graphs.  Since
+credential graphs are full abstractions of the $\RTR$ semantics as
+discussed in \autoref{section-credential-graphs}, these results
+demonstrate that $\checkmem$ is a correct implementation of $\RTR$.
+\begin{theorem}[Soundness]
+$\checkmem(A,f,\threshold)$ implies 
+$\wtpath{A}{f}{\risk}$ such that $\risk \po \threshold$.
+\end{theorem}
+
+\begin{theorem}[Completeness]
+$\wtpath{A}{f}{\risk}$ implies that $\checkmem(A,f,\risk)$ holds.
+\end{theorem}
+
+We also observe that the algorithm terminates, regardless of the given
+risk threshold.  This is because nodes are never visited more than
+once, and solution monitors will not traverse any graph cycle, and
+hence are guaranteed to terminate.  Solution monitors only propagate
+canonically new members, but traversal of a cycle necessarily causes a
+monotonic increase in a solution's risk assessment, hence canonical
+containment in an existing solution.
+\begin{theorem}[Termination]
+For all $A$, $f$, and $k$, $\checkmem(A,f,\risk)$ terminates.
+\end{theorem}
+
+\subsubsection{Discussion} There are two particular instances where 
+the definition of $\checkmem$ could be enhanced, for more eager
+short-circuiting of chain discovery in case risk thresholds are
+exceeded along discovery paths. First, observe that credentials are
+retrieved before being checked to see if their risks will force the
+discovery threshold to be exceeded.  However, risks such as expected
+wait time suggest that it is more practical for credentials to be
+retrieved after ensuring they won't overrun the threshold. A number
+of minor variations on $\checkmem$ can be imagined that will 
+address this.
+
+A more interesting enhancement is relevant to the propagation of
+search risks along discovery paths leading from intersection nodes.
+Observe that from any intersection role $f_1 \cap \cdots \cap f_n$,
+the search risks of $f_1 \cap \cdots \cap f_n$ are propagated to each
+$f_i$.  However, this could be a under-approximation of search risks
+for any given $f_i$.  For example, suppose that $A$ is being checked
+for authorization and $(A,\risk)$ is known to be the only possible 
+assessment of $A$ in $f_1$'s solution.  When checking $f_n$, the
+search risks of $f_n$ inherited from $f_1 \cap \cdots \cap f_n$
+could be aggregated with $\risk$, since $\risk$ is certain to 
+be a component risk of any authorization supported by
+discovery from $f_n$.  A generalization of this idea is beyond the 
+scope of this paper, but is an interesting topic for future work.

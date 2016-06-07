@@ -1,0 +1,355 @@
+++++
+From pchapin@cs.uvm.edu Mon Nov 29 08:46:21 2004
+Date: Mon, 29 Nov 2004 08:41:08 -0500 (EST)
+From: Peter C. Chapin <pchapin@cs.uvm.edu>
+To: Christian Skalka <skalka@cs.uvm.edu>, Sean Wang <xywang@cs.uvm.edu>
+Subject: Can TbV help solve an open problem?
+
+
+I've been thinking some more about trust management systems. Because of the distributed nature
+of such systems, they usually avoid negative certificates and thus revocation certificates are
+not directly supported. Instead one is supposed to include an expiration date/time in each
+certificate. When a certificate expires, the certificate holder must return to the issuer and
+get a new one. The problem becomes: what is the appropriate lifetime to assign to a certificate?
+If the lifetime is too short the certificate must be reissued frequently, consuming valuable
+resources for the issuer (and annoying the certificate holder). If the lifetime is too long
+there is a risk that the certificate holder will loose the attribute certified by the
+certificate and yet still hold a valid certificate attesting to that attribute.
+
+The fundamental problem is that the person issuing the certificate, who sets the lifetime, and
+the person verifying the certificate, who provides a resource the certificate holder wants to
+access, do not necessarly know each other. Thus the issuer's policy on lifetimes might not be
+compatible with the resource provider's needs. As far as I can see in my readings so far, a
+satisfactory solution to this problem does not exist.
+
+As an example: suppose you control a resource and a client presents you with a certificate that
+is necessary to verify his/her compliance with your access policy. Suppose the certificate is
+set to expire on Jan 15, 2005. Since today is Nov 29, 2004, the certificate is valid and you go
+ahead and grant access. However, suppose that, in fact, last month the client lost the attribute
+certified by the certificate. Thus you granted access inappropriately. In effect, you trust that
+the client has the specified attribute right up until the date the certificate expires. In
+general that isn't true. What you would like, maybe, is to require "fresh" certificates or
+require multiple certification paths. It seems like the TbV analysis might be helpful in this
+connection (not sure).
+
+I'm wondering if TbV can give the resource provider more control regarding the use of "stale"
+certificates. Here I'm using "stale" to describe a certificate that is still technically valid
+but that certifies an attribute the certificate holder no longer has.
+
+Just a thought.
+
+Peter
+
+From skalka@emba.uvm.edu Tue Nov 30 12:19:06 2004
+Date: Tue, 30 Nov 2004 10:57:27 -0500
+From: Christian Skalka <skalka@emba.uvm.edu>
+To: Peter C. Chapin <pchapin@emba.uvm.edu>, Sean Wang <xywang@emba.uvm.edu>
+Subject: Re: Can TbV help solve an open problem?
+
+Peter,
+
+I have some more comments on your original message; these can be considered as overriding my
+previous message, so you can ignore that.
+
+Let me try to model the scenario you describe, to be sure I understand it. Suppose a principal C
+is a client of a medical database M, and that in order to gain access, C must present to M a
+certificate c[doctor]. The certificate c[doctor] is validated by a certification authority A,
+while "doctor" role membership is maintained at the hospital H; presumably, A and H have some
+periodic exchange of information, or maybe they're the same.
+
+Now, let's assume that C does possess c[doctor], which is valid 10/01/04-01/01/05, but also
+assume that H revoked C's membership in the doctor role on 11/15/04. Regardless, M will accept
+the certificate and grant the resource, since the certificate is valid. Even if M checked with
+A, the latter might not necessarily know the current doctor role status; only H does.
+
+Of course, the problem is that certificate validity, in every sense, is established by a
+timestamp *for the purposes of efficiency*. Since the relevant role membership information is
+maintained at H, M can always check with H that certificates are current in every sense; hence,
+online certificate revocation can be implemented by a protocol involving direct communication
+with all involved authorities. But that sort of eliminates the entire reason for doing
+certificates, and so cannot be considered a "solution".
+
+However, what I gather you are suggesting is that the acceptance of a timestamp in this manner
+implicitly introduces an element of trust-- that is, that timestamped certificates are valid in
+a "deep" sense-- and that verification via direct communication with involved authorities can be
+done offline, via auditing.
+
+Am I understanding you correctly? If so, I'm not sure whether I would really call this a
+"solution" to the certificate revocation problem, which to me implies an online solution, but it
+is a very interesting and possibly useful application.
+
+-chris
+
+From pchapin@cs.uvm.edu Tue Nov 30 12:19:18 2004
+Date: Tue, 30 Nov 2004 12:18:55 -0500 (EST)
+From: Peter C. Chapin <pchapin@cs.uvm.edu>
+To: Christian Skalka <skalka@emba.uvm.edu>
+Cc: Sean Wang <xywang@emba.uvm.edu>
+Subject: Re: Can TbV help solve an open problem?
+
+
+On Tue, 30 Nov 2004, Christian Skalka wrote:
+
+> Of course, the problem is that certificate validity, in every sense, is established by a
+> timestamp *for the purposes of efficiency*. Since the relevant role membership information is
+> maintained at H, M can always check with H that certificates are current in every sense;
+> hence, online certificate revocation can be implemented by a protocol involving direct
+> communication with all involved authorities. But that sort of eliminates the entire reason for
+> doing certificates, and so cannot be considered a "solution".
+> 
+> However, what I gather you are suggesting is that the acceptance of a timestamp in this manner
+> implicitly introduces an element of trust-- that is, that timestamped certificates are valid
+> in a "deep" sense-- and that verification via direct communication with involved authorities
+> can be done offline, via auditing.
+> 
+> Am I understanding you correctly?
+
+Yes, I think so. Your example sounds like exactly the sort of thing I was thinking about. In
+general, a certificate can only be believed at the time it is issued (here I'm assuming the CA
+is completely trustworthy). After that the certificate's veracity tends to decay. An expiration
+date is intended to set a reasonable cut-off on that decay process. The problem with expiration
+dates is that they are set by the issuer of the certificate and not the verifier (who is taking
+the risk). As you said, on-line checks for revocation are not entirely satisfying since they
+seem to defeat one of the main purposes for using certificates in the first place.
+
+In Rivest's paper "Can We Eliminate Certificate Revocation Lists" he talks about publishing
+certificates with a guaranteed validity period, a "probable" validity period, and an expiration
+date (a "no validity" period). His proposal allows the certificate issuer to describe the decay
+function in a stepwise manner with three steps. More generally the probability that the
+certificate is still valid could be expressed as a function of time, p(t), with value 1.0 at the
+issue date and approaching zero as t->infinity. For some certificates this function would be 1.0
+for a relatively well known interval of time and then zero thereafter. But I could imagine that
+for other certificates the function might be a more complicated beast (maybe not even
+monotonically decreasing).
+
+The verifier would like to know the shape of p(t) for every certificate received so that he/she
+could judge if the certificate is recent enough. For example, a verifier who wants a 95%
+probability that a certificate isn't stale would insist on more recent credentials than a
+verifier who is happy with an 80% probability of freshness.
+
+> If so, I'm not sure whether I would really call this a "solution" to the certificate
+> revocation problem, which to me implies an online solution, but it is a very interesting and
+> possibly useful application.
+
+I think you're right: short of requiring recertification for each transaction (which would be
+totally infeasible in many cases) there is nothing that can be done to completely eliminate the
+danger of a verifier accepting a stale certificate as valid. I guess I was wondering if TbV
+could help in some way to get a handle on this issue. I was lead to wonder this when I realized
+that accepting a certificate at all is a trusting act... more so for some certificates than
+others. Could fuzzy logic figure into this at all? I can't help but think of that comment we got
+at SWS about fuzzy logic.
+
+Just a wild thought.
+
+Peter
+
+++++
+Some thoughts expressed at the meeting of 2004-11-17.
+
+During the "policy compliance checking" there might be several different ways of proving that a
+request is acceptable to the policy. This is particularly true if one considers that some
+creditials might be (optionally) trusted and not needed in the evaluation.
+
+Consider this example:
+
+q(X)   :- q_1(X), q_2(X).
+q_1(X) :- j_1(X), j_2(X), j_3(X).
+q_2(X) :- j_1(X), j_2(X).
+
+To prove q(X), it will eventually be necessary to prove j_1(X) through j_3(X). However, we might
+be willing to trust, say, j_2(X) without proof. Thus several derivation trees are possible: the
+one where we prove j_2(X), the one were we trust j_2(X) while proving q_1(X) but not while
+proving q_2(X) (and visa-versa), and the one where we trust j_2(X) in all cases. These different
+options will, in general, have different computational costs. The degree of savings in
+computation will depend on what is trusted (how expensive it is to prove) and how those trusted
+items are used in the overall computation.
+
+It was also suggested that we introduce a notion of "trust cost" to capture the idea that some
+items are safer (cheaper) to trust than others. In the example above, it might be that trusting
+j_2(X) saves more computation than, for example, trusting j_3(X), but the user might judge that
+trusting j_2(X) is more dangerous than trusting j_3(X); it has a greater trust cost. The goal
+then becomes to minimize the overall cost associated with making an access control decision by
+balancing computation costs (CPU, network access, disk access) against the trust costs. For
+example the overall cost might be
+
+       C = a*c + b*t
+
+where c is the computational cost, t is the trust cost, and a,b are constants choosen by the
+system designer (or user) that provide the necessary unit conversion and balancing.
+
+In addition, the system designer might wish to specify that the trust cost of proving a
+credential is a function of the number of times that credential is proved. A result that relies
+on trusting the same credential many times might be highly costly. [Do we need some kind of
+policy language for describing "trust" (in the sense of trusting credentials without proof) that
+can work with the policy language of the "hosting" trust management system?]
+
+One question: Can this balance be described statically or semi- statically? Clearly doing a
+computation in order to discover that it's too expensive is not desirable. Ideally the balance
+could be decided ahead of time so that the system could make choices based on simple rules.
+
+Additional comments from Chris:
+
+1. We imagine there can be defined some calculus of trust cost. For example, the trust cost of
+proving Q(a), where:
+
+  Q(x) <- P1(x) ^ ... ^ Pn(x)
+
+is the sum of the trust costs of P1(a) through Pn(a), and the trust cost of a fact is a system
+parameter.
+
+2. We imagine that computational cost is something like the number of messages that have to be
+sent, not complexity classification. A direct comparison of trust cost and computational cost
+presupposes that pure and trusted checking have the same complexity.
+
+-chris
+
+++++
+
+We had previously talked about using RT_1^C in our TbV considerations. Accordingly I spent some
+more time today delving more into RT_1^C to learn better what it involves. Here are some things
+that I've found out...
+
+Li and his coauthors describe how to convert RT_1^C assertions to rules for Datalog with
+constraints. This conversion is fairly straightforward. The evaluation of the resulting
+Datalog^C program is more interesting. The SLD resolution used by classic Prolog does not appear
+to be well liked by those using logic languages for trust management and database queries. I
+don't fully grasp the reasons for this. Apparently SLD resolution won't terminate in some cases
+where bottom-up evaluation does. Apparently these cases are considered important. The logic
+programming environment XSB uses SLG resolution which, I gather, involves remembering the
+results of previous subgoals in a table and thus it avoids certain non-terminating situations. I
+located a paper entitled "Memoing Evaluation for Contraint Extensions of Datalog" by David Toman
+(1997). This paper is basically about adapting SLG resolution to take into account constraints
+(the author calls it SLG^C resolution). The algorithm apparently uses a combination of top-down
+and bottom-up approaches to deal with the added complexity of constraints while at the same time
+providing the good termination results of SLG resolution. I really don't understand the details
+at this point but they seem juicy.
+
+Previously I noticed the similarity between SLD resolution and the graph searching algorithm in
+the RT credential chain discovery paper. This leads me to wonder if this SLG^C algorithm could
+be similarly adapted to a graph search, complete with credential discovery features, etc. This
+would be an interesting line of study but is it a distraction from Trust-but-Verify? Overall,
+RT_1^C is relatively undeveloped in Li's papers. Many of the issues that Li and his coauthors
+have explored in RT_0 have yet to be discussed in print for RT_1^C (as far as I've seen, at
+least). It seems like adding TbV to an RT_1^C system will first require "completing" the
+development of RT_1^C.
+
+On the other hand, RT_0^D offers at least two relatively clear opportunities for TbV. We have
+mentioned these ideas before, but let me summarize them here.
+
+1. When building the credential graph, one could avoid fetching missing credentials and simply
+trust that the necessary connections in the graph exist. It occurred to me that we could
+introduce an integer delegation depth field in RT_0 credentials (this would be an extension of
+RT_0) that could be used to limit the lengths of the paths in the credential graph. This might
+help contain the graph's potential size as well as give an authorizer a better idea of just what
+he/she is trusting. For example, certain potential connections in the graph could be ruled out
+based on path length issues.
+
+2. The authorizer could trust that an appropriate delegation chain exists and not bother
+checking for it at all during the on-line phase of authorization. As an aside: using a
+delegation depth field in the delegation certificate would give users (like Joe) the ability to
+restrain how far their authority can spread... probably a useful feature.
+
+Our model application domain has always been web services. Such services are very RPC-like so
+the length of a delegation chain would be similar to the number of nested remote method calls.
+Furthermore, the longest chains would probably get the most calls since the most deeply nested
+functions tend to get invoked the most. Thus a TbV system that trusted delegation chains might
+be able to offer a significant performance boost in such systems.
+
+Putting this all together gives me the feeling that we might really want to be looking at RT_0^D
+rather than RT_1^C at this point. There is no doubt that RT_1^C is an interesting system and
+worthy of more consideration. However, RT_0^D seems more mature and in a better place for adding
+TbV at the current moment.
+
+What are your thoughts?
+
+Peter
+
+++++
+From pchapin@cs.uvm.edu Tue Feb  1 14:32:51 2005
+Date: Tue, 25 Jan 2005 11:58:44 -0500 (EST)
+From: Peter C. Chapin <pchapin@cs.uvm.edu>
+To: Christian Skalka <skalka@cs.uvm.edu>, Sean.Wang@uvm.edu
+Subject: Delegation question: What should happen?
+
+
+I'm thinking about the delegation chain part of RT_0^D. Something has come up for me and I'm not
+sure what the "right" and natural answer should be.
+
+Suppose A activates a role X.r and delegates that activation to B. Now suppose B makes a request
+on A's behalf using an activation like "A as Y.r" sending the delegation certificate "A --(A as
+X.r)--> B" in support of the request. Suppose also that Y.r <-* X.r. In other words, there is a
+path of zero or more edges in the credential graph from X.r to Y.r. Should this delegation be
+deemed sufficient?
+
+In less abstract terms. Suppose A delegates to B her powers as a hospital doctor. Can B make a
+request on A's behalf that activates her "Hospital Staff" role, given that all hospital doctors
+are hospital staff members?
+
+In principle B should be able to make the request using the hospital doctor role that A directly
+delegated. The resource provider could then examine the credential graph and conclude for
+himself that hospital doctors are hospital staff members. In fact the resource provider would
+have to do this anyway to verify the delegation chain in the second case.
+
+Whoa... I just had a realization that might be important... This situation may provide a way to
+move computation away from the problem of finding the credential chain to the problem of finding
+the delegation chain. If we decide to trust the delegation chain but not the credential chain,
+this might be a mechanism for providing "variable" trust like we talked about. Hmmm.
+
+Peter
+
+++++
+
+2005-03-24
+----------
+
+Here are some thoughts on the delegation graph. I think most of this follows more or less
+directly from the Datalog predicates.
+
+Each vertex in the graph corresponds to an entity. Each edge represents a delegation from one
+entity to another. The edges are labeled with the role activation delegated. There is one role
+activation per edge. Multiple edges between two nodes are legal (multi-graph) and represent the
+delegation of different activations from one entity to another. For example:
+
+A --(C as D.r)--> B
+A --(E as F.r)--> B
+
+There are two edges from A to B, one labeled "C as D.r" and the other labeled "E as F.r".
+
+An entity as all the valid delegations mentioned on the incoming edges. An outgoing delegation
+is valid if
+
+   1. There is a valid incoming delegation for the same activation.
+OR 2. The entity sending the delegation is the same as the entity
+      mentioned in the activation (AND that entity is a member of the
+      role mentioned in the activation).
+
+So for example
+
+C --(C as D.r)--> A
+A --(C as D.r)--> B
+B --(C as D.r)--> G
+
+G apparently has "C as D.r" but is it valid? The delegation comes from
+B. By rule #1, it is valid if there is a valid incoming delegation at B
+for activation "C as D.r". There is such delegation from A; it is valid
+if A has a valid incoming delegation for "C as D.r". In this case rule
+#2 is used since the incoming delegation for A comes from C himself.
+
+Still need to handle the two wildcard delegations "C as all" and "all".
+
+++++
+
+2005-03-31
+----------
+
+"On Maintaining Priorities in a Production Rule System"
+
++ Priorities between rules are not defined in absolute terms, but rather in terms of one rule
+  "preceeding" another. The means the user does not have to know about all the rules in the
+  system in order to define useful priorities in cases that matter. This seems like a good idea
+  for our TbV implementation as well.
+
++ The focus on "repeatability". In their case the rules have a default total order and a partial
+  order imposed by user defined priorities. These orderings can be composed into a new total
+  ordering (if they can, then the system has the desired deterministic behavior).
+

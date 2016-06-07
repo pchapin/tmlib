@@ -1,0 +1,347 @@
+%----> cut <----
+%
+%\inferrule[signature-check]
+%  { P \mkeyword{believes} (\stackrel{K}{\longmapsto} Q) \\
+%    P \mkeyword{sees} \{X\}_{K^{-1}} }
+%  { P \mkeyword{sees} X }
+%
+%The \textsc{signature-check} rule formalizes a partial notion of message
+%validity. It allows one to unwrap a signed message. If $P$ believes key
+%$K$ is $Q$'s public key and $K$ successfully checks the signature on
+%$\{X\}_{K^{-1}}$, then $P$ sees the message content $X$. A similar rule
+%exists for extracting the message content of a symmetrically encrypted
+%message $\{X\}_K$. None of the inference rules use $P \mkeyword{sees} X$
+%as a premise, however, but instead work directly with encrypted or signed
+%messages. Thus the \textsc{signature-check} rule is used only to unwrap an
+%outer later of cryptographic protection to access a nested signed or
+%encrypted message. In any case, AAN logic incorporates a notion of
+%signature checking into its formal structure. This operation is also
+%essential in trust management systems but, as we will see, is often
+%performed outside the main logic in such systems.
+%
+%----> cut <----
+
+\section{Foundations of Authorization}
+\label{section-foundations}
+
+Although trust management systems comprise a number of components as
+discussed in \autoref{section-overview-structure}, the heart of any
+system is its authorization semantics, denoted $L$ in
+\autoref{figure-tmstruct}, where the authorization decision is
+realized. The semantic foundations of authorization are well studied,
+having evolved from logical formalisms originally developed for
+verifying distributed authentication protocols
+\cite{Burrows:LA,Abadi:CACDS}, and early work on access control as a
+distinct concern in distributed systems \cite{woo93authorizations}. While
+formalisms other than logic have been used to specify authorization
+semantics, notably graph theory and relational algebra as discussed at
+various points in this paper, logic is probably the most popular, and
+logical approaches have had a broad impact on the foundations and
+practice of authorization and security \cite{bonatti-logicsforauth}.
+Thus, a review of logical foundations provides historical perspective
+and insight into standard features and themes of authorization. To
+this end we now review BAN \cite{Burrows:LA} logic, the so-called
+logic of authentication \cite{Abadi:CACDS} which is commonly
+abbreviated ABLP, and aspects of programming logics such as Prolog and
+Datalog that are relevant to the issue.
+
+\subsection{BAN Authentication Logic}
+
+The first thorough study of a logic for specifying and verifying
+security protocols was presented in \cite{Burrows:LA} where a logic,
+commonly called BAN logic, was introduced.  In that paper the authors
+analyze several authentication protocols, including Kerberos, Andrew
+Secure RPC, Needham-Schroeder Public-Key, and X.509.  Although BAN was
+not intended as a foundation for authorization semantics, it is
+instructive to observe how it became so.  From an authorization
+perspective, BAN is historically and technically significant because
+it introduces the ideas of representing beliefs, statements, and
+capabilities of participants in a distributed protocol using a formal
+logical framework.
+
+BAN logic is a many-sorted modal logic that distinguishes between
+atomic principals $P$ and encryption keys $K$. Formulae are created from
+propositional conjunction along with several additional
+constructs. These constructs include the following forms.
+\begin{itemize}
+\item $\,P \mkeyword{believes} X$: principal $P$ might act as
+  if statement $X$ were true.
+\item $\,P \mkeyword{sees} X$: principal $P$ has received a
+  message containing statement $X$.
+\item $\,P \mkeyword{said} X$: at some point in the past (not
+  necessarily during the current authentication session) principal $P$
+  sent a message containing statement $X$.
+\item $\,P \mkeyword{controls} X$: principal $P$ is an
+  authority over $X$ and should be trusted on it.
+\item $\,\keyword{fresh}(X)$: statement $X$ is fresh. It has not
+  been asserted during any previous authentication session.
+\item $\,P \stackrel{K}{\longleftrightarrow} Q$: principals
+  $P$ and $Q$ can communicate using the shared key $K$.
+\item $\,\stackrel{K}{\longmapsto}P$: principal $P$ has public
+  key $K$. The private key corresponding to $K$ is called $K^{-1}$.
+\item $\,\{X\}_K$: statement $X$ is encrypted under key $K$. A
+  statement encrypted under a private key is a signed statement.
+\end{itemize}
+
+BAN logic allows representation of statements a given principal says
+and believes as well as statements over which a principal has
+authority; these same ideas are used in authorization logics as
+well. In addition BAN logic allows one to talk about encryption keys,
+incorporating key security into the logic.
+
+Inference rules formally specify the proof theory of BAN language
+constructs. A sampling of these inference rules is given in
+\autoref{figure-BANrules}\footnote{The rule names in \autoref{figure-BANrules} 
+and \autoref{figure-ABLPinferencerules}
+have been made up by us to ease discussion.}. For example
+\textsc{message-meaning-1} says that if $P$ shares a key $K$ with $Q$, and
+$P$ receives a message encrypted with $K$, then $P$ can conclude $Q$
+is the source of the message. The \textsc{message-meaning-2} rule allows a
+similar inference for signed messages. These rules form the connection
+between the principals and the keys they use.  Later authorization
+logics that consider interactions of principals and keys use similar
+rules to characterize these interactions.
+
+\BANrulesfig
+
+The \textsc{jurisdiction} rule formalizes a notion of delegation of
+authority, an essential ingredient in all trust management systems. The
+rule says that if $P$ regards $Q$ as an authority over $X$ and $P$ believes
+$Q$ is asserting $X$, then $P$ will accept $Q$'s authority and believe $X$
+as well.
+
+The \textsc{signature-check} rule encodes signature authentication and
+message encryption, allowing one to unwrap a signed message. If $P$
+believes key $K$ is $Q$'s public key and $K$ successfully checks the
+signature on $\{X\}_{K^{-1}}$, then $P$ sees the message content $X$.
+A similar rule exists for extracting the message content of a
+symmetrically encrypted message $\{X\}_K$.  Inference rules that
+accept a message that $P$ sees as a premise require that message to
+be signed or encrypted.  Since the details of key
+signatures and encryption are generally hidden from the authorization
+component of most trust management systems as discussed in
+\autoref{section-introduction}, these features of BAN make it more
+appropriate as a logic of authentication.
+
+As an example of representations in BAN logic, the statement:
+\begin{displaymath}
+A \mkeyword{believes} (A \stackrel{K_{as}}{\longleftrightarrow} S)
+\end{displaymath}
+expresses $A$'s belief that she shares a key $K_{as}$ with some
+authentication server $S$. The statement:
+\begin{displaymath}
+A \mkeyword{sees} \{A \stackrel{K_{ab}}{\longleftrightarrow} B\}_{K_{as}}
+\end{displaymath}
+represents a message sent to $A$ containing a key intended to be
+shared between $A$ and $B$ and encrypted using a key shared between
+$A$ and some authentication server $S$. The goal of the analysis might
+be to prove a formula such as
+\begin{displaymath}
+(A \mkeyword{believes} (A \stackrel{K}{\longleftrightarrow} B)) \wedge
+(B \mkeyword{believes} (A \stackrel{K}{\longleftrightarrow} B))
+\end{displaymath}
+for some key $K$. Such a formula asserts that both $A$ and $B$ believe they
+have a key they share with each other.
+
+\subsection{ABLP Distributed Authorization Logic}
+
+\ABLPinferencerulesfig
+
+The logical basis of many trust management systems is due to a general
+calculus for distributed access control called the logic of
+authentication and commonly abbreviated ABLP logic
+\cite{Abadi:CACDS}. (ABLP is an acronym for the author list of the
+seminal paper that develops the logic \cite{Abadi:CACDS}).  ABLP
+develops many ideas introduced with BAN logic, but is intended less as
+a low-level specification language for authentication protocols, and
+more as a logic for reasoning about access control in general.  As the
+authors discuss, this includes authorization issues-- groups, roles,
+delegation, etc.  Hence, ABLP logic formalizes a rich authorization
+semantics, and has inspired much subsequent development in trust
+management.
+
+Full ABLP logic is sufficiently expressive to be undecidable. However,
+\cite{Abadi:CACDS} describes a number of restrictions to ABLP logic
+that allow for decidable access control decisions while still
+retaining enough expressivity to be useful.  In practice, it has
+been used to support access control in the Taos operating system
+\cite{Wobber:ATOS}. 
+
+In ABLP logic principals $P$ can be users, roles, machines, I/O channels,
+encryption keys or any other convenient abstraction. In addition to atomic
+principals, denoted $A,B,C$, etc., \emph{compound} principals can
+constructed with the use of connectives:
+\begin{itemize}
+\item $A \vee B$: this principal represents the group containing $A$ and $B$.
+\item  $A \wedge B$: this principal issues statements signed jointly by 
+$A$ and $B$.
+\item $A|B$: pronounced ``$A$ quoting $B$'', this principal issues statements
+said by $A$ to originate from $B$.
+\item $A \for B$: this principal represents $A$ speaking on behalf of 
+$B$, which is a stronger notion than $A|B$.
+\item $A \as R$: this principal represents $A$ assuming the role 
+$R$.
+\end{itemize}
+ABLP formulae $s$ are then built from principals, standard logical
+connectives, and special connectives for representing authorization
+concepts:
+\begin{itemize}
+\item $p$, $\neg s$, $s \wedge s, s \implies s$: 
+propositional atoms, negation, conjunction, and implication.
+\item $P_1 \speaksfor P_2$: pronounced ``$P_1$ speaks for $P_2$'', this denotes that
+$P_1$ speaks with all the authority of $P_2$.
+\item $P \says s$: this denotes that $P$ has uttered the statement $s$.
+\end{itemize}
+
+In addition to the usual inference rules of propositional logic,
+inference rules and axioms are provided for the authorization-specific
+connectives, including those defined in
+\autoref{figure-ABLPinferencerules}.  Notably, rule
+\TirName{Speaksfor} says that if $A$ speaks for $B$ and $A$ has
+asserted some $s$, then implicitly $B$ has also asserted $s$.  Rule
+$\TirName{As}$ establishes that the principal connective $\mathit{as}$ can be defined as
+a derived form of ($|$). These rules together comprise a proof theory,
+where consequences can be deduced from assumptions.
+
+In particular, resources can be represented as atomic propositions
+$\priv$, and access to the resource can be granted if the associated
+proposition can be proved given assumptions about policy and
+credentials.  For example, with $A
+\controls s$ defined as syntactic sugar for $(A \says s) \implies s$,
+access control lists may be modeled as conjunctions of assertions $A
+\controls \priv$.  An access request for $\priv$ by $A$ is represented
+as the assumption $\vdash A \says \priv$.  Observe that assumptions
+$\vdash A \says s$ and $\vdash A \controls s$ together imply $\vdash
+\priv$ by modus ponens, allowing access to the denoted resource.
+
+The ABLP formula language can express a rich collection of authorization
+features.  In addition to access control list encodings as described
+above, role membership can be modeled.  To specify that $A$ is a
+member of a role $R$, policy can include the assumption $\vdash A
+\speaksfor R$.  Then, when $A$ assumes the role $R$ to make an
+assertion $s$, represented as assumption $\vdash A \as R \says s$, rules
+\TirName{As}, \TirName{Speaksfor}, and \TirName{Quoting} allow deduction of 
+$\vdash A \says R \says s$, from which can be derived $\vdash R \says
+R \says s$ by \TirName{Speaksfor}, hence $\vdash R|R \says s$ by
+\TirName{Quoting}, and finally $R \says s$ follows by assuming idempotence 
+of ($|$) for roles
+\cite{Abadi:CACDS}.  Note that ACL representations in this model need
+only take into account roles, e.g.~$R \controls \priv$ allows any
+specified member of $R$ to gain access to $\priv$.
+
+A variety of delegation idioms can also be modeled
+\cite{Abadi:CACDS}.  An assertion of the form $A \for B \says
+s$ means that $A$ has asserted $s$ on behalf of $B$, and denotes that
+$B$ has delegated the assertion of $s$ to $A$.  In contrast, $A \says
+B \says s$ merely represents $A$'s claim that $B$ asserts $s$, and
+requires no verification of the statement.  The meaning of 
+$A \for B$ can be altered according to desired delegation policies,
+for example $A \for B \says s$ can be taken as syntactic sugar for
+the formula $A \wedge D \says s$, where $D$ represents a 
+delegation server.
+
+\subsection{Programming Logics}
+
+Programming logics such as \prolog\ and \datalog\ have played an
+important role in the development of trust management systems.  As
+discussed above, logics provide useful abstractions for authorization
+semantics, furthermore specifications in executable programming logics
+provide prototype implementations for free.  Programming logics have
+served as target languages for the compilation of higher-level
+authorization languages \cite{Li:DCFTML,woo93authorizations}, have
+served as the foundation for enriched authorization languages
+\cite{Li:USSUFOL,Jim:STMSCE,DeTreville:BLBSL,Li:DRBTMF,Li:DLLBADA},
+and have been used for the formalization and study of trust management
+systems \cite{Li:USSUFOL,polakow-skalka-plas06}.
+
+Both \prolog\ and \datalog\ are \emph{Horn-Clause} logics, in which
+all formulae are restricted to the form $\mbox{\it head} \leftarrow
+\mbox{\it body}$, where $\leftarrow$ is a right-to-left implication
+symbol, $\mbox{\it head}$ is a proposition, and $\mbox{\it body}$ is a
+conjunction of propositions.  If variables $X$ appear in a rule, the
+rule is implicitly universally quantified over those variables. The
+head of each rule is the consequent of the body.  If $\mbox{\it body}$
+is empty then the rule is a \emph{fact}.
+
+As a simple example of how logics can apply in a trust management
+framework, imagine that delegation should be transitive.  Suppose that
+$\mathit{delegation}(X, Y)$ is defined to mean that the rights of $X$ have been
+delegated to $Y$. Suppose also that $\mathit{cert}(X, Y)$ represents a
+delegation certificate passing rights directly from $X$ to $Y$. The
+following Horn clauses obtain transitivity of delegation:
+\begin{mathpar}
+\mathit{delegation}(X, Y) \leftarrow \mathit{cert}(X, Y)
+
+\mathit{delegation}(X, Y) \leftarrow \mathit{cert}(X, Z), \, \mathit{delegation}(Z, Y)
+\end{mathpar}
+Letting $a,b,c,...$ denote constants, the following represents a
+collection of delegation certificates:
+\begin{mathpar}
+\mathit{cert}(a, b)
+
+\mathit{cert}(b, c)
+
+\mathit{cert}(b, d)
+
+\mathit{cert}(c, e)
+\end{mathpar}
+From these facts and the definition of $\mathit{delegation}$, the
+query $\mathit{delegation}(a, e)$ will succeed while
+$\mathit{delegation}(d, e)$ fails.
+
+Datalog was developed as a query language for databases. It is not a full
+programming language. In contrast Prolog is Turing complete and thus more
+expressive than Datalog. This extra expressivity is useful in certain
+contexts. For example, a full-featured authorization logic called
+Delegation Logic has been defined as a strict extension of Datalog at a
+high level, that is ultimately compiled to Prolog for practical
+implementation \cite{Li:DLLBADA}. However, Datalog has certain advantages
+in the authorization setting: the combination of monotonicity, a bottom-up
+proof strategy, and Datalog's \newterm{safety condition} (any variable
+appearing in the head of a rule must also appear in the body) guarantee
+program termination in polynomial time. In contrast, Prolog's top-down
+proof search can cause non-termination in the presence of cyclic
+dependencies. For example, if we added the certificate $\mathit{cert}(e,b)$
+to the above fact set, some queries would not terminate. This problem is
+resolved by \emph{tabling} as in XSB \cite{xsb-page}, but it has been
+argued that this solution adds too much size and complexity to the
+implementation for authorization decisions \cite{Li:DRBTMF}. And while
+Datalog is not capable of expressing structured data, Datalog with
+constraints (\datalogc), a restricted form of constraint logic programming
+\cite{jaffar-maher-jlp94}, has been shown sufficiently expressive for a
+wide range of trust management idioms \cite{Li:DCFTML}.
+
+Prolog is able to express negation-as-failure, and so-called
+Disjunctive Datalog is likewise able to express a restricted form of
+negation \cite{eiter-etal-tdbs97}.  
+Therefore nonmonotonic
+authorization features such as credential negation can be provided in
+systems where programming logics are intended to serve as a basis for
+semantic interpretation or implementation
+\cite{woo93authorizations,bonatti-logicsforauth}.  However, as
+discussed in \autoref{section-features}, nonmonotonicity in
+authorization semantics is generally considered undesirable, since it
+introduces the possibility of unsoundness in practice
+\cite{seamons-policy02}.  Also, while certificate revocation seems at
+first blush to entail nonmonotonicity, it has been shown to be
+definable monotonically with appropriately constructed logical
+inference rules \cite{lbi-fc01,Bauer:GFACSW}.  Or, as discussed in
+\autoref{section-features}, revocation can be handled by components
+external to the authorization semantics (via component $T_C$ in
+\autoref{figure-tmstruct}), for example by filtering certificates
+through certificate revocation lists prior to authorization decisions
+as in SPKI/SDSI.  For these reasons previous authors have argued that
+monotonic (subsets of) programming logics are adequate foundations for
+trust management applications, such as safe Datalog with constraint
+domains \cite{Li:DCFTML}.
+
+Recently, more expressive programming logics have been proposed to
+address restrictions in the Horn-clause formula languages of Datalog
+and Prolog.  Relevant work has proposed use of the higher-order linear
+logic programming language LolliMon as a foundation for trust
+management systems \cite{polakow-skalka-plas06}.  LolliMon is not
+restricted to a Horn-clause form, and the availability of hypothetical
+(vs. strictly literal) subgoals and linear assumptions in particular
+allow the formal modeling of distributed certificate chain discovery
+(component $D$ in \autoref{figure-tmstruct}), as interleaved with the
+authorization semantics of a trust management system.

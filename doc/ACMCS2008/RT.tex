@@ -1,0 +1,382 @@
+\subsection{RT}
+
+The $\RT$ trust management framework is not a single trust management
+system but rather a collection of trust management systems with varying
+expressiveness and complexity \cite{Li:DRBTMF,Li:DCDTM,Li:RRBTMF}. The base
+system, $\RT_0$, is similar to SDSI except that it limits extended names to
+one level of indirection and provides intersection roles. The limitation of
+linked roles to one level of indirection does not reduce the expressiveness
+of the language since additional indirections are possible by introducing
+intermediate roles.
+
+$\RT_1$ is an extension of $\RT_0$ providing parameterized roles. $RT_1^C$
+further extends $RT_1$ to allow for the description of structured resources
+\cite{Li:DCFTML,Li:RRBTMF}. The system $\RT^D$ provides a mechanism to
+describe the delegation of rights and role activations, and $\RT^T$ provides
+support for threshold and separation of duty policies. $\RT^T$ and $\RT^D$ can
+be used in combination with $\RT_0$, $\RT_1$, or $\RT_1^C$ to create trust
+management systems such as $\RT_0^T$, $\RT_1^{TD}$, and so forth. A rich
+complexity analysis has also been developed for the $\RT$ framework for
+problems beyond simple authorization, e.g.\ role inclusion and role membership
+bounds \cite{Li:BPOCSATM}.
+
+\subsubsection{Features}
+
+Like SPKI/SDSI, the $\RT$ framework represents principals as public keys
+and does not attempt to formalize the connection between a key and an
+individual. The $\RT$ literature usually refers to these principals as
+\newterm{entities}. Also like SPKI/SDSI, the $\RT$ framework allows each
+entity to define roles in a name space that is local to that entity. An
+authorizer associates permissions with a particular role; to access a
+resource a requester must prove membership in the role. In this way the
+$\RT$ framework provides role based access control.
+
+To define a role, an entity issues credentials that specify the role's
+membership. Some of these credentials may be a part of private policy,
+others may be signed by the issuer and made publicly available as
+certificates. The overall membership of a role is taken as the union
+of the memberships specified by all the defining credentials.
+
+Let $A, B, C, \ldots$ range over entities and let $r, s, t, \ldots$ range
+over role names. A role $r$ local to an entity $A$ is denoted by $A.r$.
+$\RT_0$ credentials are of the form $\cred{A.r}{f}{}$, 
+where $f$ can take on one of four forms to obtain one of 
+four credential types:
+\begin{enumerate}
+
+\item $\cred{A.r}{E}{}$ 
+
+ This form asserts that entity $E$ is a member of role $A.r$.
+
+\item $\cred{A.r}{B.s}{}$ 
+
+  This form asserts that all members of role $B.s$ are members of role
+  $A.r$. Credentials of this form can be used to delegate authority over
+  the membership of a role to another entity.
+
+\item $\cred{A.r}{B.s.t}{}$ 
+
+  This form asserts that for each member $E$ of $B.s$, all members of
+  role $E.t$ are members of role $A.r$. Credentials of this form can be
+  used to delegate authority over the membership of a role to all
+  entities that have the attribute represented by $B.s$. The expression
+  $B.s.t$ is called a \emph{linked role}.
+
+\item $\cred{A.r}{f_1 \cap \cdots \cap f_n}{}$
+  
+  This form asserts that each entity that is a member of all roles
+  $f_1,\ldots, f_n$ is also a member of role $A.r$. The expression $f_1
+  \cap \cdots \cap f_n$ is called an \emph{intersection role}.
+
+\end{enumerate}
+For all credential forms $\cred{A.r}{f}{}$, the principal $A$ is called the
+\emph{issuer} of the credential.
+
+$\RT_1$ enhances $\RT_0$ by allowing roles to be parameterized. For
+example, the second credential form above is extended to
+$\cred{A.r(h_1, h_2, \ldots, h_n)}{B.s(k_1, k_2, \ldots, k_m)}{}$
+where the $h_i$ and $k_j$ are parameters. Role parameters are typed
+and can be integers, floating point values, dates and times,
+enumerations, or finite sets or ranges of these datatypes. An $\RT_1$
+credential is \newterm{well formed} if the parameters given to the
+roles have the right type and if each variable in the credential
+appears in the body of that credential.
+
+As an example of an $\RT_1$ credential \cite{Li:DRBTMF}, suppose company $A$
+has a policy that the manager of an entity also evaluates that entity. This
+can be expressed in $\RT_1$ using a policy statement such as
+$$\cred{A.\mathit{evaluatorOf}(?Y)}{A.\mathit{managerOf(?Y)}}{}$$
+This policy can't be feasibly expressed in $RT_0$ because the role parameters
+might take on an arbitrarily large number of values. In $RT_0$ individual
+credentials would be needed for each possible value of the role parameter.
+
+$\RT_1^C$ further enhances the expressive power of $RT_1$ by allowing
+structured constraints to be applied to role parameters. In addition the
+restriction on variables only appearing in the body of a rule is lifted
+\cite{Li:DCFTML,Li:RRBTMF}. For example, suppose a host $H$ wishes to grant
+access to a particular range of TCP ports to those entities that are employed
+by the information technology department. The host might have as its local
+policy:
+$$\cred{\mathit{Host}.p(\mathit{port} \in
+[1024..2048])}{\mathit{IT}.\mathit{employee}}{}$$ 
+This example assumes
+that an entity is granted access to a particular TCP port if that
+entity is a member of the $\mathit{Host}.p$ role with the port
+specified as a parameter.
+
+To accommodate threshold structures, representing agreement between
+a group of principals, the system $\RT^T$ interprets roles as sets of
+sets of entities, called \newterm{principal sets}.  These principle
+sets can be combined with role product operators $\odot$ and
+$\otimes$.  
+%New credential forms are as follows:
+%\begin{enumerate}
+%\item $\cred{A.r}{B_1.r_1 \odot B_2.r_2 \odot \cdots \odot B_k.r_k}{}$ 
+%
+%Each principal set $p$ in A.r is formed by $p = p_1 \cup \cdots \cup p_k$
+%where each $p_i \in B_i.r_i$ for $1 \le i \le k$.
+%
+%\item $\cred{A.r}{B_1.r_1 \otimes B_2.r_2 \otimes \cdots \otimes B_k.r_k}{}$ 
+%
+%Each principal set $p$ in A.r is formed by $p = p_1 \cup \cdots \cup p_k$
+%where $p_i \cap p_j = \emptyset$ for all $i \ne j$ and $p_i \in B_i.r_i$
+%for $1 \le i \le k$.
+%
+%\end{enumerate}
+The features introduced by $\RT^T$ allow threshold policies and separation of
+duty policies to be written \cite{Li:DRBTMF}.
+
+$\RT^D$ adds the concepts of role activations and delegations to $RT_0$, via
+the delegation credential form $\delcred{A}{B}{\activation{C}{D.r}}$. In this
+case $A$ delegates to $B$ the \newterm{role activation} of
+$\activation{C}{D.r}$. Empowered with this role activation $B$ can then access
+whatever facilities $C$ can access from role $D.r$. This presupposes that $A$
+has been delegated the activation $\activation{C}{D.r}$, which holds when $A =
+C$ and $A$ is a member of role $D.r$ in the basic case. Hence, delegated
+activations don't carry any authority unless there is a chain of delegation
+credentials where the credential at the head of the chain was issued by the
+entity mentioned in the role activation.
+
+While the original $\RT$ framework does not support revocation in its
+policy language, it is proposed to incorporate revocation
+\cite{Li:DRBTMF} by leveraging a monotonic approach developed in
+\cite{lbi-fc01} based on certificate lifetimes.  While lifetimes and
+the requirement for freshness are encoded logically, the proposal
+suggests the use of external certificate revocation lists to implement
+verification; this is an interesting example of the possible interplay
+between the semantics of authorization per se and components external
+to them.  In addition, a variant of the $\RT$ framework has been
+developed that associates risk values with credentials
+\cite{skalka-wang-chapin-jcs06}. These risks are tracked 
+through the authorization process so that the role membership is
+parameterized by the total membership risk.  The set of risks and
+their ordering is left abstract, and can be specialized to a number of
+applications, e.g.~risk can be defined as remaining certificate
+lifetime, so that role membership is parameterized by the minimal
+lifetime of certificates used for authorization.
+
+%The $\RT$ framework does not consider negative credentials or certificate
+%revocation. As with SPKI/SDSI certificate validity is not part of the core
+%system but must instead by checked externally (again, by component $T_C$ in
+%\autoref{figure-tmstruct}) before credentials are submitted to the
+%authorization decision logic.
+%\cnote{Is revocation stuff stated somewhere in 
+%the papers?  I don't think so, killed it.}
+%
+%Several extensions to the $\RT$ framework have also been described in
+%the literature. $RT^R$ extends $\RT_0$ by associating a risk value
+%with each credential \cite{Chapin:RADA}. These risks are tracked
+%through the authorization process so that the role membership is
+%parameterized by the total membership risk.  The set of risks and
+%their ordering is left abstract, and can be specialized to a number of
+%applications, e.g.~to represent an aggregation of certificate
+%legitimacy measures to rate ``trustability'' of an authorization
+%decision.  $\RT+_0$ extends $\RT_0$ by adding an integer delegation
+%depth control to most credential forms \cite{Hong:DDCTMS}, a
+%capability that $RT_0$ lacks. $\RT+_0$ delegation depths limit the
+%delegation of authority by tracking the number of namespaces
+%(administrative domains) such delegations cross. Delegation depth is
+%also allowed to be unlimited, in which case $\RT+_0$ degenerates to
+%$\RT_0$.
+
+\subsubsection{Running Example}
+
+To express the medical records example using $\RT$, only the
+facilities of $\RT_0$ are necessary. Alice defines a role
+\texttt{records} whose members are able to access her medical
+records. She creates the policy
+\begin{itemize}
+\item \texttt{Alice.records} $\leftarrow$ \texttt{Bob}
+\item \texttt{Alice.records} $\leftarrow$ \texttt{Bob.alice\_delegates}
+\end{itemize}
+The first rule grants her doctor, Bob, access to her records. The second
+rule allows Bob to further delegate that access by defining the membership
+of an \texttt{alice\_delegates} role.
+
+Bob's standing policy is
+\begin{itemize}
+\item \texttt{Bob.team} $\leftarrow$ \texttt{Bob.team.support}
+\item \texttt{Bob.alice\_delegates} $\leftarrow$
+  \texttt{Hospital.medical\_staff} $\cap$ \texttt{Bob.team}
+\end{itemize}
+The first rule defines Bob's team as including all the support personnel
+specified by the members of his team. In the second rule, Bob uses an
+intersection role to specify that only the medical personnel on his team
+should have access to Alice's medical records.
+
+When Bob consults with Carol he adds \texttt{Bob.team} $\leftarrow$
+\texttt{Carol} to his policy to add Carol, and indirectly all of Carol's
+support people, to his team.
+
+The only part of Carol's policy relevant to this example places Dave in her
+\texttt{support} role: \texttt{Carol.support} $\leftarrow$ \texttt{Dave}.
+Finally Dave has a credential from the hospital asserting his membership in
+the \texttt{medical\_staff} role. $\RT_0$ can use these credentials to
+prove that Dave is a member of \texttt{Alice.records} and thus able to
+access Alice's medical records.
+
+\subsubsection{Semantics}
+
+The original formal semantics of $\RT$ is based on \datalog\ \cite{Li:DRBTMF}.
+Specifically each $\RT$ credential is translated into a \datalog\ rule. The
+meaning of a collection of $\RT$ credentials is defined in terms of the
+minimum model of the corresponding \datalog\ program. In the case of the
+$\RT_1^C$, \datalog\ with constraints is used \cite{Li:DCFTML}.
+
+The translation from $\RT_0$ to \datalog\ requires only a single
+predicate \textit{isMember} to assert when a particular entity is a member
+of a particular role. The translation rules are shown below where \datalog\
+variables are shown prefixed with `\textit{?}' to distinguish them from
+constants.
+\begin{enumerate}
+
+\item $\cred{A.r}{E}{}$
+
+$\textit{isMember}(E, A, r).$
+
+\item $\cred{A.r}{B.s}{}$
+
+$\textit{isMember}(\textit{?x}, A, r) \leftarrow
+ \textit{isMember}(\textit{?x}, B, s).$
+
+\item $\cred{A.r}{B.s.t}{}$
+
+$\textit{isMember}(\textit{?x}, A, r) \leftarrow
+ \textit{isMember}(\textit{?y}, B, s),
+ \textit{isMember}(\textit{?x}, \textit{?y}, t).$
+
+\item $\cred{A.r}{B_1.s_1 \cap \cdots \cap B_n.s_n}{}$
+
+$\textit{isMember}(\textit{?x}, A, r) \leftarrow
+ \textit{isMember}(\textit{?x}, B_1, s_1), \ldots,
+ \textit{isMember}(\textit{?x}, B_n, s_n).$
+
+\end{enumerate}
+The authorizer associates a permission with a particular role, say $A.g$,
+called the \newterm{governing role}. Access is granted to an entity $E$ iff
+the \datalog\ query $\textit{isMember}(E, A, g)$ succeeds.
+
+An alternative set-theory semantics has also been defined for $\RT_0$
+\cite{Li:DCDTM}. In this semantics each role $A.r$ is represented as a set
+of entities $\mbox{rmem}(A.r)$ that are members of that role. For a given
+set of credentials $\creds$ these sets are the least sets satisfying the
+set of inequalities
+\begin{displaymath}
+\{ \mbox{rmem}(A.r) \supseteq \mbox{expr}[\mbox{rmem}](e)\,|\,
+   A.r \longleftarrow e \in \creds \}
+\end{displaymath}
+where $\mbox{expr}[\mbox{rmem}](e)$ is the set of entities in a
+particular role expression $e$. A \newterm{role expression} includes
+both linked roles and intersection roles. In particular:
+\begin{eqnarray*}
+\mbox{expr}[\mbox{rmem}](B) & = & \{B\} \\
+\mbox{expr}[\mbox{rmem}](A.r) & = & \mbox{rmem}(A.r) \\
+\mbox{expr}[\mbox{rmem}](A.r_1.r_2) & = &
+  \bigcup_{B \in\, \mbox{rmem}(A.r_1)} \mbox{rmem}(B.r_2) \\
+\mbox{expr}[\mbox{rmem}](f_1 \cap \cdots \cap f_k) & = &
+  \bigcap_{1 \le j \le k} \mbox{expr}[\mbox{rmem}](f_j)
+\end{eqnarray*}
+The set-theory semantics for $\RT_0$ was developed primarily to provide
+theoretical support for a distributed credential chain discovery algorithm
+\cite{Li:DCDTM}. The set-theory semantics facilitate proving soundness and
+completeness of that algorithm.
+
+Another approach to the semantic specification of $\RT$ is taken by
+Polakow and Skalka, who propose the LolliMon linear logic programming
+language as a foundation \cite{polakow-skalka-plas06}.  Like the
+set-theoretic specification, this approach has the advantage of being
+easily extended to the problem of distributed certificate chain
+discovery, while enjoying the additional benefit of scalability to the
+full $\RT$ framework.  The encoding closely resembles the original
+\datalog\  \textit{isMember} predicate defined above, and the logic 
+of certificate discovery can be expressed by additional clauses in
+LolliMon's rich formula language.
+
+\subsubsection{Implementation}
+
+Li et al.~describe an implementation strategy for $\RT_0$ in terms of a
+construct called a credential graph $\mathgraph{\creds}$ \cite{Li:DCDTM}.
+Each node in $\mathgraph{\creds}$ represents a role expression with
+directed edges corresponding to each credential. In addition,
+\newterm{derived edges} are added to represent the indirect relationships
+between roles that are introduced by linked roles and intersections. An
+entity is a member of a role iff there exists a path from the entity to the
+role in $\mathgraph{\creds}$. Li et al.~prove that credential
+graphs are sound and complete with respect to the set-theory semantics of
+$\RT_0$.
+
+In addition Li et al.~describe a distributed credential chain discovery
+algorithm that finds a path in $\mathgraph{\creds}$ given initially incomplete
+credentials \cite{Li:DCDTM}. The algorithm assumes that either the issuer or
+subject of a credential can be contacted on-line and queried for more
+credentials on demand. In this way missing credentials can be found as needed
+to complete a proof of authorization. The algorithm can work either backward,
+starting at the governing role and following credentials from issuer to
+subject, or forward, starting at the entity representing the requester and
+following credentials from subject to issuer. In general both approaches are
+useful. In some cases a certificate authority will maintain a database of all
+credentials issued, making the backward discovery algorithm effective. In
+other cases credentials will be held by the subjects, making the forward
+discovery algorithm more appropriate. To ensure that searches always succeed
+when possible, a type system can be used to assign appropriate types to role
+names. These types restrict the way credentials can be formed and specify
+where credentials must be stored \cite{Li:DCDTM}.
+
+The complexity of credential chain discovery in $\RT_0$ has been shown to be
+log-space $\mathcal{P}$-complete using a reduction from the monotone circuit
+value problem \cite{Li:DCDTM}.
+
+%To study the complexity of authorization in a distributed context, Li et
+%al.\ address general security analysis questions in the $\RT$ framework
+%\cite{Li:BPOCSATM}. Let $\mathcal{P}$ be a collection of policy statements
+%(credentials) that are possibly distributed over multiple locations.
+%$\mathcal{P}$ includes credentials that are signed and passed from location
+%to location as well as credentials that are part of each entities local
+%policy. Li et al.~ask whether certain general queries about the state of
+%the entire system can be answered with only partial information about the
+%overall policy. For example an authorizer might want to check that the set
+%of entities who can access a particular resource is included in some other
+%set of entities, regardless of what changes are made in the policy defined
+%by entities outside the authorizer's control. More specifically, the
+%following kinds of queries were studied:
+%\begin{enumerate}
+%
+%\item \textit{Membership:} $A.r \sqsupseteq \{ E_1, \ldots, E_n \}$. This
+%means that all the entities $E_1, \ldots, E_n$ are members of $A.r$.
+%
+%\item \textit{Boundedness:} $\{ E_1, \ldots, E_n \} \sqsupseteq A.r$. This
+%means that the members of $A.r$ are among the entities $E_1, \ldots, E_n$.
+%
+%\item \textit{Inclusion:} $A.r \sqsupseteq B.s$. This means that the
+%members of $B.s$ are among the members of $A.r$.
+%
+%\end{enumerate}
+%Li et al.~perform their analysis on the assumption that certain roles
+%(provided as a parameter to the analysis) cannot be changed in certain
+%ways. The idea is that an authorizer is only concerned about changes in
+%roles he or she does not control. Presumably the authorizer would rerun
+%the analysis before making any changes to roles he or she does control.
+%
+%The analysis is performed by defining appropriate \datalog\ programs to
+%address the particular query. Li et al.~show that membership and
+%boundedness queries can be answered with a complexity that is
+%$O(|\mathcal{P}|^3)$, where $|\mathcal{P}|$ is the number of policy
+%statements in $\mathcal{P}$ \cite{Li:BPOCSATM}. However, inclusion queries,
+%probably the most useful in practice, are more computationally difficult.
+%Using a subset of $RT_0$ obtained by removing linked roles and intersection
+%roles, such queries can be answered using a suitable \newterm{stratified}
+%\datalog\ program\footnote{A stratified \datalog\ program is one where the
+%predicates defined in it can be assigned to different strata, such that
+%each predicate only depends on the negation of predicates in lower strata
+%\cite{Apt:TTDK}.} with a complexity in $\textbf{P}$. However, when
+%intersections are added back to the system, the analysis becomes
+%$\textbf{coNP}$-complete. When instead linked roles are added back to the
+%system, the analysis becomes $\textbf{PSPACE}$-complete. Finally, inclusion
+%queries in full $\RT_0$ have complexity that is in $\textbf{coNEXP}$,
+%although the exact complexity of such queries is currently an open
+%question. Although some of the queries studied are computationally
+%intractable they are all decidable. This is significant since in some other
+%authorization systems, such as the HRU model, even membership queries are
+%in general undecidable
+%\cite{Harrison:POS}.
+

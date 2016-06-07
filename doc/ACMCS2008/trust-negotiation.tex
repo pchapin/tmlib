@@ -1,0 +1,244 @@
+\section{Other Components: Trust Negotation}
+\label{section-trust-negotiation}
+
+In this survey we have focused specifically on authorization in trust
+management.  However, modern trust management systems include other
+major components, to address problems other than the semantics of
+authorization.  While space considerations prevent a complete review
+of issues and approaches, in this section we provide a brief overview
+of \newterm{trust negotiation}, which is a topic of considerable interest
+in modern trust management research.  Along with providing a more
+complete view of trust management, the purpose of this section is to
+provide a better practical context for the topics covered in this
+survey, and a better picture of current research directions.
+
+When considering the semantics of authorization, it is simplest to
+assume that requesters' credentials are publicly available, so that
+authorizers have full access to them as well as their own policy.  We
+call this the \newterm{basic model}, and it is typically assumed in most
+of the systems we survey here for the initial development of an
+authorization semantics.  In the basic model authorizers do not
+directly disclose their policy to any requester while requesters are
+assumed to disclose their credentials freely. Requesters either send
+their credentials with each request or, in some cases, make their
+credentials available on public servers where authorizers can locate
+them using some form of credential chain discovery.
+
+Furthermore, the result of the authorization decision in the basic
+model is a simple boolean value specifying if access is allowed or
+not. If access is allowed the requester does not know which
+credentials were actually necessary to gain that access. If access is
+denied the requester does not know why the denial occurred and has no
+way of knowing how to obtain missing credentials.
+
+%Treating requester credentials as public information is not necessarily a
+%problem. In some cases the information in the credentials might be a matter of
+%public record. In other cases a requester might be able to apply heuristics
+%external to the trust management system to decide which credentials should be
+%sent in support of any particular request. For example Alice, a cancer
+%patient, might have a credential signed by her physician certifying her
+%medical status. Using this credential Alice can access a cancer support web
+%site where she can converse with other patients. However, when Alice accesses
+%her employer's web site on work related business she can simply avoid sending
+%the credential that proves she's a cancer patient. She knows from the social
+%context of her request that this credential will be irrelevant.
+
+However, in practice the basic model is not always sufficient.  For
+example, rather than expending overhead on distributed chain
+discovery, an authorizer may associate additional information with
+credentials that associates them with particular resources, so
+requesters can supply a subset of their credentials in an informed
+manner.  But a deeper issue is that a requester may regard some of her
+credentials as sensitive and have a complex access policy for
+them. The requester may require an authorizer comply with that policy
+before she is willing to disclose those credentials.  In addition the
+authorizer may wish to control access to his resource access policy,
+allowing some or all of that policy to be disclosed to suitable
+requesters. In this situation, the requester and authorizer can engage
+in a process called trust negotiation during which
+credentials and policy statements are shared incrementally between the
+authorizer and requester as the parties gain increasing trust in each
+other.
+
+An example in \cite{seamons-policy02} illustrates the concepts. Alice, a
+university student, orders her textbooks from an online bookstore. She
+requests a student discount not knowing what credentials the bookstore will
+require. In response the bookstore asks to see her digital student ID and her
+digital credit card. Alice is willing to disclose her ID but will only
+disclose her credit card to web sites that have been certified by the Better
+Business Bureau; accordingly she requests this credential from the bookstore
+site. Once the bookstore discloses its Better Business Bureau credential,
+Alice's access policy on her credit card is satisfied and she discloses her
+credentials as well.
+
+Many trust negotiation systems have been described in the literature
+\cite{Winslett:NTW,gavriloaie-eswp04,protune-05}. Some, such as
+PeerTrust \cite{gavriloaie-eswp04}, are extensions of other trust
+management systems, including systems we have surveyed here.  For
+example, PeerTrust extends SD3 with trust negotiation, and a trust
+negotiation framework has been developed for the RT system
+\cite{Winsborough:TPATN}. In other cases, such as with Protune
+\cite{protune-05}, support for trust negotiation and trust management
+were designed together from scratch. In either case trust negotiation
+systems build on trust management concepts and thus have many
+overlapping concerns.
+
+In a survey of trust negotiation systems a list of requirements on
+trust negotiation policy languages is given in
+\cite{seamons-policy02}. Because trust negotiation systems include
+trust management functionality that we survey here, many of the these
+policy language requirements overlap with or are embedded in our list
+of trust management features. For example, Seamons et al.\ note the
+importance of using languages with well defined semantics, and discuss
+features such as monotonicity, credential chains, delegation depth,
+and local name spaces.  However, Seamons et al.\ also require trust
+negotiation policy languages to have the power to express access
+control information on the policies themselves. This is the essence of
+trust negotiation.
+
+In addition \cite{seamons-policy02} gives requirements on compliance checkers.
+In a trust negotiation context compliance checkers can no longer return a
+simple yes/no result. If the request for access fails, the checker must
+provide information about what additional credentials are needed to gain that
+access. The authorizer can use this information to request those credentials
+from the requester. Furthermore the requester uses a compliance checker to
+control access to her credentials, and in some cases to locally process
+policy information provided by the authorizer to determine which of her
+credentials might be relevant to a particular request.
+
+Some of the earliest work on trust negotiation focused on how the requester
+could select precisely the credentials necessary for the desired access and
+thus avoid sending sensitive credentials unnecessarily. In
+\cite{seamons97internet} \newterm{credential acceptance policies} written in a
+restricted form of Prolog are downloaded from the authorizer by the requester
+and then executed with the requester's database of credentials as part of the
+collection of facts available to the Prolog program. The result is a list of
+required credentials that the requester must send to the authorizer to gain
+access to the protected resource. The authorizer executes essentially the same
+program to check the access request.
+
+Later work generalizes this process by allowing the requester to assign
+\newterm{credential access} or \newterm{credential disclosure} policies to
+control the conditions under which those credentials can be revealed
+\cite{Winsborough:ATN,Yu:PECSATNI}. In addition authorizers might want to
+control the disclosure of their access policies as well
+\cite{Seamons:LDACPATN}. When a negotiating party sends all the credentials or
+policy statements for which the access policy has been met, that party is said
+to follow an \newterm{eager} strategy. On the other hand if the negotiating
+party only sends a more narrowly focused collection of credentials in response
+to specific requests from the negotiating partner, that party is said to
+follow a \newterm{parsimonious} strategy. In this later case, however, a
+negotiating party can inadvertantly reveal sensitive information about her
+credentials indirectly by way of her reactions to specific requests
+\cite{Winsborough:ATN,Winsborough:TPATN,Winsborough:SATN}. Fundamentally this
+problem arises because credential access policies are only associated with
+credentials a negotiating party actually has. To address this issue
+\newterm{ack policies} can be created that cause a negotiating party to enter
+into a negotiation about attributes she considers sensitive even if she lacks
+any specific credentials about those attributes
+\cite{Winsborough:TPATN,Winsborough:SATN}.
+
+The PeerTrust system is an example of a fully developed trust
+negotation policy system.  PeerTrust extends SD3 to provide trust
+negotiation \cite{gavriloaie-eswp04}. The Horn clauses used in SD3 are
+enhanced to allow guards. Essentially the body of a clause is broken
+into sections where the successful evaluation of one section is
+required before the evaluation of the next section is allowed to
+begin. An example in \cite{gavriloaie-eswp04} shows a rule Alice might
+use to specify that she will only reveal her signed credential that
+she is a California state police officer to web sites that are members
+of the Better Business Bureau:
+\begin{displaymath}
+\begin{array}{l}
+\textit{policeOfficer}(\textrm{alice})\,\, @\,\, \textrm{CSP}\,\, \leftarrow \\
+\hspace{0.5cm} \textit{member}(\textrm{Requester})\,\, @\,\, \textrm{BBB}\,\, @\,\, \textrm{Requester}\,\, |\,\, \textit{signedBy}[\textrm{CSP}].
+\end{array}
+\end{displaymath}
+In this rule the ``@'' is used to indicate a non-local predicate. The
+ability to evaluate non-local predicates nests so that, for example,
+``\textit{member}(Requester) @ BBB @ Requester'' means that the requester
+must show that he is a member of the Better Business Bureau. In this
+context the requester is a web server asking Alice if she is a police
+officer. This predicate must be validated before the evaluation of the rule
+can proceed beyond the ``|'' and Alice can send the necessary signed
+certificate to the web server.
+
+For another example, \textsc{Protune} is a particularly rich trust
+negotiation system providing support for authentication, policy rules with
+actions and side effects (\newterm{provisional} rules), as well as
+hierarchical services and credentials
+\cite{bonatti-ccs00,Bonatti:UFRAIRW,Jajodia:FSMACP,protune-05}.
+Metapolicies are used to arbitrate trust negotiation; as credentials are
+gathered a negotiating party's metapolicies activate new policy rules as
+appropriate. \textsc{Protune} has also been extended to provide support for
+advanced queries allowing users to ask high level questions about
+authorization decisions such as, for example, \textit{why?}, \textit{what
+if?}, and \textit{how to?} queries \cite{bonatti-ecai06}.
+
+While \textsc{Protune} provides extensive support for trust negotiation, at
+its core it also contains support for many of the authorization features we
+discuss in this work. \textsc{Protune} libraries can be created that
+simulate the semantics of other trust management systems. For example,
+\textsc{Protune} can encode the four credential forms of $\RT_0$
+\cite{Bonatti:PLS}, thus providing all the capabilities of that system such
+as local name spaces, role-based access control, and delegation of rights.
+In addition \textsc{Protune}'s features can be used to encode a public key
+infrastructure \cite{bonatti-ccs00,Bonatti:UFRAIRW} and distributed chain
+discovery \cite{Bonatti:PLS}. The last column in Table~\ref{tbl:tmsummary2}
+compares \textsc{Protune} with the other systems we review in terms of its
+authorization semantics.
+
+%In their earlier survey on trust negotiation policy language, Seamons
+%et al.\ consider some other lower level features that are outside the
+%scope of this survey, in particular \newterm{inter-credential
+%constraints}, \newterm{external functions}, and authentication
+%issues. Inter-credential constraints allow the policy author to
+%specify relationships between credentials that are not directly
+%expressed by the credentials themselves.  External functions can be
+%used, for example, to get the current time, compare dates, or to
+%otherwise express complex constraints on the values of attributes
+%stored in a credential. Authentication issues are relevant to 
+%the issue of certificate validity, which is another relevant 
+%component of complete trust management systems.
+%
+% Here is a short section on authentication and validity issues.
+%
+%\subsection{Certificate Validity}
+%
+%Previous work discussed the importance of supporting authentication policies
+%in trust negotiation policy languages \cite{seamons-policy02}. It is not
+%enough, in general, to prove that a particular key has access to a resource.
+%The requester must also show that she controls that key by authenticating to
+%the authorizer in some way. The trust management systems we review typically
+%assume that the requester signs her requests with her key to prove she is the
+%key owner. Alternative authentication mechanisms are usually not considered.
+%
+%Verifying the authenticity of a certificate is just one aspect of a more
+%general issue of certificate validity. To be valid a certificate must not be
+%revoked, for example due to key compromise, and the cryptographic signature
+%algorithm must not have been broken. In addition, even if a certificate is
+%still valid in a cryptographic sense, the information contained in that
+%certificate may be stale. For this reason certificate authorities usually
+%specify a \newterm{validity interval} for each certificate during which the
+%authority vouches for the binding in that certificate. Although some
+%attributes, such as membership in an organization, have clearly defined
+%validity intervals other attributes, such as a principal's income status, can
+%change unexpectedly. In this later case it is possible the binding in a
+%certificate will be incorrect during some part of the certificate's validity
+%interval.
+%
+%Often the authorizer stands the most to loose by accepting a certificate
+%containing stale data. It thus makes sense in such a case for the authorizer
+%(instead of the certificate authority) to define the validity interval based
+%on when the certificate was issued and on the authorizer's tolerance for
+%accidently using an inaccurate information \cite{Rivest:CWECRL}. In other
+%cases it is the certificate authority who stands the most to loose, for
+%example in terms of his reputation as an authority, if stale certificates
+%signed by him remain in wide circulation \cite{McDaniel:RTCWECRL}. In practice
+%it is likely that authorizer will apply his own validity interval based on,
+%and intersecting with, the interval specified by the certificate authority.
+%Alternatively the authorizer can choose to encode the degree of certificate
+%staleness as a risk value attached to the certificate. The authorization
+%decision can then be made taking into account these risks
+%\cite{skalka-wang-chapin-jcs06}.
+

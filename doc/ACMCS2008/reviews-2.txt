@@ -1,0 +1,110 @@
+
+Dear Dr. Skalka:
+
+Manuscript ID CSUR-2006-0055.R1 entitled "Authorization in Trust
+Management: Features and Foundations" which you submitted to the Computing
+Surveys, has been reviewed. The comments of the reviewer(s) are included at
+the bottom of this letter.
+
+The reviewer(s) have recommended publication, but also suggest some minor
+revisions to your manuscript. The requested revisions are minor and can
+therefore be taken care at satisfaction without problems. I am therefore
+recommending that the paper be accepted provided that all the necessary
+revisions are taken care of at complete satisfaction. I therefore invite
+you to revise the manuscript making sure to satisfy all the comments of the
+reviewers and resubmit the mauscript together with a letter explaining how
+you have revised the manuscript to address the (minor) reviewers' concerns.
+
+To revise your manuscript, log into http://mc.manuscriptcentral.com/csur
+and enter your Author Center, where you will find your manuscript title
+listed under "Manuscripts with Decisions." Under "Actions," click on
+"Create a Revision." Your manuscript number has been appended to denote a
+revision.
+
+You will be unable to make your revisions on the originally submitted
+version of the manuscript. Instead, revise your manuscript using a word
+processing program and save it on your computer. Please also highlight the
+changes to your manuscript within the document by using the track changes
+mode in MS Word or by using bold or colored text.
+
+Once the revised manuscript is prepared, you can upload it and submit it
+through your Author Center.
+
+When submitting your revised manuscript, you will be able to respond to the
+comments made by the reviewer(s) in the space provided. You can use this
+space to document any changes you make to the original manuscript. In order
+to expedite the processing of the revised manuscript, please be as specific
+as possible in your response to the reviewer(s).
+
+IMPORTANT: Your original files are available to you when you upload your
+revised manuscript. Please delete any redundant files before completing the
+submission.
+
+Because we are trying to facilitate timely publication of manuscripts
+submitted to the Computing Surveys, your revised manuscript should be
+uploaded as soon as possible. If it is not possible for you to submit your
+revision in a reasonable amount of time, we may have to consider your paper
+as a new submission.
+
+In the interest of timely publication, I request that you return your
+revised manuscript by September 30, 2007. If the paper is not returned by
+this deadline we will consider you are not interested in submitting your
+paper anymore and any re-submission will be considered as a new submission.
+If you feel you need more time pls let me know.
+
+Once again, thank you for submitting your manuscript to the Computing
+Surveys and I look forward to receiving your revision.
+
+Sincerely,
+
+-p
+
+Prof. Pierangela Samarati
+Associate Editor, Computing Surveys
+samarati@dti.unimi.it
+
+
+Reviewer(s)' Comments to Author:
+------------------------------------------------------------
+
+Referee: 1
+
+The paper road map at the top of page 4 describes the contents of the
+remaining sections of the paper, but omits section 6. Is this intentional,
+since later in 2.1 they mention the topic of section 6?
+
+Page 5 - x509 should read X.509
+
+Throughout the paper, citations are treated as nouns (e.g., An example in
+[X] illustrates...; In addition [X] gives requirements ...;). I tend to
+avoid this style personally, but will not insist that others do the same.
+The first paragraph on page 44 contains "...languages is given by Seamons
+et al. in [Seamons et al. 2002]." To be more consistent with the rest of
+the paper, it should read "...languages is given in [Seamons et al. 2002].
+
+------------------------------------------------------------
+
+Referee: 2
+
+As I said above, the discussion of trust negotiation frameworks is very
+short. The reader with no prior experience of those systems may not see the
+reasons of the ratings reported in tables I and II. While an encoding of
+the running example in those frameworks would require language details that
+might make the paper significantly longer, there is probably space enough
+for at least some brief hints and pointers to the features that justify the
+tables.
+
+Minor comments:
+
+- definition of Requester (p.5): perhaps it is more precise to say
+  "possibly" or "typically" non-local
+
+- def. of Role membership (p.6): I would prefer something like "[...] the
+  group of entities that can activate [alternatively: play] a role"
+
+------------------------------------------------------------
+
+Referee: 3
+
+I recommend that the paper be accepted after correcting a few typos that
+the editor can check.

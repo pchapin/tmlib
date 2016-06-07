@@ -1,0 +1,13 @@
+main.aux
+main.bbl
+main.blg
+main.dvi
+main.log
+main.pdf
+main.ps
+
+# Official published papers
+doc/ACMCS2008/chapin-skalka-wang-ACMCS2008.pdf
+doc/FMSE2005/FMSE2005.pdf
+doc/FMSE2005/chapin-skalka-wang-FMSE2005.pdf
+doc/JCS2007/skalka-wang-chapin-JCS2007.pdf

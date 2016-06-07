@@ -1,0 +1,14 @@
+
+Title: Risk Assessment in Distributed Authorization
+
+In a large scale distributed system authorization decisions must make use
+of potentially long chains of credentials to convey trust across
+administrative boundaries. Numerous "trust management" systems have been
+described in the literature that address how these credentials are
+expressed, and how they interact. In these systems individual credentials
+are typically considered to be either completely valid or completely
+invalid. We have extended an existing trust management system (RT_0) to
+allow risks to be associated with credentials. We develop a formal
+semantics for our extension and describe an authorization algorithm that
+avoids wasteful searching and yet remains sound with respect to the
+semantics.

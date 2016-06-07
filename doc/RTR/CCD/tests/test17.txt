@@ -1,0 +1,17 @@
+# This test requires a linked role to be processed twice. The second
+# time produces the "best" overall result even though the risk on
+# derived edge is not changed. This illustrates that care must be taken
+# if one attempts to avoid adding "unnecessary" derived credentials. It
+# is important to trigger the search of the linked node whenever a new
+# ARR reaches it. The expected result of this test should be equivalent
+# to (M, 20) not (M, 35).
+
+A.r, 50
+A.r <- B.r, 2, 20
+A.r <- C.s, 2, 2
+C.s <- D.t, 2, 2
+D.t <- B.r, 2, 1
+B.r <- B.s.t, 3, 5
+B.s <- E, 1, 5
+E.t <- M, 1, 5
+

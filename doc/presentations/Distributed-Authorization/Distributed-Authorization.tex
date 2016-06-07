@@ -1,0 +1,327 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FILE         : DistAuth.tex
+% AUTHOR       : (C) Copyright 2005 by Peter C. Chapin
+% LAST REVISED : 2005-04-15
+% SUBJECT      : 
+%
+% Send comments or bug reports to:
+%
+%       Peter C. Chapin
+%       University of Vermont
+%       Burlington, VT 05061
+%       pchapin@cs.uvm.edu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass[landscape]{slides}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{stmaryrd}
+%\usepackage{mathpartir}
+
+\input{slide-macros}
+\newtheorem{condition}{Condition}
+\newcommand{\priv}{\mathbf{priv}}
+\newcommand{\audit}{\text{audit}}
+\newcommand{\cod}[1]{\llbracket#1\rrbracket}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{Distributed Authorization}
+\author{Presented by Peter C. Chapin\\University of Vermont}
+\date{April 15, 2005}
+\maketitle
+
+%%%%%
+
+\startslide{Outline}
+
+\begin{itemize}
+
+\item Overview of Trust Management
+
+\item Introduction to the RT Framework
+
+\item Trust-but-Verify
+
+\item Trust-but-Verify in an RT Framework
+
+\end{itemize}
+
+\stopslide
+
+%%%%%
+\startslide{Distributed System Model}
+Web service or remote procedure call model.
+\begin{itemize}
+\item Application distributed over many network nodes.
+\item Network nodes call each other in arbitrary ways.
+\item Network nodes in different administrative domains.
+\end{itemize}
+Access control potentially applied at each node. Must be efficient, flexible, and support delegation.
+\stopslide
+
+%%%%%
+\startslide{Trust Management}
+In a distributed system authorizers\ldots
+\begin{itemize}
+\item Often don't know (or want to know) the identities of requesters.
+\item Might instead rely on third parties to certify characteristics of requesters.
+\item Write policies that describe access in terms of these characteristics.
+\item Require requesters prove compliance with policy.
+\end{itemize}
+\stopslide
+
+%%%%%
+\startslide{$RT$ Framework}
+Introduced by Li, Mitchell, and Winsborough\footnote{\textit{Design of a Role-based Trust-management Framework}, IEEE Symposium on Security and Privacy, May 2002}. $RT_0$ specifies four assertion forms.
+\begin{itemize}
+\item $A.r \leftarrow B$
+\item $A.r \leftarrow B.s$
+\item $A.r \leftarrow A.s.t$
+\item $A.r \leftarrow B.s \cap C.t$
+\end{itemize}
+\stopslide
+
+%%%%%
+\startslide{Example: VT Residents Only}
+Authorizer wishes to only grant access to Vermont residents.
+
+$A.g \leftarrow V.residents$
+
+Vermont delegates authority to determine residency to the towns.
+
+$V.resident \leftarrow V.towns.resident$\\
+$V.towns \leftarrow Tunbridge$
+
+Tunbridge delegates to neighborhood authorites.
+
+$Tunbridge.resident  \leftarrow Tunbridge.locals.resident$\\
+$Tunbridge.locals \leftarrow JohnSmith$
+
+Requester has certificate signed by John Smith
+
+$JohnSmith.resident \leftarrow Peter$
+\stopslide
+
+%%%%%
+\startslide{Authorization as Logic Program}
+\begin{verbatim}
+mem(X, a, g) :- mem(X, v, resident).
+mem(X, v, resident) :- mem(Y, v, towns), mem(X, Y, resident).
+mem(tunbridge, v, towns).
+mem(X, tunbridge, resident): mem(Y, tunbridge, locals),
+                             mem(X, Y, resident).
+mem(johnsmith, tunbridge, locals).
+mem(peter, johnsmith, resident).
+\end{verbatim}
+Query: \texttt{mem(peter, a, g)}\\
+Answer: ``yes''
+\stopslide
+
+%%%%%
+\startslide{Delegation: $RT_0^D$}
+An entity is allowed to activate only a subset of his/her potential roles and delegate those activations to an intermediary.
+\begin{itemize}
+\item $P \rightarrow (P\, \mbox{\texttt{as}}\, A.g)\rightarrow I_1$
+\item $I_1 \rightarrow (P\, \mbox{\texttt{as}}\, A.g)\rightarrow I_2$
+\end{itemize}
+$I_2$ passes $P$ as $A.g$ to the request. Access is granted because
+\begin{itemize}
+\item $P$ as $A.g$ is valid.
+\item There is a path from $A.g$ to the governing role.
+\item $A$ gets signed delegation certificates that originate with $P$.
+\end{itemize}
+\stopslide
+
+%%%%%
+\startslide{Authorization is Expensive}
+Complex authorization decisions might be time consuming.
+\begin{itemize}
+\item Fetch remote credentials
+\item Cryptographic operations (signature checking)
+\item Proof of compliance check
+\end{itemize}
+Authorizer obtains and checks certificates, builds Datalog program (or equivalent) and computes answer to relevant query.
+\stopslide
+
+%%%%%
+\startslide{Distributed Credential Chain Discovery}
+Li, Winsborough, and Mitchell describe a credential discovery algorithm for $RT_0$\footnote{\textit{Distributed Chain Discovery}, Journal of Computer Security, 11(1), pp 35-86, February 2003}.
+
+\begin{center}$A \rightarrow B.r \rightarrow C.s \rightarrow D.t \rightarrow E.g$\end{center}
+
+Requestor provides $B.r \leftarrow A$. Authorizer ($E$) has policy $E.g \leftarrow D.t$. How are these assertions related?
+
+$B$ has $C.s \leftarrow B.r$\\
+$D$ has $D.t \leftarrow C.s$
+
+Finding these assertions takes time.
+\stopslide
+
+%%%%%
+\startslide{Trust but Verify (TbV)}
+Reliable, practical distributed authorization.
+\begin{itemize}
+\item Ideal security may take many details and relations into account.
+\item Practical security may require abstractions or simplifications to achieve efficiency.
+\end{itemize}
+Simplification during authorization introduces elements of \cemph{trust} into online security decisions.
+
+Essence of TbV: Online trust should be verifiable offline, to ensure that it is warranted.
+\stopslide
+
+%%%%%
+\startslide{TbV Examples}
+\begin{itemize}
+\item \textit{Simple real-life credit card transactions}. Credit card companies trust vendors without proof of delegation from cardholder.
+\item \textit{Business Transaction Protocol} (enroll/prepare/commit). Authorizes could potentially enroll quickly using trust.
+\end{itemize}
+TbV approach allows \cemph{auditing} of trusted transactions, in case of disputes or as a matter of course, to verify trust content.
+
+Ideally we desire a continuum of trust. Authorizers should be able to trust a little or a lot, verify promptly or not at all, depending on administrative needs.
+\stopslide
+
+%%%%%
+\startslide{A Formal Framework}
+TbV is a framework for augmenting trust management systems.
+\begin{citemize}	
+\item \textit{Logically well-founded}. Provides precise meaning of ``trust'' and ``verification'', with provable guarantees.
+\item \textit{General}. Framework intended to be applicable to variety of systems.
+\end{citemize}
+A TbV system is characterized by  high-level formal conditions.
+
+TbV implementations must adhere to these conditions.
+\stopslide
+
+%%%%%
+%\startslide{TbV Framework Conditions}
+%\begin{condition}
+%Let $s$ be an authorization context; then $s \vdash \priv$ is decidable.
+%\end{condition}
+%\begin{condition}
+%Let $s$ be a trusted context; then if $\audit(s)$ succeeds, it is the case that $\audit(s) \vdash s'$ such that $\cod{s'} = s$.
+%\end{condition}
+%\begin{condition}
+%et $s$ be a trusted context and $\priv$ be a privilege. If $s \vdash \priv$ and $\audit(s)$ succeeds, then $\audit(s) \vdash \priv$.
+%\end{condition}
+%\stopslide
+
+%%%%%
+\startslide{Trusted Assertions}
+One possible trust transformation for $RT$: Add assertions to the policy compliance checking process. Logical weakening.
+\begin{itemize}
+\item Trusting context uses additional assertions.
+\item Auditing performed by either
+  \begin{itemize}
+  \item Locating ``real'' assertions (credential discovery) that prove validity of added assertions.
+  \item Proving authorization without the help of the added assertions.
+  \end{itemize}
+\end{itemize}
+Additional assertions deduced as part of trust-transformation semantics.
+\stopslide
+
+%%%%%
+\startslide{Trusted Assertions Example}
+
+\begin{center}$A \rightarrow B.r \rightarrow C.s \rightarrow D.t \rightarrow E.g$\end{center}
+
+\begin{center}$A \rightarrow B.r\phantom{ \rightarrow C.s \rightarrow }D.t \rightarrow E.g$\end{center}
+
+Authorizer refuses to fetch remote credentials. Trusts they are available. Adds
+
+\begin{center}$B.r \rightarrow D.t$\end{center}
+
+Later auditing finds
+
+\begin{center}$B.r \rightarrow C.s \rightarrow D.t$\end{center}
+\stopslide
+
+%%%%%
+\startslide{Trust Cost}
+Additional idea: Assign a specific ``trust cost'' to each assertion and accept authorization only if total trust cost is below a specified threshold.
+
+\begin{tabular}{|l|r|} \hline
+Assertion & Cost \\ \hline
+$B.r \leftarrow A$   & 10\\
+$C.s \leftarrow B.r$ & 20\\
+$D.t \leftarrow B.r$ &  5\\
+$E.g \leftarrow C.s$ &  0\\
+$E.g \leftarrow D.t$ &  0\\ \hline
+\end{tabular}
+
+Proof $A \rightarrow B.r \rightarrow C.s \rightarrow E.g$ incurs cost 30.\\
+Proof $A \rightarrow B.r \rightarrow D.t \rightarrow E.g$ incurs cost 15.
+
+Operates outside the formal logic (for now).
+\stopslide
+
+%%%%%
+\startslide{Bounded Trust Search}
+Must backtrack during proof search if bound on trust cost exceeded. Example: let bound be 20.
+
+$E.g \leftarrow C.s\, (0)$\\
+$E.g \leftarrow C.s \leftarrow B.r\, (0 + 20 = 20)$\\
+$E.g \leftarrow C.s \leftarrow B.r \leftarrow A\, (20 + 10 = 30)$\, (Abort)\\
+$E.g \leftarrow C.s \leftarrow B.r$\, (No additional options)\\
+$E.g \leftarrow C.s$\, (No additional options)\\
+$E.g \leftarrow D.t\, (0)$\\
+$E.g \leftarrow D.t \leftarrow B.r\, (0 + 5 = 5)$\\
+$E.g \leftarrow D.t \leftarrow B.r \leftarrow A\, (5 + 10 = 15)$
+
+Access is granted. Search is a modification of the normal proof searching methods used to evaluate logic programs.
+\stopslide
+
+%%%%%
+\startslide{Sources of Trust Cost}
+Trust costs might come from various sources.
+\begin{itemize}
+\item Signature checks skipped, but assertion gets high cost.
+\item Certificates issued by questionable entities get high cost.
+\item Certificates near or past expiration time get high cost.
+\end{itemize}
+
+Time dependent cost function?
+
+\begin{displaymath}
+C = a \left( 2^{\frac{t - T_i}{T_e - T_i}} - 1 \right)
+\end{displaymath}
+\stopslide
+
+%%%%%
+\startslide{Verification}
+In addition to formal auditing, authorizer could verify trust costs by reducing cost threshold (to zero?) and recomputing authorization.
+\begin{itemize}
+\item Check signatures.
+\item Delete questionable assertions.
+\item Get fresh certificates.
+\end{itemize}
+\stopslide
+
+%%%%%
+\startslide{Practical Matters}
+\begin{itemize}
+\item Role memberships (probably) change slowly. Assertions effectively cachable (like caching DNS lookups).
+\item Delegations more volatile. Certificates expire quickly.
+\end{itemize}
+Trust-but-Verify may be more useful in connection with delegation checking than with role membership checking.
+
+Delegations can be handled similarly to role memberships: semantics defined by logic program; certificate graph can be constructed; trust transformations and proof searching works the same way.
+\stopslide
+
+%%%%%
+\startslide{Questions}
+\begin{center}\Large ?\end{center}
+\stopslide
+
+\end{document}

@@ -1,0 +1,12 @@
+# This is a variation of test11.txt. In this case, the path through the
+# linked role is the best. The algorithm finds (M, 65) first because of
+# the order in which it processes nodes. However, it later discovers (M,
+# 30).
+
+H.discount, 100
+H.discount <- H.preferred, 2, 15
+H.discount <- H.orgs.members, 3, 20
+H.preferred <- AARP.members, 2, 50
+H.orgs <- AARP, 1, 10
+AARP.members <- M, 1, 0
+

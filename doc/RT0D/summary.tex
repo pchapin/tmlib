@@ -1,0 +1,207 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FILE         : summsary.tex
+% AUTHOR       : Peter C. Chapin, Christian Skalka, and Sean Wang
+% LAST REVISED : 2005-03-16
+% SUBJECT      : Summary of RT_0^D rules.
+%
+% This file contains a summary of the Li and TbV Datalog rules.
+%
+% Send comments or bug reports to:
+%
+%       Peter C. Chapin
+%       University of Vermont
+%       Department of Computer Science
+%       Burlington, VT 05405
+%       pchapin@cs.uvm.edu
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass{article}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1.75ex plus0.5ex minus0.5ex}
+
+% In case I want to change these later.
+\newcommand{\TbV}{Trust-but-Verify}
+\newcommand{\predicate}[1]{\texttt{#1}}
+
+% Use whenever introducing a new term.
+\newcommand{\newterm}[1]{\textit{#1}}
+
+% Macros for credential formatting.
+\newcommand{\memcert}[2]{\texttt{#1} $\leftarrow$ \texttt{#2}}
+\newcommand{\delcert}[3]{\texttt{#1} $-$\texttt{(#2)}$\rightarrow$ \texttt{#3}}
+\newcommand{\activate}[2]{\texttt{#1 as #2}}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{Summary of $RT_0^D$ Datalog Rules}
+% \author{Peter C. Chapin, Christian Skalka, and Sean Wang}
+\date{March 16, 2005}
+\maketitle
+
+\section{Li/Mitchell/Winsborough Rules}
+
+In these rules, read the predicate \predicate{forRole(C, B, A, r)} as
+``\texttt{C} uses (can use) activation \activate{B}{A.r}.''
+
+\begin{itemize}
+
+\item \memcert{A.r}{D}
+
+\texttt{forRole(d, d, a, r).}
+
+\item \memcert{A.r}{B.r1}
+
+\texttt{forRole(X, Y, a, r) :- forRole(X, Y, b, r1).}
+
+\item \memcert{A.r}{A.r1.r2}
+\begin{verbatim}
+forRole(X, Y, a, r) :-
+        forRole(Z, Z, a, r1),
+        forRole(X, Y, Z, r2).
+\end{verbatim}
+
+\item \memcert{A.r}{B1.r1 $\cap \ldots \cap$ Bk.rk}
+\begin{verbatim}
+forRole(X, Y, a, r) :-
+        forRole(X, Y, b1, r1),
+        ...,
+        forRole(X, Y, bk, rk).
+\end{verbatim}
+
+\item \delcert{B1}{D as A.r}{B2}
+
+\texttt{forRole(b2, d, a, r) :- forRole(b1, d, a, r).}
+
+\item \delcert{B1}{D as all}{B2}
+
+\texttt{forRole(b2, d, X, Y) :- forRole(b1, d, X, Y).}
+
+This credential delegates all role activations involving $D$ from $B_1$
+to $B_2$.
+
+\item \delcert{B1}{all}{B2}
+
+\texttt{forRole(b2, X, Y, Z) :- forRole(b1, X, Y, Z).}
+
+This credential delegates all of $B_1$'s role activations to $B_2$.
+
+\end{itemize}
+
+Requests in $RT_0^D$ are delegated role activations. For the purposes of
+delegating activations to a request, a dummy entity is constructed to
+represent the request. This entity is the target of one or more
+delegation certificates. Access is then granted if
+\texttt{forRole(reqID, X, a, r)} is true, where \texttt{reqID} is the
+dummy entity representing the request and $A.r$ is the governing role
+for the request. The value unified for $X$ is the entity making the
+original request.
+
+\section{TbV Rules}
+
+Read the predicate \predicate{mem(b, a, r)} as asserting that $B$ is a
+member of role $A.r$.
+
+\begin{itemize}
+
+\item \memcert{A.r}{B}
+
+\texttt{mem(b, a, r).}
+
+\item \memcert{A.r}{B.r1}
+
+\texttt{mem(X, a, r) :- mem(X, b, r1).}
+
+\item \memcert{A.r}{A.r1.r2}
+
+\texttt{mem(X, a, r) :- mem(Z, a, r1), mem(X, Z, r2).}
+
+\item \memcert{A.r}{B1.r1 $\cap \ldots \cap$ Bk.rk}
+\begin{verbatim}
+mem(X, a, r) :-
+          mem(X, b1, r1),
+          ...,
+          mem(X, bk, rk).
+\end{verbatim}
+
+\end{itemize}
+
+We introduce the predicate \predicate{validAct(a, b, r)} to represent
+that \activate{A}{B.r} is a valid role activation. We introduce the
+predicate \predicate{auth(a, b, r)} to represent that $A$ is authorized
+to use the powers of role $B.r$.
+
+\texttt{auth(X, Y, Z) :- validAct(X, Y, Z).}
+
+\begin{itemize}
+
+\item \memcert{A.r1}{B.r2}
+
+\texttt{auth(X, a, r1) :- auth(X, b, r2).}
+
+\item \memcert{A.r}{A.r1.r2}
+
+\texttt{auth(X, a, r) :- mem(Z, a, r1), auth(X, Z, r2).}
+
+\item \memcert{A.r}{B1.r1 $\cap \ldots \cap$ Bk.rk}
+\begin{verbatim}
+auth(X, a, r) :-
+          auth(X, b1, r1),
+          ...,
+          auth(X, bk, rk).
+\end{verbatim}
+\end{itemize}
+
+The predicate \predicate{has\_activation(A, B, C, r)} is true when
+entity $A$ can use the activation \activate{B}{C.r}.
+
+\texttt{has\_activation(A, A, X, Y) :- mem(A, X, Y).}
+
+\begin{itemize}
+
+\item \delcert{B1}{D as A.r}{B2}
+
+\texttt{has\_activation(b2, d, a, r) :- has\_activation(b1, d, a, r).}
+
+\item \delcert{B1}{D as all}{B2}
+
+\texttt{has\_activation(b2, d, X, Y) :- has\_activation(b1, d, X, Y).}
+
+\item \delcert{B1}{all}{B2}
+
+\texttt{has\_activation(b2, X, Y, Z) :- has\_activation(b1, X, Y, Z).}
+
+\end{itemize}
+
+We introduce the predicate \predicate{act(a, b, r)} to represent that
+the role activation \activate{A}{B.r} is part of the request.
+
+An activation is valid if it is provided with the request, the immediate
+requester $I$ has the activate (either by direct membership or via
+delegation), and the entity mentioned in the activation is actually a
+member of the role mentioned in the activation.
+
+\begin{verbatim}
+validAct(X, Y, Z) :-
+            act(X, Y, Z),
+            has_activation(i, X, Y, Z),
+            mem(X, Y, Z).
+\end{verbatim}
+
+A request is authorized if
+
+\texttt{auth(X, a, r).}
+
+is true where $A.r$ is the governing role for the request. The value
+unified for $X$ is the entity making the original request.
+
+\end{document}

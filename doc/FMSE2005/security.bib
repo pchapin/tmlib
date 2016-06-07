@@ -1,0 +1,1224 @@
+% $Header: /users/rtfm/pllab/cvsroot/2004_NSF/security.bib,v 1.2 2004/02/28 23:27:37 scott Exp $
+%
+%
+% Security-related papers bibliography
+% Ordered by research topic
+%
+%
+%
+% foundational papers
+% information flow model of security classic cite
+@TechReport{BellLap,
+        author  = "D. E. Bell and L. J. LaPadula",
+        title   = "Secure Computer Systems: Mathematical Foundations and Model",
+        address = "Bedford MA",
+        keywords        = {tranquility, label, labeling, write-down, read-up,
+                  simple security, *-property, star property, MAC, lattice},
+        year    = 1973,
+        month   = "May",
+        number  = "M74-244",
+        institution     = "The MITRE Corp."
+}
+% main denning cite for static info. flow
+@INPROCEEDINGS{Den:latt,
+        author  = {D. Denning},
+        title   = {A Lattice Model of Secure Information Flow},
+        pages   = {236--243},
+        year    = 1976,
+        enteredby       = {Glenn S Benson (benson\@python)},
+        timestamp       = {1-Dec-88, 6:33pm},
+        publisher       = {ACM},
+        month   = {May},
+        booktitle       = {Communications of the ACM}
+}
+% secondary cite for denning
+@INPROCEEDINGS{Den:Cert,
+        author  = {D. Denning and P. Denning},
+        title   = {Certification of Programs for Secure Information Flow},
+        pages   = {504--512},
+        year    = 1977,
+        enteredby       = {Glenn S Benson (benson\@python)},
+        timestamp       = {1-Dec-88, 4:59pm},
+        month   = {July},
+        booktitle       = {Communications of the ACM}
+}
+
+@Article{volpano96:sound,
+  author =       "Dennis Volpano and Geoffrey Smith and Cynthia Irvine",
+  title =        "A Sound Type System for Secure Flow Analysis",
+  journal =      "Journal of Computer Security",
+  year =         "1996",
+  volume =       "4",
+  number =       "3",
+  pages =        "167--187",
+  month =        dec,
+  url =          "http://www.cs.nps.navy.mil/research/languages/papers/atsc/jcs.ps.Z",
+  abstract =     "Ensuring secure information flow within programs in
+                 the context of multiple sensitivity levels has been
+                 widely studied. Especially noteworthy is Denning's work
+                 in secure flow analysis and the lattice model [6][7].
+                 Until now, however, the soundness of Denning's analysis
+                 has not been established satisfactorily. We formulate
+                 Denning's approach as a type system and present a
+                 notion of soundness for the system that can be viewed
+                 as a form of noninterference. Soundness is established
+                 by proving, with respect to a standard programming
+                 language semantics, that all well-typed programs have
+                 this noninterference property.",
+}
+
+@InProceedings{Heintze-Riecke98,
+  key =          "Heintze \& Riecke",
+  author =       "Nevin Heintze and Jon G. Riecke",
+  title =        "The {SLam} Calculus: Programming with Secrecy and
+                 Integrity",
+  booktitle =    "Conference Record of POPL 98: The 25TH ACM
+                 SIGPLAN-SIGACT Symposium on Principles of Programming
+                 Languages, San Diego, California",
+  year =         "1998",
+  organization = "ACM",
+  address =      "New York, N.Y.",
+  month =        jan,
+  pages =        "365--377",
+  annote =       "23 references.",
+}
+%access control
+% access control classic cite
+@InProceedings{Lampso71,
+        author  = {B. W. Lampson},
+        title   = {Protection},
+        note    = {Reprinted in Operating Systems Review 8,1 January 74},
+        year    = 1971,
+        month   = Mar,
+        organization    = {Princeton University},
+        booktitle       = {5th Princeton Symposium on Information Sciences and
+                  Systems,}
+}
+% capability-based systems
+%
+@InProceedings{BSPSFBEC95,
+  author =       "B. N. Bershad and S. Savage and P. Pardyak and E. G.
+                 Sirer and M. Fiuczynski and D. Becker and S. Eggers and
+                 C. Chambers",
+  title =        "Extensibility, Safety and Performance in the {SPIN}
+                 Operating System",
+  address =      "Copper Mountain, Colorado",
+  keywords =     "Extensibility, Dynamic Extendible Systems, SPIN",
+  year =         "1995",
+  month =        dec,
+  pages =        "267--284",
+  abstract =     "This paper describes the motivation, architecture and
+                 performance of SPIN, an extensible operating system.
+                 SPIN provides an extension infrastructure together with
+                 a core set of extensible services that allow
+                 applications to safely change the operating system's
+                 interface and implementation. These changes can be
+                 specified with fine-granularity, allowing applications
+                 to achieve a desired level of performance and
+                 functionality from the system. Extensions are
+                 dynamically linked into the operating system kernel at
+                 application runtime, enabling them to access system
+                 services with low overhead. A capability-based
+                 protection model that relies on language and link-time
+                 mechanisms enables the system to inexpensively export
+                 fine-grained interfaces to system services. SPIN and
+                 its extensions are written in Modula-3 and run on DEC
+                 Alpha workstations.",
+  booktitle =    "Proceedings of the 15th Symposium on Operating Systems
+                 Principles",
+  online =       "http://www.cs.washington.edu/research/projects/spin/www/papers/SOSP95/sosp95.ps",
+}
+@TechReport{ncstrl.uwash_cse//TR-98-02-02,
+  title =        "Providing Policy-Neutral and Transparent Access
+                 Control in Extensible Systems",
+  type =         "Technical Report",
+  number =       "TR-98-02-02",
+  language =     "English",
+  month =        feb,
+  year =         "1998",
+  bibdate =      "March 16, 1998",
+  author =       "R. Grimm and B. Bershad",
+  abstract =     "Extensible systems, such as Java or the SPIN
+                 extensible operating system, allow for units of code,
+                 or extensions, to be added to a running system in
+                 almost arbitrary fashion. Extensions closely interact
+                 through low-latency, but type-safe interfaces to form a
+                 tightly integrated system. As extensions can come from
+                 arbitrary sources, not all of whom can be trusted to
+                 conform to an organization's security policy, such
+                 structuring raises the question of how security
+                 constraints are enforced in an extensible system. In
+                 this paper, we present an access control mechanism for
+                 extensible systems to address this problem. Our access
+                 control mechanism decomposes access control into a
+                 policy-neutral enforcement manager and a security
+                 policy manager, and it is transparent to extensions in
+                 the absence of security violations. It structures the
+                 system into protection domains, enforces protection
+                 domains through access control checks, and performs
+                 auditing of system operations. It works by inspecting
+                 extensions for their types and operations to determine
+                 which abstractions require protection, and by
+                 redirecting procedure or method invocations to inject
+                 access control operations into the system. We describe
+                 the design of this access control mechanism, present an
+                 implementation within the SPIN extensible operating
+                 system, and provide a qualitative as well as
+                 quantitative evaluation of the mechanism.",
+  institution =  "University of Washington, Department of Computer
+                 Science and Engineering",
+}
+% another cap-based system, but more of the info. access security kind.
+% This seems most closely related to the Volpano et al approach, but
+% includes some additional run-time checks.  Data-centric.
+%
+@InProceedings{Leroy:1998:SPT,
+  author =       "Xavier Leroy and Fran{\c{c}}ois Rouaix",
+  title =        "Security properties of typed applets",
+  editor =       "ACM",
+  booktitle =    "Conference record of {POPL} '98: the 25th {ACM}
+                 {SIGPLAN}-{SIGACT} Symposium on Principles of
+                 Programming Languages: papers presented at the
+                 Symposium, San Diego, California, 19--21 January 1998",
+  publisher =    "ACM Press",
+  address =      "New York, NY 10036, USA",
+  ISBN =         "0-89791-979-3",
+  pages =        "391--403",
+  year =         "1998",
+  bibdate =      "Mon May 3 12:57:52 MDT 1999",
+  url =          "http://www.acm.org:80/pubs/citations/proceedings/plan/268946/p391-leroy/",
+  acknowledgement = ack-nhfb,
+  keywords =     "languages; security; theory; verification",
+  subject =      "{\bf D.3.2} Software, PROGRAMMING LANGUAGES, Language
+                 Classifications, Java. {\bf F.3.3} Theory of
+                 Computation, LOGICS AND MEANINGS OF PROGRAMS, Studies
+                 of Program Constructs, Type structure. {\bf F.4.1}
+                 Theory of Computation, MATHEMATICAL LOGIC AND FORMAL
+                 LANGUAGES, Mathematical Logic, Lambda calculus and
+                 related systems. {\bf D.3.1} Software, PROGRAMMING
+                 LANGUAGES, Formal Definitions and Theory.",
+}
+% 
+@Article{hailpern:90,
+  author =       "B. Hailpern and H. Ossher",
+  title =        "Extending objects to support multiple interfaces and
+                 access control",
+  journal =      "IEEE Transactions on Software Engineering",
+  volume =       "16",
+  number =       "11",
+  pages =        "1247--1257",
+  month =        nov,
+  year =         "1990",
+}
+%
+%
+%
+%Trust management approach to security
+
+@TechReport{Blaze96a,
+  author =       "Matt Blaze and Joan Feigenbaum and Jack Lacy",
+  title =        "Decentralized Trust Management",
+  institution =  "DIMACS",
+  number =       "96-17",
+  month =        jun # " 28",
+  year =         "1996",
+  url =          "ftp://dimacs.rutgers.edu/pub/dimacs/TechnicalReports/TechReports/1996/96-17.ps.gz",
+  abstract =     "We identify the {"}trust management problem{"} as a
+                 distinct and important component of security in network
+                 services. Aspects of the trust management problem
+                 include formulating security policies and security
+                 credentials, determining whether particular sets of
+                 credentials satisfy the relevant policies, and
+                 deferring trust to third parties. Existing systems that
+                 support security in networked applications, including
+                 X.509 and PGP, address only narrow subsets of the
+                 overall trust management problem and often do so in a
+                 manner that is appropriate to only one application. We
+                 present a comprehensive approach to trust management,
+                 based on a simple language for specifying trusted
+                 actions and trust relationships. We also describe a
+                 prototype implementation of a {"}trust management
+                 system,{"} called PolicyMaker, that can facilitate the
+                 development of security features in a wide range of
+                 network services. $<$P$>$ This paper was presented at
+                 the IEEE Symposium on Security and Privacy, Oakland CA,
+                 May 1996.",
+}
+% PLAN security.  active networks.  Most interesting seems that they
+% use feigenbaum's trust management business instead of usual ACL's
+% interesting; needs investigating.
+%
+@InProceedings{hicks:iwan99:plan,
+  title =        "{A Secure PLAN}",
+  author =       "Michael Hicks and Angelos D. Keromytis",
+  booktitle =    "Proceedings of the First International Working
+                 Conference on Active Networks (IWAN '99)",
+  pages =        "307--314",
+  year =         "1999",
+  month =        jul,
+}
+
+% Primary papers for various trust management systems.
+%
+@manual{RFC-2704,
+  author = {Matt Blaze and Joan Feigenbaum and John Ioannidis and Angelos D. Keromytis},
+  title = {RFC-2704: The KeyNote Trust-Management System Version 2},
+  organization = {IETF},
+  month = {September},
+  year = {1999},
+}
+
+% Li/Mitchell/Winsborough papers related to RT
+%
+@inproceedings{Li:2002-05,
+  author = {Ninghui Li and John C. Mitchell and William H. Winsborough},
+  title = {Design of a Role-based Trust-management Framework},
+  booktitle = {Proceedings of the 2002 IEEE Symposium on Security and Privacy},
+  year = {2002},
+  month = {May},
+  publisher = {IEEE Computer Society Press},
+  pages = {114--130},
+  url = {http://www.cs.purdue.edu/homes/ninghui/abstracts/rt_oakland02.html}
+}
+
+@inproceedings{Li:2003-01,
+  author = {Ninghui Li and John C. Mitchell},
+  title = {Datalog with Constraints: A Foundation for Trust Management Languages},
+  booktitle = {Proceedings of the Fifth International Symposium on Practical Aspects of Declarative Languages},
+  year = {2003},
+  month = {January},
+  url = {http://www.cs.purdue.edu/homes/ninghui/abstracts/cdatalog_padl03.html}
+}
+
+@article{Li:2003-02,
+  author = {Ninghui Li and William H. Winsborough and John C. Mitchell},
+  title = {Distributed Chain Discovery in Trust Management},
+  journal = {Journal of Computer Security},
+  year = {2003},
+  month = {February},
+  volume = {11},
+  number = {1},
+  pages = {35--86},
+  url = {http://www.cs.purdue.edu/homes/ninghui/abstracts/discovery_jcs03.html}
+}
+
+@inproceedings{Li:2003-04,
+  author = {Ninghui Li and John C. Mitchell},
+  title = {RT: A Role-based Trust-management Framework},
+  booktitle = {Proceedings of the Third DARPA Information Survivability Conference and Exposition},
+  year = {2003},
+  month = {April},
+  publisher = {IEEE Computer Society Press},
+  pages = {201--212},
+  url = {http://www.cs.purdue.edu/homes/ninghui/abstracts/rt_discex03.html}
+}      
+
+% SDSI/SPKI stuff
+ 
+@TechReport{howell-kotz-tr00,
+  author = 	 {Jon Howell and David Kotz},
+  title = 	 {A Formal Semantics for {SPKI}},
+  institution =  {Dartmouth College},
+  year = 	 2000,
+  number =	 {2000-363}
+}
+
+@misc{ellison-etal-rfc99,
+  author =	 {C. Ellison and B. Frantz and B. Lampson and R. Rivest and B. Thomas and T. Ylonen},
+  title =	 {{SPKI} Certificate Theory},
+  howpublished = {{RFC} 2693},
+  month =	 {Sept.},
+  year =	 1999
+}
+
+@misc{rivest-lampson-96,
+  author = "R. Rivest and B. Lampson",
+  title = "{SDSI} --- A Simple Distributed Security Infrastructure",
+  text = "R. L. Rivest and B. Lampson. SDSI --- A Simple Distributed Security Infrastructure, Version 1.1.
+    Version 1.1, at http://theory. lcs.mit.edu/rivest/sdsi11.html, October 2,
+    1996.",
+  year = "1996",
+  note = "\url{http://theory. lcs.mit.edu/rivest/sdsi11.html}" }
+
+@unpublished{ clarke-etal-01,
+  author = "Dwaine Clarke and Jean-Emile Elien and Carl Ellison and Matt Fredette and
+    Alexander Morcos and Ronald L. Rivest",
+  title = "Certificate Chain Discovery in {SPKI/SDSI}",
+  journal= "Journal of Computer Security",
+  note = "To appear in {Journal of Computer Security}",
+  url = "citeseer.lcs.mit.edu/clarke00certificate.html" }
+
+@Article{abadi-jcs98,
+  author = 	 {Martin Abadi},
+  title = 	 {On {SDSI}'s linked local name spaces},
+  journal = 	 {Journal of Computer Security},
+  year = 	 1998,
+  volume =	 6,
+  number =	 {1-2},
+  pages =	 {3-21}
+}
+
+%
+% Java security cites
+% perhaps a good general one for JDK party line
+@InProceedings{GMPS97,
+  Author =       "L. Gong and M. Mueller and H. Prafullchandra and R.
+                 Schemers",
+  title =        "Going Beyond the Sandbox: An Overview of the New
+                 Security Architecture in the {Java Development Kit
+                 1.2}",
+  address =      "Monterey, CA",
+  year =         1997,
+  month =        dec,
+  pages =        "103--112",
+  booktitle =    "{USENIX} Symposium on Internet Technologies and
+                 Systems",
+  url =       "\url{http://java.sun.com/people/gong/papers/jdk12arch.ps.gz}",
+}
+
+
+@Misc{GongWeb,
+  author =	 {L. Gong},
+  title =	 {{Java Security Architecture (JDK1.2) }},
+  howpublished = {{http://java.sun.com/products/jdk/1.2/docs/guide/security/spec/\\security-spec.doc.html}},
+  year =	 1998
+}
+
+@TechReport{Sun98,
+  author =       "Sun",
+  title =        "Java Remote Method Invocation Specification",
+  institution =  "Sun Microsystems",
+  year =         "1998",
+  note =         "http://www.javasoft.com/products/jdk/1.2/docs/guide/rmi/spec/rmiTOC.doc.html",
+}
+
+@InProceedings{SOSP97*116,
+  author =       "Dan S. Wallach and Dirk Balfanz and Drew Dean and
+                 Edward W. Felten",
+  title =        "Extensible Security Architecture for {Java}",
+  pages =        "116--128",
+  ISSN =         "0163-5980",
+  booktitle =    "Proceedings of the 16th Symposium on Operating Systems
+                 Principles ({SOSP}-97)",
+  month =        oct # "~5--8",
+  series =       "Operating Systems Review",
+  volume =       "31,5",
+  publisher =    "ACM Press",
+  address =      "New York",
+  year =         "1997",
+}
+
+
+@TechReport{PRINCETONCS//TR-566-97,
+  type =         "Technical Report",
+  number =       "TR-566-97",
+  title =        "Java Security: Web Browsers and Beyond",
+  language =     "English",
+  month =        feb,
+  pages =        "20",
+  year =         "1997",
+  bibdate =      "December 15, 1997",
+  author =       "Drew Dean and Edward W. Felten and Dan S. Wallach and
+                 Dirk Balfanz",
+  abstract =     "The introduction of Java applets has taken the World
+                 Wide Web by storm. Java allows web creators to
+                 embellish their content with arbitrary programs which
+                 execute in the web browser, whether for simple
+                 animations or complex front-ends to other services. We
+                 examined the Java language and the Sun HotJava,
+                 Netscape Navigator, and Microsoft Internet Explorer
+                 browsers which support it, and found a significant
+                 number of flaws which compromise their security. These
+                 flaws arise for several reasons, including
+                 implementation errors, unintended interactions between
+                 browser features, differences between the Java language
+                 and bytecode semantics, and weaknesses in the design of
+                 the language and the bytecode format. On a deeper
+                 level, these flaws arise because of weaknesses in the
+                 design methodology used in creating Java and the
+                 browsers. In addition to the flaws, we discuss the
+                 underlying tension between the openness desired by web
+                 application writers and the security needs of their
+                 users, and we suggest how both might be accommodated.",
+  institution =  "Princeton University, Computer Science Department",
+}
+@PhdThesis{WallachPhD,
+  author =       {Dan S. Wallach},
+  title =        {A New Approach to Mobile Code Security},
+  school =       {Princeton University},
+  year =         1999
+}
+
+@PhdThesis{bauer-phd,
+  author =       {Lujo Bauer},
+  title =        {Access Control for the Web via Proof-carrying Authorization},
+  school =       {Princeton University},
+  year =         2003
+}
+
+@InProceedings{wallach-felten-oakland98,
+  author = 	 {Dan S. Wallach and Edward W. Felten},
+  title = 	 {Understanding Java Stack Inspection},
+  booktitle =	 {Proceedings of 1998 IEEE Symposium on Security and Privacy},
+  year =	 1998,
+  address =	 {Oakland, CA},
+  month =	 {May}
+}
+
+%
+% java guarded objects
+
+@InProceedings{GonSch98a,
+  author =       "L. Gong and R. Schemers",
+  title =        "Signing, Sealing, and Guarding Java Objects",
+  pages =        "206--216",
+  online =       "http://java.sun.com/people/gong/papers/lncs98.ps.gz",
+  booktitle =    "Mobile Agents and Security",
+  volume =       "1419",
+  year =         "1998",
+  publisher =    "Springer-Verlag, Berlin Germany",
+  series =       "Lecture Notes in Computer Science",
+  editor =       "G. Vigna",
+}
+
+
+@Misc{EC:_using_ec_trust_manag_secur_java,
+  author =       {Electric Communities},
+  title =        {Using the {EC} Trust Manager to Secure Java (white paper)},
+  note =         {http://www.communities.com/company/papers/trust/}
+}
+
+% ??
+@Article{Volpano96,
+        author  = {D. Volpano},
+        title   = {Provably-secure Programming Languages for Remote Evaluation},
+        journal = {{ACM} Computing Surveys},
+        year    = 1996,
+        month   = dec,
+        volume  = {28A (electronic)},
+        online  = {http://www.cs.nps.navy.mil/research/languages/papers/atsc/sdcr.ps}
+}
+%probably the main cite here for the authentication logic
+@ARTICLE{BAN,
+        author  = "Burrows, M. and Abadi, M. and Needham, R.",
+        title   = "A logic of authentication",
+        number  = "1",
+        journal = "ACM Transactions on Computer Systems",
+        volume  = "8",
+        pages   = "18--36",
+        year    = "1990"
+}
+@Article{ABLP93,
+        author  = "M. Abadi and M. Burrows and B. Lampson and G. Plotkin",
+        title   = "A Calculus for Access Control in Distributed Systems",
+        number  = 4,
+        journal = toplas,
+        volume  = 15,
+        pages   = "706--734",
+        year    = 1993,
+        url = "\url{http://citeseer.nj.nec.com/abadi91calculus.html}"
+}
+
+% Pretty much unrelated parallel work on how types give good static
+% security properties. 
+
+@InProceedings{walker99:_type_system_expres_secur_polic,
+  author =       {David Walker},
+  title =        {A Type System for Expressive Security Policies},
+  year =         1999,
+  booktitle =    {FLOC '99 Workshop on Run-time Result Verification},
+  month =        {July}
+}
+
+@InProceedings{walker00,
+  author = 	 {David Walker},
+  title = 	 {A Type System for Expressive Security Policies},
+  booktitle = 	 {Twenty-seventh Symposium on Principles of Programming Languages},
+  year = 	 2000,
+  organization = {ACM SIGPLAN},
+  address =	 {Boston, MA},
+  month =	 {January},
+  pages =	 {254-267}
+}
+
+@TechReport{BoVi99,
+  author =       "Boris Bokowski and Jan Vitek",
+  editor =       "D. Tsichritzis",
+  title =        "Confined Types",
+  institution =  "Centre Universitaire d'Informatique, University of
+                 Geneva",
+  type =         "Trusted Objects",
+  pages =        "171",
+  month =        jul,
+  year =         "1999",
+  keywords =     "osg osg-ftp tr99.10 osg-media osg-asap",
+  abstract =     "Sharing and transfer of references is difficult to
+                 control in object-oriented languages. As information
+                 security is increasingly becoming software dependent,
+                 this difficulty poses se-rious problems for writing
+                 secure components. In this paper, we present a set of
+                 inexpensive syntactic constraints that strengthen
+                 encapsulation in object-oriented programs and
+                 facili-tate the implementation of secure systems. We
+                 introduce two mechanisms:confined types to impose
+                 static scoping on dynamic object references
+                 andanonymous methods which do not reveal the identity
+                 of the current instance (this). Confined types protect
+                 objects from use by untrusted code, while anonymous
+                 methods allow standard classes to be reused from
+                 confined classes. We have implemented a verifier which
+                 performs a modular analysis of Java programs and
+                 provides a static guarantee that confinement is
+                 respected. We present security related programming
+                 examples.",
+}
+
+@Article{Abadi00,
+  author =       {M. Abadi},
+  title =        {Secrecy by Typing in Security Protocols},
+  journal =      {Journal of the ACM},
+  year =         2000
+}
+
+% abstraction over security properties at language level
+
+@InProceedings{AbaGor97,
+        author  = {M. Abadi and A. D. Gordon},
+        title   = {A Calculus for Cryptographic Protocols: The Spi Calculus},
+        pages   = {36--47},
+        year    = 1997,
+        abstract        = {We introduce the spi calculus, an extension of the pi
+                  calculus designed for the description and analysis
+                  of cryptographic protocols. We show how to use the
+                  spi calculus, particularly for studying
+                  authentication protocols.  The pi calculus (without
+                  extension) suffices for some abstract protocols; the
+                  spi calculus enables us to consider cryptographic
+                  issues in more detail. We represent protocols as
+                  processes in the spi calculus and state their
+                  security properties in terms of coarse-grained
+                  notions of protocol equivalence.},
+        publisher       = {{ACM} Press},
+        booktitle       = {Fourth ACM Conference on Computer and Communications Security}
+}
+
+@InProceedings{cardelli99:_abstr_mobil_comput,
+  author =       {Luca Cardelli},
+  title =        {Abstractions for Mobile Computation},
+  booktitle =    {Secure Internet Programming: Security Issues for Distributed and Mobile Objects},
+  year =         1999,
+  editor =       {Jan Vitek and Christian Jensen},
+  volume =       1603,
+  series =       {Lecture Notes in Computer Science}
+}
+
+%
+% distributed objects general cites
+%
+% review article for everything
+@Article{Thorn:1997:PLM,
+  author =       "Tommy Thorn",
+  title =        "Programming languages for mobile code",
+  journal =      "ACM Computing Surveys",
+  volume =       "29",
+  number =       "3",
+  pages =        "213--239",
+  month =        sep,
+  year =         "1997",
+  coden =        "CMSVAN",
+  ISSN =         "0360-0300",
+  bibdate =      "Wed Oct 22 18:05:34 MDT 1997",
+  url =          "http://www.acm.org:80/pubs/citations/journals/surveys/1997-29-3/p213-thorn/",
+  abstract =     "Sun's announcement of the programming language Java
+                 more that anything popularized the notion of mobile
+                 code, that is, programs traveling on a heterogeneous
+                 network and automatically executing upon arrival at the
+                 destination. We describe several classes of mobile code
+                 and extract their common characteristics, where
+                 security proves to be one of the major concerns. With
+                 these characteristics as reference points, we examine
+                 six representative languages proposed for mobile code.
+                 The conclusion of this study leads to our
+                 recommendations for future work, illustrated by
+                 examples of ongoing research.",
+  acknowledgement = ack-nhfb,
+  keywords =     "languages; security",
+  subject =      "{\bf A.1} General Literature, INTRODUCTORY AND SURVEY.
+                 {\bf D.3.2} Software, PROGRAMMING LANGUAGES, Language
+                 Classifications, Object-oriented languages. {\bf C.2.4}
+                 Computer Systems Organization, COMPUTER-COMMUNICATION
+                 NETWORKS, Distributed Systems, Distributed
+                 applications. {\bf D.4.6} Software, OPERATING SYSTEMS,
+                 Security and Protection, Access controls.",
+}
+
+@Article{ABLN85,
+  author =       "G. T. Almes and A. P. Black and E. D. Lazowska and J.
+                 D. Noe",
+  title =        "The Eden System: {A} Technical Review",
+  pages =        "43--58",
+  journal =      "IEEE Transactions on Software Engineering",
+  volume =       "11",
+  number =       "1",
+  month =        jan,
+  year =         "1985",
+  abstract =     "The Eden project is a five year experiment in
+                 designing, building and using an {"}integrated
+                 distributed{"} computing system. We are attempting to
+                 combine the benefits of integration and distribution by
+                 supporting an object based style of programming on top
+                 of a node machine/local network hardware base. Our
+                 experiment hypothesis is that such an architecture will
+                 provide an environment conducive to building
+                 distributed applications. This technical review is
+                 written three years into the project. We begin by
+                 summarizing the Eden system: its concepts, history,
+                 status, and context. We next discuss the way in which
+                 the task of supporting the Eden architecture is divided
+                 between the kernel, the programming language, and
+                 user-level (library) code; we describe the experiences
+                 with paper designs and prototype implementations that
+                 led us to this division of labor. We then show how
+                 distributed applications make use of various aspects of
+                 the Eden architecture. We conclude by providing some
+                 preliminary evaluations based on our experiences to
+                 date. The objective of our research is to assess the
+                 benefits (in terms of programmability) and the costs
+                 (in terms of necessary support) of our system
+                 architecture. We feel we have gained insights on a
+                 number of questions of relevance well beyound Eden or
+                 Eden-like systems. o How should the job of supporting a
+                 system such as Eden be divided between the kernel, the
+                 programming language, and user-level (library) code? o
+                 How do distributed applications make use of various
+                 aspects of the Eden architecture (location
+                 independance, concurrency, etc.)? o Of the many design
+                 and implementation choices we have made, which are
+                 apparently good or apparently bad, based on our
+                 experience to date?",
+  keywords =     "Eden",
+}
+@Article{birrell95,
+  author =       "Andrew Birrell and Greg Nelson and Susan Owicki and
+                 Edward Wobber",
+  title =        "Network Objects",
+  journal =      "Software--Practice and Experience",
+  year =         "1995",
+  volume =       "25",
+  number =       "S4",
+  pages =        "87--130",
+  month =        dec,
+  note =         "Also available as Digital Systems Research Center
+                 Research Report 115.",
+  url =          "http://gatekeeper.dec.com/pub/DEC/SRC/research-reports/abstracts/src-rr-115.html",
+  abstract =     "A network object is an object whose methods can be
+                 invoked over a network. This report describes the
+                 design and implementation of a network objects system
+                 for Modula-3. The system is novel for its overall
+                 simplicity. The report includes a thorough description
+                 of realistic marshaling algorithms for network objects,
+                 precise informal specifications of the major internal
+                 interfaces, preliminary experience, and performance
+                 results.",
+}
+
+@TechReport{Cardelli94,
+        author  = {Luca Cardelli},
+        title   = "{Obliq}: a Language with Distributed Scope",
+        type    = "SRC Research Report",
+        year    = 1994,
+        month   = Jun,
+        day     = 3,
+        number  = 122,
+        institution     = "Digital Equipment"
+}
+@Article{jul88,
+  author =       "Eric Jul and Henry Levy and Norman Hutchinson and
+                 Andrew Black",
+  title =        "Fine-grained Mobility in the {E}merald System",
+  journal =      "ACM Transactions on Computer Systems",
+  year =         "1988",
+  volume =       "6",
+  number =       "1",
+  pages =        "109--133",
+  month =        feb,
+  url =          "ftp://ftp.diku.dk/pub/diku/dists/emerald/papers.tar.Z",
+  abstract =     "Emerald is an object-based language and system
+                 designed for the construction of distributed programs.
+                 An explicit goal of Emerald is support for object
+                 mobility; objects in Emerald can freely move within the
+                 system to take advantage of distribution and
+                 dynamically changing environments. We say that Emerald
+                 has {\em fine-grained} mobility because Emerald objects
+                 can be small data objects as well as process objects.
+                 Fine-grained mobility allows us to apply mobility in
+                 new ways but presents implementation problems as well.
+                 This paper discusses the benefits of fine-grained
+                 mobility, the Emerald language and run-time mechanisms
+                 that support mobility, and techniques for implementing
+                 mobility that do not degrade the performance of local
+                 operations. Performance measurements of the current
+                 implementation are included.",
+}
+
+
+% secure and authenticated objects (no access control issues or typing)
+@inproceedings{dabw96,
+        author  = {Leendert van Doorn and Martin Abadi and Mike Burrows and
+                  Edward Wobber},
+        title   = {Secure Network Objects},
+        address = {Oakland},
+        year    = {1996},
+        booktitle       = {Proc.\ IEEE Symposium on Security and Privacy}
+}
+
+% should get the following, haven't seen.
+@Article{Berkovits:1998:AMA,
+  author =       "S. Berkovits and J. D. Guttman and V. Swarup",
+  title =        "Authentication for Mobile Agents",
+  journal =      "Lecture Notes in Computer Science",
+  volume =       "1419",
+  pages =        "114--??",
+  year =         "1998",
+  coden =        "LNCSD9",
+  ISSN =         "0302-9743",
+  bibdate =      "Sat Oct 10 14:40:24 MDT 1998",
+  acknowledgement = ack-nhfb,
+}
+
+
+@Article{KLO97,
+  author =       "G. Karjoth and D. Lange and M. Oshima",
+  title =        "{A Security Model for Aglets}",
+  journal =      "IEEE Internet Computing",
+  year =         "1997",
+  month =        jul # "/" # aug,
+  volume =       "1",
+  number =       "4",
+  pages =        "68--77",
+  keyword =      "mobile agents, Java",
+  abstract =     "Mobile agents offer a new paradigm for distributed
+                 computation, but their potential benefits must be
+                 weighed against the very real security threats they
+                 pose. These threats originate not just in malicious
+                 agents but in malicious hosts as well. In this article,
+                 we present our security model for the IBM Aglets
+                 Workbench, a Java-based environment for building mobile
+                 agent applications. We detail both the security model
+                 and the corresponding security architecture that
+                 represents a framework for the inclusion of security
+                 services in future releases of the AWB. This work
+                 therefore represents an additional step toward the
+                 comprehensive security model required for widespread
+                 commercial adoption of mobile agent systems to occur.",
+  url =          "http://www.ibm.com/java/education/aglets/w4068.pdf",
+}
+
+% secure mobile objects - mainly their info. flow biz, but has general
+%                  mumblings at start
+
+@InCollection{security:vigna:volpano:98,
+  author =       "Dennis Volpano and Geoffrey Smith",
+  title =        "{Language Issues in Mobile Program Security}",
+  pages =        "25--43",
+  booktitle =    "Mobile Agent Security",
+  editor =       "Giovanni Vigna",
+  year =         "1998",
+  series =       "Lecture Notes in Computer Science No. 1419",
+  publisher =    "Springer-Verlag",
+  abstract =     "Many programming languages have been developed and
+                 implemented for mobile code environments. They are
+                 typically quite expressive. But while security is an
+                 important aspect of any mobile code technology, it is
+                 often treated after the fundamental design is complete,
+                 in ad hoc ways. In the end, it is unclear what security
+                 guarantees can be made for the system. We argue that
+                 mobile programming languages should be designed around
+                 certain security properties that hold for all
+                 well-formed programs. This requires a better
+                 understanding of the relationship between programming
+                 language design and security. Appropriate security
+                 properties must be identified. Some of these properties
+                 and related issues are explored.",
+}
+ 
+
+% PCC
+
+% Main cite -- Abadi logic type authentication in PCC framework...
+@InProceedings{Appel99ccs,
+  author =       "Andrew W. Appel and Edward W. Felten",
+  title =        "Proof-Carrying Authentication",
+  editor =       "G. Tsudik",
+  booktitle =    "Proceedings of the 6th Conference on Computer and
+                 Communications Security",
+  year =         "1999",
+  publisher =    "ACM Press",
+  address =      "Singapore",
+  month =        nov,
+  keywords =     "LF, Elf",
+}
+
+@InProceedings{NecLee98a,
+  author =       "G. C. Necula and P. Lee",
+  title =        "Safe, Untrusted Agents using Proof-Carrying Code",
+  booktitle =    "Mobile Agents and Security",
+  volume =       "1419",
+  year =         "1998",
+  publisher =    "Springer Verlag",
+  series =       "LNCS",
+  editor =       "G. Vigna",
+  pages =        "61--91",
+  added-at =     "Mon Mar 30 11:47:35 1998",
+  abstract =     "This paper is intended to be both a comprehensive
+                 implementation guide for a Proof-Carrying Code system
+                 and a case study for using PCC in a mobile agent
+                 environment. Specifically, the paper describes the use
+                 of PCC for enforcing memory safety, access control and
+                 resource usage bounds for untrusted agents that access
+                 a database.",
+  url =          "\url{http://www.cs.cmu.edu/~necula/lncs98.ps.gz}",
+}
+
+@InProceedings{Necula:1996:SKE,
+  author =       "George C. Necula and Peter Lee",
+  title =        "Safe Kernel Extensions Without Run-Time Checking",
+  editor =       "{USENIX}",
+  booktitle =    "2nd Symposium on Operating Systems Design and
+                 Implementation ({OSDI} '96), October 28--31, 1996.
+                 Seattle, {WA}",
+  publisher =    "USENIX",
+  address =      "Berkeley, CA, USA",
+  institution =  "Carnegie Mellon University",
+  pages =        "229--243",
+  day =          "28--31",
+  month =        oct,
+  year =         "1996",
+  bibdate =      "Wed Aug 13 10:48:45 MDT 1997",
+  acknowledgement = ack-nhfb,
+}
+
+% vaguely related type systems
+%Crary memory management
+@InProceedings{crar99,
+  title =        "Typed Memory Management in a Calculus of
+                 Capabilities",
+  author =       "Karl Crary and David Walker and Greg Morrisett",
+  booktitle =    "Conference Record of the Twenty-sixth Annual {ACM}
+                 Symposium on Principles of Programming Languages",
+  publisher =    "ACM Press",
+  year =         "1999",
+  series =       "ACM SIGPLAN Notices",
+  url =          "http://simon.cs.cornell.edu/home/jgm/papers/capabilities.ps",
+}
+
+
+@Article{Talpin-Jouvelot94,
+  key =          "Talpin \& Jouvelot",
+  author =       "Jean-Pierre Talpin and Pierre Jouvelot",
+  title =        "The Type and Effect Discipline",
+  year =         "1994",
+  url =          "http://cri.ensmp.fr/~talpin/ic94.ps.gz",
+  journal =      "Information and Computation",
+  month =        jun,
+  number =       "2",
+  pages =        "245--296",
+  volume =       "111",
+}
+
+% modules
+
+% Lots of good stuff in the following paper. 
+
+@TechReport{PRINCETONCS//TR-603-99,
+  pages =        "13",
+  year =         "1999",
+  type =         "Technical Report",
+  number =       "TR-603-99",
+  title =        "Mechanisms for Secure Modular Programming in Java",
+  bibdate =      "August 4, 1999",
+  author =       "Lujo Bauer and Andrew W. Appel and Edward W. Felten",
+  abstract =     "We present a new module system for Java that improves
+                 upon many of the deficiencies of the Java package
+                 system and gives the programmer more control over
+                 dynamic linking. Our module system provides explicit
+                 interfaces, multiple views of modules based on
+                 hierarchical nesting, and more flexible name-space
+                 management than the Java package system. Relationships
+                 between modules are explicitly specified in module
+                 description files. We provide more control over dynamic
+                 linking by allowing import statements in module
+                 description files to require that imported modules be
+                 annotated with certain properties, which we implement
+                 by digital signatures. Our module system is compatible
+                 enough with standard Java that we have implemented it
+                 as a source-to-source and bytecode-to-bytecode
+                 transformation wrapped around a standard Java
+                 compiler.",
+  language =     "English",
+  institution =  "Princeton University, Computer Science Department",
+  month =        jul,
+}
+
+@InProceedings{PLDI::FlattF1998,
+  title =        "Units: Cool Modules for {HOT} Languages",
+  author =       "Matthew Flatt and Matthias Felleisen",
+  booktitle =    "Proceedings of the {ACM} {SIGPLAN}'98 Conference on
+                 Programming Language Design and Implementation
+                 ({PLDI})",
+  address =      "Montreal, Canada",
+  month =        "17--19~" # jun,
+  year =         "1998",
+  pages =        "236--248",
+  references =   "\cite{POPL::biswas1995} \cite{POPL::Cardelli1997}
+                 \cite{POPL::FlattKF1998} \cite{POPL::HarperL1994}
+                 \cite{POPL::HarperMM1990}
+                 \cite{TOPLAS::Jagannathan1994} \cite{POPL::LeeF1993}
+                 \cite{POPL::Leroy1992} \cite{POPL::Leroy1994}
+                 \cite{POPL::Leroy1995} \cite{ESOP::MacQueenT1994}
+                 \cite{PLDI::TarditiMCSHL1996} \cite{POPL::Tofte1992}
+                 \cite{IC::WrightF1994}",
+}
+
+@InCollection{Harper-Milner-Tofte87,
+  key =          "Harper \& Milner \& Tofte",
+  author =       "Robert Harper and Robin Milner and Mads Tofte",
+  title =        "A Type Discipline for Program Modules",
+  booktitle =    "Proceedings of the International Joint Conference on
+                 Theory and Practice of Software Development (TAPSOFT)",
+  series =       "Lecture Notes in Computer Science",
+  volume =       "250",
+  month =        mar,
+  year =         "1987",
+  pages =        "308--319",
+  publisher =    "Springer-Verlag",
+}
+
+@TechReport{WABL93,
+        author  = "Edward Wobber and Martin Abadi and Michael Burrows and Butler Lampson",
+        title   = "Authentication in the {Taos} Operating System",
+        address = "130 Lytton Avenue, Palo Alto, Ca 94301",
+        keywords        = "Taos, authentication, delegation, secure loading, implementation",
+        year    = "1993",
+        month   = "December",
+        annote  = "description of design and implementation of
+                  Authentication in Taos in details. the design is
+                  based on the logic described in \cite{BuAbNe90}
+                  (interesting)",
+        number  = "117",
+        institution     = "DEC Systems Research Center"
+}
+
+@InCollection{moschovakis,
+  author = 	 {Alexander S. Kechris and Yiannis N. Moschovakis},
+  title = 	 {Recursion in Higher Types},
+  booktitle = 	 {Handbook of Mathematical Logic},
+  chapter = 	 {C.6},
+  publisher = 	 {North-Holland Publishing Company},
+  year = 	 1977,
+  editor =	 {J. Barwise},
+  volume =	 90,
+  series =	 {Studies in Logic and the Foundation of Mathematics},
+  pages =	 {681-737}
+}
+
+@TechReport{henglein96,
+  AUTHOR      = {Henglein, Fritz},
+  YEAR        = {1996},
+  TITLE       = {Syntactic Properties of Polymorphic Subtyping},
+  INSTITUTION = {DIKU, University of Copenhagen},
+  address     = {Universitetsparken 1, DK-2100 Copenhagen, Denmark},
+  type        = {TOPPS Technical Report (D-report series)},
+  number      = {D-293},
+  month       = {May},
+  keywords    = {Polymorphism, subtyping, type inference, syntactic
+properties, principal type, Algorithm W, simplifications, qualified
+type schemes, instance relation},
+  summary     = {In this paper we study polymorphic subtyping, where the subtyping
+theory is \emph{not} required to be structural.  We observe that type
+schemes with subtyping qualifications are strictly necessary in order
+to obtain principal typing.  We identify a new instance relation on
+typing judgements, the \emph{halbstark} relation.  It is a hybrid,
+lying in strength between Mitchell's original instance relation and
+Fuh and Mishra's lazy instance relation.  We present a sound and
+complete type inference algorithm in the style of Milner's Algorithm
+W.  The significance of the halbstark relation emerges from the fact that
+the algorithm is \emph{generic} in that it admits replacing 
+typing judgements by \emph{any} halbstark-equivalent judgements at any
+point.  This provides a generalized correctness argument for Algorithm W
+independent of any particular constraint simplification strategy
+chosen.  Finally, we show that polymorphic typing judgements are
+preserved under let-unfolding, let-folding, and
+$\eta$-reduction, but not in general under $\beta$-reduction.  
+The latter holds, though, if the subtyping discipline has the
+\emph{decomposition} property, which says that two function types are
+in a subtype relation only if their domain and range types are
+in the appropriate contra-/covariant subtype relation.
+},
+  supersedes  = {},
+  SEMNO       = {D-293},
+  PUF         = {Tekniske rapport},
+  ID          = {Tek}
+}
+
+@InProceedings{skalka00:_static_enfor_secur_types,
+  author       = "Christian Skalka and Scott Smith",
+  title        = "Static Enforcement of Security with Types",
+  booktitle    = "Proceedings of the the Fifth {ACM} {SIGPLAN}
+                 International Conference on Functional Programming
+                 (ICFP'00)",
+  month        = sep,
+  year         = 2000,
+  pages        = "34--45",
+  address      = "MontrÅÈal, Canada",
+}
+
+@InProceedings{crary00:resource_bounds,
+  author = 	 {Karl Crary and Stephanie Weirich},
+  title = 	 {Resource Bound Certification},
+  booktitle = 	 {Symposium on Principles of Programming Languages},
+  year =	 2000
+}
+
+@InCollection{cardelli:ambit,
+  author = 	 {Luca Cardelli},
+  title = 	 {Abstractions for Mobile Computation},
+  booktitle = 	 { Secure Internet Programming: Security Issues for Mobile and Distributed Objects},
+  publisher =	 {Springer},
+  year =	 1999,
+  editor =	 {Jan Vitek and Christian Jensen},
+  volume =	 1603,
+  series =	 {Lecture Notes in Computer Science},
+  pages =	 {51-94}
+}
+
+
+@inproceedings{bhargavan-fournet-gordon-popl04,
+ author = {Karthikeyan Bhargavan and C\&\#233;dric Fournet and Andrew D. Gordon},
+ title = {A semantics for web services authentication},
+ booktitle = {Proceedings of the 31st ACM SIGPLAN-SIGACT symposium on Principles of programming languages},
+ year = {2004},
+ isbn = {1-58113-729-X},
+ pages = {198--209},
+ location = {Venice, Italy},
+ doi = {http://doi.acm.org/10.1145/964001.964018},
+ publisher = {ACM Press},
+ }
+
+@article{wallach-appel-felten-TSEM00,
+ author = {Dan S. Wallach and Andrew W. Appel and Edward W. Felten},
+ title = {{SAFKASI}: a security mechanism for language-based systems},
+ journal = {ACM Trans. Softw. Eng. Methodol.},
+ volume = {9},
+ number = {4},
+ year = {2000},
+ issn = {1049-331X},
+ pages = {341--378},
+ doi = {http://doi.acm.org/10.1145/363516.363520},
+ publisher = {ACM Press},
+ }
+
+@InProceedings{fournet-abadi-isss03,
+  author = 	 {C. Fournet and M. Abadi},
+  title = 	 {Hiding Names: Private Authentication in the Pi Calculus},
+  booktitle =	 {Proceedings of the International Symposium on Software Security},
+  pages =	 {317-338},
+  year =	 2003,
+  number =	 2609,
+  series =	 {LNCS},
+  month =	 {November},
+  publisher =	 {Springer-Verlag}
+}
+
+@inproceedings{gordon-pucella-xmls02,
+ author = {Andrew D. Gordon and Riccardo Pucella},
+ title = {Validating a Web service security abstraction by typing},
+ booktitle = {Proceedings of the 2002 ACM workshop on XML security},
+ year = {2002},
+ isbn = {1-58113-632-3},
+ pages = {18--29},
+ location = {Fairfax, VA},
+ doi = {http://doi.acm.org/10.1145/764792.764797},
+ publisher = {ACM Press},
+ }
+
+@InProceedings{gordon-etal-fmco03,
+  author = 	 {A. Gordon and K. Bhargavan and C. Fournet and R. Pucella},
+  title = 	 {TuluFale: A Security Tool for Web Services},
+  booktitle =	 {Formal Methods for Components and Objects},
+  year =	 2003,
+  editor =	 {Springer},
+  series =	 {LNCS}
+}
+
+@InProceedings{christophides-etal-tes01,
+  author = 	 {Vassilis Christophides and Richard Hull and Gregory Karvounarakis and Akhil Kumar and Geliang Tong and Ming Xiong},
+  title = 	 {Beyond Discrete E-services: Composing Session-Oriented Services in Telecommunications},
+  booktitle =	 {Proceedings of the Workshop on Technologies for E-Services (TES)},
+  address = {Rome, Italy},
+  year =	 2001
+}
+
+@InProceedings{hull-su-sigmod04,
+  author = 	 {Richard Hull and Jianwen Su},
+  title = 	 {Tools for Design of Composite Web Services},
+  booktitle =	 {{ACM SIGMOD}},
+  pages =	 {958-961},
+  year =	 2004
+}
+
+@inproceedings{sirer-wang-sacmat02,
+ author = {Emin G\&\#252;n Sirer and Ke Wang},
+ title = {An access control language for web services},
+ booktitle = {Proceedings of the seventh ACM symposium on Access control models and technologies},
+ year = {2002},
+ isbn = {1-58113-496-7},
+ pages = {23--30},
+ location = {Monterey, California, USA},
+ doi = {http://doi.acm.org/10.1145/507711.507715},
+ publisher = {ACM Press},
+ }
+
+@INPROCEEDINGS{skalka-wang-sws04,
+  AUTHOR = {Christian Skalka and X. Sean Wang},
+  TITLE = {Trust but Verify: Authorization for Web Services},
+  BOOKTITLE = {ACM Workshop on Secure Web Services},
+  YEAR = 2004,
+  MONTH = {October}
+}
+
+@MastersThesis{anderson-ms-thesis,
+  author = 	 {Scot Anderson},
+  title = 	 {Constraint Datalog in Trust Management},
+  school = 	 {University of Nebraska},
+  year = 	 2003
+}
+
+@InProceedings{josang-ndss99,
+  author = 	 {Audun J{\o}sang},
+  title = 	 {An Algebra for Assessing Trust in Certification
+Chains},
+  booktitle = 	 {Proceedings of the Network
+and Distributed Systems Security Symposium (NDSS'99)},
+  year =	 1999,
+  editor =	 {J. Kochmar},
+  publisher =	 {The Internet Society}
+}
+
+
+
+@Article{grandison-ieeecst00,
+  author = 	 {Tyrone Grandison and Morris Sloman},
+  title = 	 {A Survey of Trust in Internet Applications},
+  journal = 	 {IEEE Communications Surveys \& Tutorials},
+  year = 	 2000,
+  volume =	 {4th Quarter}
+}
+
+@Misc{Abdul-Rahman-EDI97,
+  author =	 {Abdul-Rahman},
+  title =	 {The {PGP} trust model},
+  howpublished = {EDI-Forum: the Journal of Electronic Commerce},
+  year =	 1997
+}
+

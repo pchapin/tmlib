@@ -1,0 +1,10 @@
+# This is a variation of test15 where the weights on all the edges are
+# zero. This ensures that no infinite loop arises in this special case.
+# The expected output is (E, 0).
+
+A.r, 50
+A.r <- A.s.t, 3, 0
+A.s <- E, 1, 0
+A.s <- A.r, 2, 0
+E.t <- E, 1, 0
+

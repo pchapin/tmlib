@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+  "http://www.docbook.org/xml/4.4/docbookx.dtd" [
+]>
+
+<!-- FILE        : doc-TMUser.xml
+     LAST REVISED: 2009-01-21
+     AUTHOR      : (C) Copyright 2009 by Peter C. Chapin
+
+This is the documentation chapter that describes how to use trust management systems
+without regard to this library or any other specific TM application. -->
+  
+<chapter>
+  <title>TM User Guide</title>
+  <para/>
+</chapter>

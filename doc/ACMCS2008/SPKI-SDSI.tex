@@ -1,0 +1,461 @@
+
+\subsection{SPKI/SDSI}
+
+The Simple Distributed Security Infrastructure (SDSI)
+\cite{Rivest:SDSI-10,Rivest:SDSI-11} is a system for managing
+distributed name spaces.  In addition to global names, a primary
+contribution of SDSI is linked local name space management, where
+name spaces are defined and structured locally, but can be referenced
+non-locally.  An authorizer associates access rights with a particular
+local name, and any principals \emph{bound} to that name by SDSI
+\emph{name certificates} are authorized for access.  By signing access
+requests with names, an authorization logic is obtained based on
+name-to-key bindings, and linking relations between names.
+
+The Simple Public Key Infrastructure (SPKI) was developed concurrently
+with SDSI to provide more complex authorization policies in
+distributed systems without the need for managing identities. These
+technologies merged into SPKI/SDSI version 2.0
+\cite{RFC-2693}.  SPKI adds to SDSI the ability to
+directly bind a capability, called an
+\newterm{authorization certificate}, to a name or key. Such bindings are only
+meaningful if the issuing principal has a superset of the capabilities
+being bound. Thus SPKI/SDSI allows a principal to explicitly delegate
+a subset of his or her rights to another principal or to a name
+representing a collection of principals, resulting in a rich
+authorization language.  
+
+\subsubsection{Features of SDSI}
+
+In SDSI public keys have the status of principals, and there is no
+attempt to associate public keys with individual people, machines, or
+other entities, this being regarded as an external consideration.  When
+discussing SPKI/SDSI we use the terms ``principal'' and
+``public key'' interchangeably.  The system implicitly assumes that
+private keys are secure and that statements signed by those keys
+reflect the intentions of the corresponding principal. Thus the SDSI
+authorization semantics does not concern itself with certificate
+signature checking, rather such checking is handled entirely by the
+processing of certificates prior to authorization (that is, by
+component $T_C$ in \autoref{figure-tmstruct}).
+
+In SDSI each principal defines a structured name space local to that
+principal by issuing \newterm{name certificates}, binding names to
+principals in a manner that confers the rights of the name to the
+principal. A SDSI name is of the form $K\,A$, where $K$ is a key
+identifying a name space and $A$ fully qualifies the name. Intuitively, we
+may read $K\,A$ as ``$K$'s $A$'', i.e., a local name $A$ in $K$'s name
+space. In addition, SDSI provides \emph{extended names} of the form
+$K\,A_1\cdots A_n$ that allows linkage to non-local name spaces as discussed
+below. A name certificate is abstracted as a 4-tuple of the form $(K, A, S,
+V)$ \cite{RFC-2693} where:
+\begin{itemize}
+\item $K$ is the principal issuing the certificate.
+\item $A$ is the name in $K$'s name space being defined.
+\item $S$ is the subject of the certificate (the name being bound to $A$).
+\item $V$ is certificate validity information.
+\end{itemize}
+Certificate subjects $S$ can be other principals, names, or linked
+names.  The certificate validity field $V$ contains expiration times
+or information about where to obtain revocation or revalidation
+information on-line. An authorizer can use this information to check
+if a certificate has been revoked in real-time. A SDSI system
+disregards any certificates that are expired or have been revoked so validity
+information does not play a direct role in authorization decisions.
+
+Since validity information $V$ is not relevant to the SDSI
+authorization semantics, the following useful syntactic sugar can be
+defined for the consideration of SDSI authorization logic:
+$$
+K A \rightarrow S\ \defeq\ (K,A,S,V) \qquad \text{$V$ is valid}
+$$
+Informally this means that the name $A$ in $K$'s name space is being
+defined as a local name for the subject $S$. For example, the
+certificate $K_a\,\,\text{\tt robert}\,\,\rightarrow K_b$ indicates
+that $K_b$ is bound to $K_a$'s \texttt{robert}.
+
+The meaning of a SDSI name is the set of principals bound to that name
+by valid name certificates.  Using only the above certificate, the
+meaning of $K_a$'s $\text{\tt robert}$ is the set $\{K_b\}$.  SDSI
+specifically allows multiple name certificates to define the same
+name, so if $K_a$ issued a second name certificate asserting
+$K_a\,\,\text{\tt robert}\,\,\rightarrow K_{B'}$ then the meaning of
+$K_a$'s $\text{\tt robert}$ would be the set $\{K_b, K_{B'}\}$.  Thus
+SDSI names are essentially group names.  When an authorizer associates
+access rights to a local name, that name behaves similarly to a role
+as defined by the role-based access control (RBAC) community
+\cite{Ferraiolo:RBAC}. In this way SDSI provides support for RBAC.
+
+An important aspect of SDSI is that it allows certificate subjects to
+refer to non-local names. This can be done via a certificate of the
+form $K_1\,A_1 \rightarrow K_2\,A_2$ denoting that the meaning of
+$K_1\,A_1$ subsumes that of $K_2\,A_2$, i.e.~all names bound to
+$K_2\,A_2$ are also bound to $K_1\,A_1$.  Certificate subjects can
+also be an extended name $K\,A_1\,\cdots\,A_n$.  For $n=2$, the
+extended name $K\,A_1\,A_2$ has a meaning that is based on the meaning
+of $K\,A_1$: it is the set of all names bound to $K_x\,A_2$ such that
+$K_x$ is bound to $K\,A_1$.  Iterating this idea obtains meaning for
+extended names with higher values of $n$.
+
+%% Cut this example, doesn't seem to add much.
+%
+%Each SDSI principal is the root of a name hierarchy, delegating authority
+%over the subordinate names to the principals that defined them. For example
+%the name certificate
+%$$
+%K_1\,\,\text{post-people} \rightarrow K_{\text{usps}}\,\,\text{\tt Florida}\,\,{\tt Miami}\,\,\text{\tt postal-workers}
+%$$
+%issued by $K_1$ defines the local name \texttt{post-people} to refer to the
+%principals in the \texttt{postal-workers} group of the Miami, Florida post
+%office. Here we assume that the principal representing the US Postal
+%Service, $K_{\text{usps}}$, has issued a name certificate for its
+%\texttt{Florida} local name that binds that name to the key used by the
+%Florida postal operations center. The Florida postal operations center has,
+%in turn, issued a name certificate that binds the Miami post office key to
+%the name \texttt{Miami}, and so forth. This decentralizes control over the
+%membership of $K_1\,\,\text{post-people}$ since the bindings involved in
+%the name certificate above can be changed or extended by various
+%principals.
+
+\subsubsection{Running Example (SDSI)}
+
+Here we show how to encode the policies described in the medical records
+example in \autoref{section-overview-example} using SDSI. Assuming that
+$K_a$, $K_b$, $K_c$, and $K_d$ are Alice, Bob, Carol, and Dave's keys
+respectively, Alice's policy is expressed as:
+\begin{itemize}
+\item $K_a\, \text{\tt records} \rightarrow K_b$
+\item $K_a\, \text{\tt records} \rightarrow K_b\, \text{\tt alice\_delegates}$
+\end{itemize}
+Although the original SDSI definitions provided a way to define groups of
+principals using set intersections, SDSI version 2.0 lacks this facility.
+This presents a problem in the example as originally stated since Bob would
+then be forced to grant his entire team, including non-medical personnel,
+access to Alice's medical records. To work around this Bob can distinguish
+between his overall team and his medical team, so his policy is:
+\begin{itemize}
+\item $K_b\, \text{\tt medical\_team} \rightarrow K_b\, \text{\tt
+  medical\_team}\,\, \text{\tt support}$
+\item $K_b\, \text{\tt alice\_delegates} \rightarrow K_b\, \text{\tt
+  medical\_team}$
+\item $K_b\, \text{\tt medical\_team} \rightarrow K_c$
+\end{itemize}
+Carol's policy includes $K_c\, \text{\tt support} \rightarrow K_d$ defining
+Dave as a member of her support staff. Again because SDSI 2.0 lacks
+intersections the hospital's assertion that Dave is a medical staff member
+is not used; we must presume that Carol will only add medical staff members
+to her support staff. In a more realistic situation Carol may want to
+distinguish between her medical support staff and her non-medical support
+staff by using two distinct names.
+
+\subsubsection{Features of SPKI}
+
+SPKI extends the SDSI framework with authorization certificates,
+allowing authorization rights to be delegated from principal to
+principal. Such certificates have the form of a 5-tuple, $(K, S, D, T,
+V)$ where:
+\begin{itemize}
+\item $K$ is the principal issuing the certificate.
+\item $S$ is the subject of the certificate.
+\item $D$ is a boolean delegation flag.
+\item $T$ is the authorization tag.
+\item $V$ is certificate validity information.
+\end{itemize}
+The $K$, $S$, and $V$ fields are the same as for SDSI name
+certificates.  The $T$ field of the certificate is the
+\newterm{authorization tag}. It is formatted as an s-expression with
+specific rules regarding its structure.  The meaning of the
+tag is left undefined by SPKI and is application specific.  For
+example a tag such as
+\texttt{(http (port 8080) (read (url /downloads)))} might represent the
+capability of being able to read from the \texttt{downloads} directory
+on the HTTP server at port 8080. In this way, SPKI authorization tags
+provide a way to make statements about structured resources.
+
+The $D$ field of the certificate is the delegation flag.  If set the
+subject is allowed to further delegate the authorization to others by
+issuing new authorization certificates as appropriate. SPKI provides
+only boolean delegation control where authorizations can be delegated
+arbitrarily or not at all. SPKI's design does not allow a principal to
+specify an integer delegation depth because of the inherent difficulty
+in specifying an appropriate depth.  The argument for this is that in
+general principals can't easily know how many levels of delegation an
+authorization might reasonably need. Also since controlling the depth
+of delegation does not restrict the width of the delegation tree, a
+limited depth does not necessarily prevent rampant delegation
+\cite{RFC-2693}.
+
+\subsubsection{Running Example (SPKI)}
+
+In the SDSI example above, a request signed by a key $K$ is granted access
+to Alice's records if the name $K_a\, \text{\tt records}$ can be resolved
+to $K$. SPKI/SDSI version 2.0 contains SDSI and so this approach would
+apply in a SPKI/SDSI setting as well. However, SPKI also provides
+authorization certificates.
+
+So far the example has treated Alice's medical records as a single
+entity.  If access is granted to any part of Alice's records, access
+is granted to all of Alice's records. If Alice's medical records
+contain many components one could assert access control over each
+component individually using separate names to represent the different
+components. However, for indefinitely large structured resources such
+an approach is infeasible.  SPKI authorization tags allow an
+indefinite subset of a structured resource to be specified and thus
+offers a granularity of control that is not possible using SDSI alone.
+
+For example, Alice might issue a SPKI authorization certificate that
+grants Bob access to her medical records (or some portion thereof) and
+the power to delegate that access to others. Such a certificate might
+look like:
+
+\vspace{1.5ex}
+\centerline{$(K_a, K_b, \text{\tt true}, \text{\tt (records Alice (rw *))})$}
+\vspace{1.5ex}
+\noindent Here the authorization tag \texttt{(records Alice (rw *))} is assumed
+to convey full (read and write) access to all of Alice's
+records. Although the precise format of this string is application
+dependent, as long as the hospital database acting on behalf of Alice
+understands its meaning, authorizations will only be carried out
+according to Alice's wishes.
+
+Bob could delegate the authorization he received from Alice to his
+medical team by issuing another authorization certificate:
+
+\vspace{1.5ex}
+\centerline{$(K_b, K_b\,\,\text{\tt medical\_team}, \text{\tt false},
+  \text{\tt (records Alice (rw *))})$}
+\vspace{1.5ex}
+\noindent Here Bob prevents further delegations of the authorization. In this
+example, Bob passes his entire set of permissions to his medical team.
+Assuming Bob understands the format of the authorization tag, he could
+optionally pass a subset of his permissions to his team. When a
+request is made the hospital database would intersect the
+authorization tags to find the overall set of permissions allowed in
+the request.
+
+In this example, no further authorization certificates are necessary. When
+Dave submits his test results to the hospital database, he must sign his
+request with his key and provide SDSI name certificates to prove his key's
+association with $K_b\,\,\text{\tt medical\_team}$. He must also provide
+the two authorization certificates showing that $K_b\,\,\text{\tt
+medical\_team}$ is authorized to access Alice's medical records. Notice
+that one of these authorization certificates is signed by Alice and thus
+authority over her records ultimately comes from her.
+
+
+\subsubsection{Semantics}
+
+The original presentations of SPKI and SDSI 
+\cite{Rivest:SDSI-10,Rivest:SDSI-11,RFC-2693} provide a thorough 
+informal specification of its semantics and also sketch an
+operational meaning of certificates via rewrite rules as discussed
+below in \autoref{section-SDSI-SPKI-implementation}, but a rigorous
+formal specification has been a distinct project carried out after the
+initial development of the system.  The problem is surprisingly
+subtle, with a number of authors proposing alternate solutions.
+
+The semantics proposed by Clarke et al.~\cite{Clarke:CCDSS} is
+constructed as the least solution of a system of containment
+constraints imposed by a given set of certificates.  Let $\mathcal{K}$
+be the set of principals mentioned in a given collection of name
+certificates $\mathcal{C}$. Let $\mathcal{N}_L$ be the set of local
+names of the form $K\,A$ where $K \in
+\mathcal{K}$, and $A$ is one of the name identifiers mentioned in
+$\mathcal{C}$. Let $\mathcal{N}_E$ be the set of extended names of the form
+$K\,A_1\,A_2\,\ldots\,A_n,\,n \ge 2$ where $K \in \mathcal{K}$ and the
+$A_1, A_2, \ldots, A_n$ are all name identifiers mentioned in
+$\mathcal{C}$. Finally let $\mathcal{T} = \mathcal{K} \cup \mathcal{N}_L
+\cup \mathcal{N}_E$ be the set of all \newterm{terms} that can be formed
+using the principals and name identifiers in $\mathcal{C}$. Then the
+semantics of name spaces is defined via the
+\emph{valuation function} $\mathcal{V} : \mathcal{T} \rightarrow
+\mathcal{P}(\mathcal{K})$  satisfying the equations:
+\begin{eqnarray*}
+\mathcal{V}(K) &=& \{K\} \qquad \text{for all } K \in \mathcal{K}\\
+\mathcal{V}(K A_1 A_2 \ldots A_n) &=&
+  \bigcup_{K' \in \mathcal{V}(K A_1)} \mathcal{V}(K' A_2 A_3 \ldots A_n)
+\end{eqnarray*}
+Furthermore, $\mathcal{V}$ is defined to be the least function 
+satisfying the above equalities and the following system of inequalities:
+$$
+\mathcal{V}(K\,A) \supseteq \mathcal{V}(S)
+\qquad (K, A, S, V) \in \mathcal{C}
+$$
+This is a succinct and intuitive description, well-suited to modeling
+the meaning of name certificates.
+
+In contrast to this approach, Abadi developed a logic of SDSI's linked
+local names \cite{Abadi:OSLLNS}.  The model theory of the logic plays
+a role similar to that of Clarke's semantics, but the proof theory is
+technically closer to the certificate rewrite rules proposed in
+RFC-2693 \cite{RFC-2693}, allowing characteristics of names such
+as associativity to be clarified, and relations between the rewrite rules
+and semantic model to be drawn more easily.  In particular, Abadi
+shows the rewrite rules are sound with respect to the logic. However,
+Abadi's logic does allow conclusions about names to be drawn that
+would not be possible in Rivest and Lampson's Scheme.
+
+Abadi uses the notation $n \mapsto v$ to indicate a binding (aka 
+\emph{mapping}) of name
+$n$ to the value $v$ in the name space of some \newterm{current
+principal}.  Intuitively $n \mapsto v$ means ``$v$ speaks-for $n$'':
+any statement asserted by $v$ is implicitly a statement
+asserted by $n$, a relation similar to $\speaksfor$ in ABLP logic
+(\autoref{section-foundations}).  Here values are terms consisting of
+local names, public keys aka \emph{global names}, and extended names.
+Some bindings are published by the assumed current principal as signed
+certificates. For example a binding such as $\mbox{\tt alice} \mapsto
+(\mbox{\tt bob}\,\,\mbox{\tt mother})$ maps the current principal's
+local name {\tt alice} to the extended name $(\mbox{\tt
+bob}\,\,\mbox{\tt mother})$.  Abadi also extends the notion of mapping
+so that arbitrary principal expressions can map to other arbitrary
+principal expressions. For example $(n_1\,n_2)
+\mapsto K$ conveys that the extended name
+$n_1\,n_2$ is bound to the key $K$.
+
+Abadi's logic for SDSI names is a modal logic with an obvious debt to
+ABLP logic. Formulae of the form $p\,\keyword{says}\,s$ formalize
+certificates asserting proposition $s$ that are signed by $p$. The
+standard axioms and rules of inference from propositional logic and
+modal logic are then extended to include the axioms in
+\autoref{figure-AbadiSDSIaxioms}.  Sets of certificates are represented
+as logical assumptions, and name-to-key bindings $n \mapsto v$ are
+considered valid iff they can be deduced from these assumptions given
+the rules of inference.  Abadi shows that the rules of deduction
+required to simulate the name resolution algorithm given by Rivest and
+Lampson are sound in this setting.
+
+\AbadiSDSIaxiomsfig
+
+However, Abadi's general logic is more powerful than the name resolution
+rules allow. Consider the following example given by Abadi where $f_1$,
+$f_2$, and $h$ are global names (keys). The assumptions are
+\begin{mathpar}
+m \mapsto f_1
+
+m \mapsto f_2
+
+f_1\,\,\keyword{says}\,\,(n_1 \mapsto n_2)
+
+f_2\,\,\keyword{says}\,\,(n_2 \mapsto h)
+\end{mathpar}
+The logic allows one to deduce $(m\,n_1) \mapsto h$ whereas this result
+can not be obtained by the name resolution rules. Abadi suggests that such
+results may not be harmful. 
+%% Killed this, it was confusing - chris
+%Yet they are counter the natural intuition for
+%SDSI names. Let $K_p$ be the current principal. Then, using notation
+%introduced earlier, $\mathcal{V}(K_p\,m) \supseteq
+%\{f_1, f_2\}$. Thus $\mathcal{V}(K_p\,m\,n_1) \supseteq
+%\mathcal{V}(f_1\,n_1) \cup \mathcal{V}(f_2\,n_1) \supseteq
+%\mathcal{V}(f_1\,n_2)$. Using $\mathcal{V}(f_2\,n_2)$ in this
+%context would seem to be a violation of the local scope of $f_1\,n_2$.
+
+Halpern and van der Meyden present an alternative to Abadi's logic
+\cite{Halpern:LSSLLNS} that attempts to avoid some of the surprising
+conclusions in Abadi's logic while maintaining the correspondence
+between name resolution and proof.  In the logic of Halpern and van der
+Meyden formulae of the form $p \mapsto q$ intuitively express the idea
+that all keys bound to $q$ are also bound to $p$. This intuition is
+very similar to that expressed by the valuation function $\mathcal{V}$
+described in \cite{Clarke:CCDSS}. Halpern and van der Meyden avoid
+using ``$q$ speaks for $p$'' as an intuitive explanation for $p
+\mapsto q$, regarding such a meaning as one about delegation and thus
+outside the scope of their study.  Halpern and van der Meyden
+distinguish between general principal expressions and keys,
+restricting some of Abadi's axioms to operate only over keys rather
+than general principal expressions.  These authors later accounted for
+additional features in SPKI/SDSI \cite{Halpern:LRS}, including
+authorization certificates and certificate lifetime and revocation
+issues. Howell and Kotz also provide a logical accounting of SPKI/SDSI
+\cite{Howell:FSS,Howell:NSRAAB} building on Abadi's concepts
+for SDSI names but with a restricted speaks-for relation.
+
+
+\LiSDSIlogicfig
+
+Li provides yet another formulation of the logic of SDSI local names
+\cite{Li:LNSS}, but based on general purpose programming logics rather
+than special purpose authorization logics. Li regards the handling of
+$\mapsto$ in Abadi as too general and observes that even under the
+more restricted axioms of Halpern and van der Meyden there are some
+undesirable consequences. Instead Li presents the Prolog logic program in
+\autoref{figure-LiSDSIlogic} that performs SDSI name resolution. In
+this program an extended SDSI name $(a m_1 m_2
+\ldots m_k)$ is represented by a list $[a, m_1, m_2, \ldots, m_k]$
+\footnote{Note that the Prolog syntax $[X,Y|T]$ represents a 
+list whose first and second elements are $X$ and $Y$ respectively,
+and $T$ is the rest (the tail) of the list.}.
+Name certificates are translated into facts using the
+$\mathit{includes}$ predicate, such that $K\,A \rightarrow S$ becomes
+$\mathit{includes}([K,A],[S])$.  In related work Li and Mitchell show 
+the equivalence of a logic programming semantics for SPKI/SDSI and 
+a set-theory semantics in the style of Clarke \cite{Li:USSUFOL}.
+
+Jha and Reps describe a connection between SPKI/SDSI and pushdown systems
+\cite{Jha:ASSCUMC}, and show how to use model checking techniques to
+compute a proof of authorization. Existing model checking algorithms allow
+a variety of other questions to be answered as well, for example given
+a resource one might ask what names are able to access that resource.
+
+\subsubsection{Implementation}
+\label{section-SDSI-SPKI-implementation}
+
+RFC-2693 \cite{RFC-2693} defines a 4-tuple reduction rule that can be
+used to combine two related name certificates into a third
+certificate.  This rule involves replacing a local name in one
+certificate with a key binding established by another.
+So, letting $\circ$ be an infix denotation of the rewrite
+operation, we have that:
+$$
+K_1\,A \rightarrow K_2\,B_1\,B_2\,B_3 \circ K_2\,B_1 \rightarrow K_3
+$$
+results in:
+$$
+K_1\,A \rightarrow K_3\,B_2\,B_3
+$$
+A similar reduction is defined for authorization certificates,
+describing how an authorization is explicitly delegated from one
+subject to the next. For example:
+$$
+(K_1, S_1, \text{\tt true}, T_1, V_1) \circ (S_1, S_2, D_2, T_2, V_2)
+$$
+results in:
+$$
+(K_1, S_2, D_2, A_I(T_1, T_2), V_I(V_1, V_2))
+$$
+where $A_I$ computes the intersection of the two authorizations and
+$V_I$ computes the intersection of the two validity conditions. Rules
+for computing these intersections are given in RFC-2693.  Finally a
+similar reduction rule describes how the subject of an authorization
+can be rewritten according to bindings specified in a name
+certificate. 
+
+Note that RFC-2693 does not give a specific algorithm for finding
+which reductions should be used, given a set of certificates for a
+particular access request. Instead the requester is required to send
+the appropriate certificates in the correct order. This puts the
+burden of constructing the proof of authorization on the requester;
+the authorizer merely checks this proof. This general concept is
+extended in Proof Carrying Authorization which we discuss in more
+detail in \autoref{section-other-PCA}.
+
+To relieve the access requester of the burden of proof, Clarke et
+al.~describe a credential chain discovery algorithm, that will
+automatically check for authorization given a set of certificates and
+a particular request \cite{Clarke:CCDSS}. The algorithm uses a graph
+construction to search for a particular sequence of reductions to
+a certificate delegating the requested permission from the local
+name space to the requester. This algorithm runs in $O(n^3
+L)$ time (worst case) where $n$ is the number of input certificates
+and $L$ is the length of the longest extended name in any of the
+certificates.
+
+In both Clarke et al.'s scheme and that proposed by RFC-2693, it is
+assumed that all certificates are on hand when the authorization
+decision is made.  To our knowledge no method for retrieving
+non-local SPKI/SDSI certificates dynamically has been described in the
+literature, in other words there are no distributed certificate chain
+discovery techniques developed for SPKI/SDSI in the sense 
+described in \autoref{section-overview-structure}.
+

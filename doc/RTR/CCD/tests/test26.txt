@@ -1,0 +1,9 @@
+# This is a variation of test25 except that the risks on all the
+# credentials is zero. This causes fairly quick termination with the
+# output of (E, 0).
+
+A.r, 100
+A.r <- B.s ^ C.t, 4, 0
+B.s <- E, 1, 0
+C.t <- E, 1, 0
+C.t <- A.r, 2, 0

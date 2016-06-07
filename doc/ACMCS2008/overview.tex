@@ -1,0 +1,354 @@
+\section{Overview}
+\label{section-overview}
+
+In this section we provide background in trust management systems for
+the general reader.  We also clarify which trust management system
+components are relevant to the authorization decision-- there turn out
+to be some important subtleties in this regard.  In light of the
+structure of authorization decisions so described, we outline our
+approach to comparing trust management systems.  We also provide a
+longer running example, which serves to illustrate the concepts
+introduced and later serves as an explicit point of comparison
+for the systems we survey.
+
+\subsection{Components of Full Implementations}
+\label{section-overview-components}
+
+Trust Management Systems (TMSs) in practice comprise a number of
+functions and subsystems, which we divide into three major components:
+\emph{the authorization decision}, \emph{certificate storage and
+retrieval}, and \emph{trust negotiation}.  Authorization decisions are
+relevant to the elements and semantics of the access control decision
+itself.  Certificate storage and retrieval is relevant to the physical
+location of certificates that are the low-level representation of
+access control elements such as credentials and policies.  For
+example, systems have been proposed for storing SPKI certificates
+using DNS \cite{nikander98storing} and for storing SDSI certificates using a
+peer-to-peer file server \cite{ajmani02conchord}.  Trust negotiation
+\cite{Winsborough:ATN,Yu:PECSATNI,Seamons:LDACPATN,Yu:ISATN,Winsborough:TPATN,Winsborough:SATN}
+is necessary for access control decisions where some elements of access
+policies or the credentials used to prove authorization with those polices
+should not be arbitrarily disclosed. For example, in \cite{Winsborough:ATN}
+a scheme is proposed whereby access rights held by requesters are protected
+by their own policies, and both authorizers and requesters must show
+compliance with policies (i.e.~negotiate) during authorization.  
+We provide a brief summary and overview of trust negotation in 
+\autoref{section-trust-negotiation}, to provide a more complete 
+view of trust management functionality and challenges in modern practice.
+
+The importance of these other components notwithstanding, in this
+survey our focus will be on authorization decisions.  This is because
+the authorization decision is the basis of any trust management
+system.  Furthermore, not all the systems proposed in the literature
+have been developed sufficiently to include certificate storage
+implementations, nor trust negotiation strategies in the presence of
+confidentiality.  Focusing on authorization decisions allows us to
+sufficiently narrow our scope, and thoroughly review components that
+endow systems with their characteristic features.  When we say that we
+consider only those TMSs with a formal foundation in this survey as in
+\autoref{section-introduction}, we mean that the authorization
+decision is based on a mathematically well-founded semantics of some
+sort, e.g.~propositional logic or relational algebra.
+
+\subsection{Elements of Authorization: Glossary}
+
+To clarify the remaining presentation and identify fundamental
+elements of trust management authorization decisions, we now provide a
+glossary of relevant terms.  More in depth discussion of these terms
+occurs throughout the rest of the paper, this section is intended as a
+succinct reference.
+
+\medskip\emph{Entity}: an individual actor in a distributed system, also
+frequently called a principal.
+
+\medskip\emph{Resource}: anything that a local system might regard as
+worthy of access control-- file access, database lookup, web browser
+display area, etc.
+
+\medskip\emph{Policy}: a specification of rules for accessing a particular
+resource.  Policy is usually defined locally at least in part, but
+TMSs sometimes allow policy to be defined
+non-locally as well.
+
+\medskip\emph{Authorizer}: the local authority that protects a
+resource, by automatically allowing access only after an
+appropriate proof of authorization has been shown.  Authorizers 
+also specify policy.
+
+\medskip\emph{Requester}: an entity (usually non-local) seeking to access a
+resource.
+
+\medskip\emph{Attribute}: a property of interest in some security 
+domain, for example a role membership.
+
+\medskip\emph{Credential}: endows entities with certain attributes.
+Local policy usually specifies that requesters must be endowed with
+certain attributes before resource access is allowed, so credentials
+are essential to establish access rights to resources.
+
+\medskip\emph{Issuer}: the authority that issues a particular credential.
+
+\medskip\emph{Certificate}: a certified wire format representation of
+a credential.
+%
+%\medskip\emph{Delegation}: the transmission of authority or rights from
+%one entity to another.
+
+\medskip\emph{Certificate revocation}: the removal of a requester's 
+credential, typically by the issuer.
+
+\medskip\emph{Credential negation}: Policy languages sometimes 
+allow policy makers to specify that a credential \emph{not} be held.
+Logically, this is expressed as credential negation.
+
+\medskip\emph{Delegation of authority}: the (usually temporary) logical 
+transfer of authority over policy from one entity to another.
+
+\medskip\emph{Delegation of rights}: the (usually temporary) logical
+transfer of an access right from one entity to another.
+
+\medskip\emph{Authorization decision}: the determination of whether a
+given requester possesses the necessary attributes to access a
+particular resource as mediated by local policy, based on a preferably
+well-defined semantics of policies and credentials.
+%
+%\medskip\emph{Proof of compliance}: synonymous with authorization
+%decision.
+
+\medskip\emph{Authorization mechanism}: the automated means by which
+an authorization decision is reached. Depending on context this refers
+to an algorithm or a module of software executed by the authorizer.
+
+\medskip\emph{Core authorization semantics}: the mathematically
+well-founded theory that constitutes the meaning of authorization
+decisions.  
+
+\medskip\emph{Role}: an attribute that requesters can activate when
+requesting authorization.  Authorization is often based on the role
+a requester is able to assume.
+
+\medskip\emph{Role membership}: an entity is said to be a member of a role
+if that entity is among the group of entities that can activate the role.
+
+\medskip\emph{Threshold policy}: threshold policies require a 
+minimum specified number of entities to agree on some fact. 
+Threshold policies usually support separation of duty authorization
+schemes \cite{Li:DRBTMF}. 
+
+\medskip\emph{Domain}: the security locality administered by a given
+authority.
+
+\medskip\emph{Name space}: the names defined in a particular domain.
+
+
+\subsection{Structure of an Authorization Decision}
+\label{section-overview-structure}
+
+The subsystem of a trust management system that constitutes its
+authorization decision includes more than just a core authorization
+semantics.  By \emph{system} we mean the set of components that
+provide an implementation, not just an abstract specification of the
+authorization semantics.  This distinguishes our presentation from a
+survey of authorization logics \cite{Abadi:LAC}.  In this section we
+identify the components of a generic authorization decision and
+characterize its structure.  This provides a better understanding of
+authorization decisions in general, and also a means to better
+categorize features of particular systems later in the paper.
+
+In \autoref{figure-tmstruct} we illustrate the components of a generic
+authorization decision.  This graphic is meant as a rough sketch, not
+a formal specification, and not all TMSs contain all the components we
+describe.  Nevertheless, the illustration is a useful tool for
+categorizing systems.  The graphic is read top to bottom, and shows
+the flow of information through a particular authorization process,
+with output computed in response to an authorization request.  The
+diagram is intentionally vague about the nature of the output: in the
+simplest case, the output is a simple ``yes'' or ``no'' decision as to
+whether or not to grant resource access, but in systems that support
+\emph{trust negotiation}, the output could be a partial answer that
+provides direction for additional input.  This issue is better
+discussed in \autoref{section-trust-negotiation}.  Within the scope of
+this survey, we mainly consider the case where the output is a boolean
+value, hence our terminology authorization \emph{decision}.  The core
+authorization semantics $L$ implement the authorization decision, and
+may be a specialized inference system, or a proof search in a generic
+programming logic such as Prolog, for example.  The authorization
+semantics takes as input parameters from $C$, $P$, and $Q$, which we
+now describe in detail.
+
+Local policy $P$ is defined in some specification language, that is
+transformed into terms understood by the core semantics by the
+transformation function $T_P$.  This translation may just consist of
+parsing from concrete to abstract syntax, or $T_P$ may compile
+statements in a high-level policy language into lower level terms for
+the core semantics.  For example, TPL \cite{Herzberg:ACMPKI} provides
+an XML-based ``trust policy language'' that is compiled into Prolog.
+
+Credentials for a particular requester may be defined as part of local
+policy. But an earmark of TMSs is their ability to extend local policies
+with credentials conferred by non-local authorities. This is realized as
+set of available certificates $C$ that are transformed by a function $T_C$
+into credentials defined in terms understood by the core semantics. The
+transformation $T_C$ provides a level of indirection allowing systems to
+choose between various certificate wire formats and PKIs, though X.509
+\cite{X509} or WS-Security \cite{OASIS:WSSTC} are obvious choices for
+Internet and Web Services settings.
+
+
+\tmstructfig
+
+The transformation $T_C$ also has special significance for the
+semantics of TMSs, since it is often not a straight parsing or
+compilation procedure.  Rather, certificates may be rejected, or their
+credential representations enhanced, by certificate validity
+information.  Validity information is external to the authorization
+semantics in some systems, but internal to it in others, so we
+represent the certificate validation component of the authorization
+decision $V$ as dashed box.  For example, any given certificate $c \in
+C$ almost always defines a finite lifetime for the certification, also
+called a validity interval \cite{winslett-adl97}. Some TMSs such as
+PCA \cite{Bauer:GFACSW} support lifetime information in the
+authorization semantics, and in such a case $T_C$ can map the lifetime
+information in $c$ to its credential representation. However, other
+systems do not represent lifetimes in the authorization semantics per
+se (that is, in $L$), and in such cases the onus is on $T_C$ to filter
+out expired certificates.  For example, SPKI provides a mechanism for
+certificates to be checked on-line to see if they have been revoked
+\cite{RFC-2693}, but this mechanism is not part of SPKI's formal
+structure. This means on the one hand SPKI's revocation policy cannot
+be expressed in the SPKI policy language itself, nor enforced by its
+authorization semantics. On the other hand it allows a SPKI
+implementation to apply a different revocation policy without changing
+their underlying logical structure, and in general the difficulties
+associated with formalizing certificate revocation
+\cite{Stubblebine:RSAERDS,Stubblebine:ALSSRR,Rivest:CWECRL} can be
+avoided, while a means for certificate revocation in the system is
+still available.
+
+In addition to policy $P$ and certificates $C$, the authorization decision
+takes as input a question or goal $Q$ that is specialized for a particular
+access request. As an example, some trust management systems, such as SDSI and
+$\RT_0$ \cite{Li:DRBTMF,Li:RRBTMF}, define roles. These systems allow one to
+prove that a particular principal is in a particular role. Resources are
+associated with roles, and the authorization decision is based on whether the
+requester is a member of the relevant role. The transformation $T_Q$
+translates the goal into terms understood by the core semantics. Finally, the
+core semantics combines policies and credentials established by input
+certificates to determine whether the authorization goal is satisfied, and
+outputs ``yes'' or ``no'' based on this determination.
+
+However, as denoted by the dotted line, some systems also provide a
+``feedback'' mechanism $D$ between the semantics of authorization and
+certificate collection.  Rather than merely answering ``no'' outright
+in case an authorization goal cannot be reached, the system might
+identify credentials that are missing and attempt to collect them.
+This functionality is sometimes called \emph{distributed certificate
+chain discovery} \cite{Li:DCDTM} or \emph{policy directed certificate
+retrieval} \cite{Gunter:PDCR}.
+%, whereas
+%\cite{koshutanski-massacci-xmls03} refers to it as \emph{abduction},
+%s.~\emph{deduction} as implemented by the authorization semantics.
+Whatever the specifics, it is clear that this functionality makes for
+a more flexible system in terms of certificate distribution and
+storage, but presents a significant challenge to system designers.
+
+\subsection{Comparing Trust Management Systems}
+
+A basis for comparing the features and functionality supported by
+trust management systems is fundamental to our survey.  Since the
+systems we consider have a formal foundation, some sort of formal
+comparison seems appealing.  Indeed, in \cite{Weeks:UTMS} a framework
+is presented for describing a variety of authorization semantics,
+including KeyNote and SPKI/SDSI.  This uniform specification of
+various semantics allows them to be compared on a completely formal
+basis, so for example it can be shown how credentials in one system
+can be faithfully encoded in another.
+
+However, as we observe above, features of TMS authorization decisions
+are not entirely realized in the authorization semantics $L$, but may
+be realized in other components, as for example certificate revocation
+is sometimes implemented as part of the translation $T_C$ from
+certificates to credentials.  Since the definition of these components
+is not included in the formal specification of the authorization
+semantics, these system features can only be compared on an informal
+basis.  We will therefore compare systems in light of the features
+they possess.  In addition, we will observe whether the features are
+realized formally as part of the authorization semantics, or whether
+they are implemented by some other system component; this will clarify
+in what sense particular TMSs ``possess'' a certain feature.  As a
+concrete point of comparison, we will also show how various systems
+encode the running example introduced next.  
+ 
+\subsection{A Running Example}
+\label{section-overview-example}
+
+Suppose Alice is a cancer patient at a hospital being treated by Bob, a
+doctor. Alice grants Bob access to her medical records and also allows Bob
+to delegate such access to others as he sees fit.
+
+Bob defines his team as a particular collection of individuals
+together with the people supporting them. A person supporting one of
+Bob's team members becomes a team member herself so Bob's definition
+is open ended and can potentially refer to a large number of people he
+does not know directly.  Here we assume that Bob's team includes both
+medical and non-medical personnel (for example other doctors as well
+as receptionists). Bob then delegates his access to Alice's medical
+records to only the medical staff on his team-- that is, people on his
+team that are also on the medical staff, as opposed to
+e.g.~administrative staff.
+
+Suppose further that Bob consults with another doctor, Carol, on Alice's
+condition. Bob modifies his policy to add Carol temporarily to his team.
+Carol orders some blood tests that are then analyzed by Dave, a lab
+technician and one of Carol's support people. The policy described allows
+Dave to access Alice's medical records, for example to input the test
+results.
+
+Dave signs the test results when he uploads them to the hospital database. He
+also includes appropriate credentials so that the database will authorize his
+access. The precise credentials needed depend on the trust management system
+in use and on the way credentials and policy statements are distributed and
+located by that system, however we imagine that these credentials should 
+be able to express the following relations in some form:
+\begin{itemize}
+\item Bob has delegated his access to Alice's medical records to
+people on his team who are members of the medical staff.
+
+\item Carol is on Bob's team.
+
+\item If someone is on Bob's team, than any person on their support
+staff is also on Bob's team. 
+
+\item Dave is one of Carol's support people.
+
+\item Dave is a member of the hospital's medical staff.
+\end{itemize}
+On the basis of these relations, one may deduce that Dave has access to
+Alice's medical records.  Realistically, Dave may not know to submit
+all of this information, or have any knowledge of Bob's policy. If the
+trust management system used by the hospital supports distributed
+credential chain discovery, the hospital database would locate Bob's
+policy automatically in order to complete the authorization decision.
+
+Complex access control scenarios such as this are difficult to express
+using traditional methods. Neither Alice nor Bob realize that Dave
+needs to be granted access to Alice's medical records. Although Dave's
+role as one of Carol's support people might be enough to grant him
+access to the records of Carol's patients, Dave's relationship to Bob,
+and hence to Alice, is indirect; it is Bob's act of adding Carol to
+his team that causes Dave to gain access to Alice's records.  Observe
+also that Bob's team policy is recursive.  A primary purpose of trust
+management systems is to provide language features and authorization
+semantics that support such complex policies.
+
+%Once Alice is discharged from the hospital she may wish to continue
+%allowing Bob to access her records so that he can provide appropriate
+%follow-up care. However, Bob may wish to remove Carol as a member of
+%his team if he no longer needs to consult with her.  To implement this
+%change, a number of trust management systems also offer mechanisms for
+%certificate expiration or revocation.  In some situations Alice may
+%wish to explicitly forbid Dave from accessing her records. For
+%example, perhaps Dave is Alice's brother and she wants to keep the
+%details of her condition private from him. Systems that support
+%credential negation would allow Alice to create such a policy.
+

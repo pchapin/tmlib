@@ -1,0 +1,701 @@
+February 26, 2007
+
+Dear Dr. Skalka,
+
+We have received reviews of your paper, which was submitted for
+possible publication in ACM Computing Surveys. According to our
+Associate Editor's recommendation, your paper has great potential, but
+it would need some significant revisions before we can accept
+it. Please consider the points raised by reviewers when making your
+revisions.  The reviewers' comments can be found at the end of this
+letter.
+
+On the basis of these evaluations, I suggest that you substantially
+revise the paper, addressing the comments of the reviewers, and submit
+the paper for another round of review.
+
+I ask that you also include comments to each of the reviewers, with
+the reviewer identified by number, indicating how you have addressed
+each of the points raised in the review. It is important that the
+revised paper be as solid as possible, addressing all of the major
+concerns, and addressing in a satisfactory way the remaining, smaller
+concerns.
+
+I would like to ask you to provide your revised manuscript within two
+months, that is, by April 20, 2007.  If you think you absolutely need
+more time please let me know. If I do not hear from you within this
+period, I will assume that you do not wish to revise the paper, and
+any future revision will be considered as a new submission.
+
+If you choose to revise your paper, you may re-submit it under
+"Manuscripts Waiting to be Revised" in the Author Center of Manuscript
+Central.
+
+If you have any questions, please contact me as soon as possible.
+
+Sincerely,
+
+Professor Gul Agha
+Editor-in-Chief
+ACM Computing Surveys
+
+--------------------------------------------
+Here are the reviewers' comments:
+
+Referee: 1 Comments to the Author This paper presents a survey of
+trust management systems, focusing on the authorization decision
+aspect of these systems. The paper introduces a motivating scenario
+that emphasizes the dynamic requirements of authorization decisions in
+cross-domain settings, and then describes the details of three systems
+representative of this field. Several tables offer comparisons of 12
+TM systems that have been described in the literature.
+
+The paper is well written and fairly easy to understand. The primary
+technical content is targeted to those with expertise in formal logic,
+so this may be of limited interested to this journal audience.
+
+The paper is organized well. I found that section 4 interrupted the
+flow of the trust management features (section 3) and the systems
+review (section 5) with more background material. Perhaps section 4
+should occur earlier in the paper, or be dropped/condensed to condense
+the paper or make room for more material regarding the systems.
+
+Trust management is a broad field, as the paper explains. Since the
+focus is on authorization, maybe the title can be modified to better
+reflect the topic of the paper. My suggestion is "Authorization in
+Trust Management System".
+
+Page 8, line 15 
+This section introduces the running example used
+throughout the paper. I like the approach of introducing a compelling
+scenario and then examining how each system supports the
+example. However, the integration is not as clean as I expected it to
+be, and I’m wondering if the relationship can be clarified. Section
+2.5 describes the situation abstractly, yet it mentions specifically
+that includes 5 certificates in his request to the hospital database.
+When I look at each system implementation, I don’t see these five
+certificates defined and the same specific example shown clearly. Does
+each of these systems have the same semantics that lead to these same
+5 certificates when solving this problem? If not, is the example in
+2.5 posing a particular implementation, but there are other ways to
+solve it? How do the three systems support the notion of negative
+credentials that is hinted at near the end of 2.5?
+
+Page 8, Section 3
+The list of features in section 3 overlaps somewhat with the set of
+requirements enumerated in the following article: K. E. Seamons,
+M. Winslett, T. Yu, B. Smith, E. Child, J. Jacobson, H. Mills, and
+L. Yu. Requirements for Policy Languages for Trust Negotiation. 3rd
+International Workshop on Policies for Distributed Systems and
+Networks (POLICY 2002), Monterey, CA, June 2002.  The authors might
+consider referencing this paper as an example of earlier work that
+also compared TM systems according to a set of criteria (including
+several of the systems compared in this work).
+
+Page 9 Line 45: 
+What is the meaning of the term negative credentials?
+Some systems distinguish between credentials and policies –
+credentials encode properties or attributes about their owners and
+policies encode the rules that govern access. In this case, the policy
+language may support negation “Do not allow access to anyone with
+the Dave credential,” but the credentials are simply statements of
+fact. Other systems unify the notion of policies and credentials such
+that credentials encode the attributes of an owner as well as access
+control rules.
+
+Page 10-11:
+In Tables I and II, is there a reason for how the columns are ordered?
+For the most part, they occur in the order of the systems presented in
+5.4. It seems more natural to me to list the three primary systems
+that were analyzed together as the first three columns of Table I,
+unless there is some justification for the current order that I’m not
+recognizing.?
+
+Page 13, section 3.1.8
+A key notion of certificate validity that is not mentioned in this
+section is that of ownership – does the entity presenting the
+certificate own the certificate (i.e., know the private key). Do all
+of the systems that explicitly handle this issue also support a proof
+of ownership protocol (something like the TLS handshake protocol that
+includes a certificate ownership proof)?
+
+Page 14, section 3.1.10 
+This section ends by mentioning that some
+certificate discovery approaches (Li et al, and Gunter et al.) are
+part of the system’s formalism and is not left to ad hoc techniques. I
+assume TPL’s support for this is an example of an ad hoc technique. It
+might be helpful to clarify in the Table whether each system that
+supports this feature is using a formal or ad hoc approach.
+
+Page 16, line 23
+The explanation for ABLP is repeated (see page
+14, line 21). I think explaining this once on page 16 is sufficient.
+
+Page 19, line 7 
+This survey is not an exhaustive list of TM
+systems. Are there other more important systems to include in the
+survey or to replace some of the systems in the survey? I suggest
+X-Sec [Bertino et al] and PeerTrust/PeerAccess [Winslett et al.] as
+two systems worthy of consideration. In my opinion, they offer more
+important research contributions than either TPL or REFEREE. Just how
+many other systems are there? It might make a nice contribution to
+cite them so that researchers (especially students) who read this
+article can get a concrete idea of where to look to go beyond this
+paper.
+
+
+Minor edits:
+
+Page 7, line 35 do not capitalize As.
+
+Page 9, line 30 – Sentence fragment
+
+Page 12, line 29 – withdraw -> withdrawal
+
+Page 16, line 36 – grammar problem
+
+
+Referee: 2
+Comments to the Author
+
+==============================================================================
+
+      Computing surveys - referee report
+
+Title: Trust Management: Features and foundations
+
+Authors: Chapin, Skalka, Wang
+
+This survey on trust management focusses on a specific part - or
+component - of trust negotiation frameworks, namely, the one devoted
+to authorization decisions, with particular attention to the features
+and structure of the related policy language.
+
+This approach is reasonable.  The issues covered by the paper are
+nicely presented, nicely organized and carefully analyzed.
+
+However the paper has some drawbacks and gaps.  It does not mention
+several advanced frameworks.  It focusses on policy language features
+that are just as relevant in traditional application scenarios as in
+modern trust management scenarios, while the novelty needed in the
+latter are not dealt with - including the special requirements posed
+on policy languages by negotiation frameworks.  Other improvements
+will be suggested in the detailed comments below.
+
+For these reasons I suggest to fix these gaps before publishing the
+paper. The extra work needed is nontrivial enough to require a second
+round of review.
+
+DETAILED COMMENTS:
+
+A. MISSING REFERENCES
+
+Trust negotiation has some of its strongest motivations in the need
+for protecting not only a server's resources, but also the credentials
+of the requestors.  The first paper proposing a uniform solution to
+this issue is not mentioned in the survey:
+
+@inproceedings{bs00,
+ author = {P.A. Bonatti and P. Samarati},
+ title = {Regulating service access and information release on the Web},
+ booktitle = {CCS '00: Proceedings of the 7th ACM conference on computer and communications security},
+ year = {2000},
+ isbn = {1-58113-203-4},
+ pages = {134--143},
+ location = {Athens, Greece},
+ doi = {http://doi.acm.org/10.1145/352600.352620},
+ publisher = {ACM Press},
+ }
+
+Until 2002 this approach has been the most complete framework according to another important paper not cited in the survey.
+ 
+ @misc{ seamons02requirements,
+  author = "K. Seamons and M. Winslett and T. Yu and B. Smith and E. Child and J. Jacobson
+    and H. Mills and L. Yu",
+  title = "Requirements for Policy Languages for Trust Negotiation",
+  text = "K. Seamons, M. Winslett, T. Yu, B. Smith, E. Child, J. Jacobson, H. Mills,
+    L. Yu, Requirements for Policy Languages for Trust Negotiation, Third International
+    Workshop on Policies for Distributed Systems and Networks (POLICY 2002.",
+  year = "2002",
+  url = "citeseer.ist.psu.edu/606705.html" }
+
+
+The authors should read this paper and take care of all the requirements not yet handled in their survey.
+
+A second important implemented framework missing from the survey is
+PeerTrust. Lots of information - including online demos - can be found
+on the project's web site at L3S (Learning Lab of Lower Saxony).  An
+introductory paper is
+
+@InProceedings{peertrust-esws-04,
+  author =       {Rita Gavriloaie and Wolfgang Nejdl and Daniel Olmedilla
+                  and Kent Seamons and Marianne Winslett},
+  title =        {No Registration Needed: How to Use Declarative Policies and
+                  Negotiation to Access Sensitive Resources on the
+                  Semantic Web},
+  booktitle =    {1st First European Semantic Web Symposium},
+  year =         2004,
+  address =      {Heraklion, Greece},
+  month =        may
+}
+
+The third missing line of work is Protune, the trust negotiation
+framework developed by the Policy group of the network of excellence
+REWERSE.  Protune parameterizes and extends PeerTrust in a number of
+ways, and decouples authorizations from negotiation control through a
+suitable metalanguage.  See REWERSE's policy group web site (all
+deliverables are public) and
+
+
+@InProceedings{protune-05,
+  author =       {Piero A. Bonatti and Daniel Olmedilla},
+  title =        {Driving and Monitoring Provisional Trust Negotiation with Metapolicies},
+  booktitle =    {{IEEE} 6th International Workshop on Policies for Distributed Systems and Networks ({POLICY} 2005)},
+  year =         2005,
+  address =      {Stockholm, Sweden},
+  month =        jun
+}
+
+
+Both PeerTrust and Protune are based on Datalog and are decidable
+(with the usual PTIME data-complexity and EXPTIME program-complexity
+results).
+
+Moreover, the survey disregards the approaches based on description
+logics, such as Kaos and REI (decidable and PSPACE-hard).
+
+
+B. TERMINOLOGY
+
+I appreciated that a section has been devoted to terminology (2.2).
+However I have some objections to some of the definitions adopted.
+
+B1) By "proof of compliance" one usually refers to a certifiable proof
+that some right is granted.  Such proofs can be used to convince a
+third party that a peer has the right to do something, which has
+several applications including accountability and non-repudiation.
+Therefore "proof of compliance" should not be regarded as a synonym of
+"authorization decision".  Relevant techniques may require signed
+proof trees and the like.
+
+B2) "Roles" are not "groups".  A group member is *always* a member
+(until it leaves the group or is banned by the group).  A role may be
+*activated discretionally* by a user at each transaction; role
+privileges are available only if the role is active.  Selective role
+activation is very important to make the need-to-know principle more
+flexible.  While some trust negotiation papers tend to blur this
+distinction, the RBAC community is very careful in maintaining the
+conceptual distinction between the two terms, and I think here we
+should do the same - or argue convincingly that this distinction is
+meaningless in trust management scenarios...
+
+C. ABSTRACT MODEL OF AUTHORIZATION DECISIONS
+
+Basically, we are talking about Fig.1.  A yes/no output is definitely
+not state-of-the-art.  The authorization component in many cases
+outputs a conditional answer "yes if ..." or a cooperative answer "no
+but you might ...", or a failure explanation "no because ...".  The
+same view applies to the interaction between the enclosing system (eg
+a negotiation manager) and the authorization component, as well as the
+interaction between clients and servers.
+
+The dotted backward arrow and the explanation in the second paragraph
+of p.7 do not address my objection because the output of that step
+*is* the conditional/cooperative answer in several frameworks, e.g.,
+consider the cases in which the peer in charge to search for and
+provide the missing credential is the requestor.  The backward arrow
+only accounts for a locally driven procedure for credential harvesting
+that eventually returns control back to the yes/no decision procedure.
+
+The need for such cooperative kinds of answers has been raised and
+advocated in several panels and seminars during the last two years -
+see for example the Zeitgeist panel at the Semantic Web policy
+Workshop (ISWC'05), the tutorial on semantic web policies at ESWC'06,
+and REWERSE's position paper at the same conference titled:
+
+  Semantic Web Policies - A Discussion of Requirements and Research Issues.
+
+Indeed Protune supports this approach and features an integrated
+explanation facility:
+
+
+@inproceedings{ protune-explanations-06,
+  author =       {Piero A. Bonatti and
+                  Daniel Olmedilla and
+                  Joachim Peer},
+  title =        {Advanced Policy Queries},
+  booktitle = {ECAI 2006, 17th European Conference on Artificial Intelligence},
+  publisher = {IOS Press},
+  year      = {2006},
+  isbn      = {1-58603-642-4},
+  pages     = {200-204},
+ }
+
+The underlying reasoning mechanisms are not based on logical
+consequences (unlike the frameworks mentioned in the survey) but
+rather on partial evaluation and abduction.
+
+D. RUNNING EXAMPLE
+
+It does not cover 2-way negotiations, where the requestor reacts to a
+credential request with a counter request (say, because the requestor
+is willing to release its credit card only to BBB members - this
+example is due to Marianne Winslett I believe).
+
+As such, this example is not revealing the limitations of the oldest frameworks, such as the ones to which the survey devotes its attention and preferences. 
+
+
+E. ASYMMETRIC EXPRESSIVENESS ANALYSIS
+
+The choice of some "expressiveness tests", or features, is to some
+extent arbitrary.  While separation of duties and threshold policies
+are perhaps more common than other policies, why should the survey not
+care about - say - Chinese Walls?
+
+If the purpose is comparing the expressive power of policy languages,
+then a characterization based on computational complexity would be
+much more general and precise.  A related question is: How can you
+*prove* that REFEREE, SD3 and Binder cannot express threshold policies
+indirectly?
+
+A similar comment holds for certificate validity.  Why not talking
+about the ability of placing constraints on arbitrary credential
+attributes, instead? Credential validity then becomes just a special
+case of the picture.
+
+
+F. MISSING CRITERIA
+
+The classification adopted disregards important aspects of policy
+languages for trust management and trust negotiation.  Aspects such as
+interoperability with external (eg legacy) software and data,
+interoperability among heterogeneous peers (involving ontology
+issues), accountability, extensibility, usability, and
+reputation-based trust are not even mentioned!
+
+These aspects are absolutely crucial for the distributed scenarios
+that trust management is meant to tackle, and these are the aspects
+that pose novel requirements on policy languages.  The missing
+references tackle several of these issues to some extent.
+
+
+G. PROGRAMMING LOGICS
+
+G1) Datalog is not a programming language - it is as declarative as
+any pure query language.
+
+G2) The authors write: "it has been argued that [XSB] adds too much
+size and complexity to the implementation for authorization
+decisions".  I don't remember this claim, at least not in such general
+terms - please insert a citation.
+
+G3) The discussion of nonmonotonic negation is naive.  First, Datalog
+has been extended with nonmonotonic negation years ago
+(Datalog$^\neg$), see the papers by Eiter and Gottlob for example, and
+the LDL system.  Second, stratified negation is not problematic at
+all, from a technical point of view.  Third, certificate negation and
+revocation are not good motivations for negation: Certificate negation
+is deprecated in [seamons02requirements], and revocation is usually
+accomplished by scanning a black list of credentials (no negation
+needed!).  See the following survey for a refined discussion of
+negation as failure in traditional policu languages:
+
+@InCollection{leads-security,
+    author = {P.A. Bonatti and P. Samarati},
+    editor = {J. Chomicki and R. van der Meyden and G. Saake},
+    booktitle = {Logics for Emerging Applications of Databases},
+    title = {Logics for Authorizations and Security},
+    publisher = {Springer-Verlag},
+    year = {2003},
+}
+
+
+H. EMPHASIS ON QCM/SD3
+
+This issue cleary shows that the current survey is missing the new
+requirements posed by open trust management scenarios.  QCM/SD3 are
+claimed to be the state-of-the-art in trust management because their
+implementation relies on mature distributed database technology.
+
+However, this approach is made possible because QCM and SD3 support
+neither 2-way negotiations (see the aforementioned example by Winslett
+(?)) nor rich answers (cf point C).  This is what makes authorization
+decisions similar to traditional queries.  Of course, for this reason
+I disagree with the authors: QCM/SD3 is not a state-of-the-art trust
+management framework.  I can only agree that it would be nice to have
+such mature technology available for the advanced languages that trust
+management and trust negotiation call for.
+
+Note that in the examples illustrating QCM and SD3 credentials are
+used for a quite nonstandard purpose, namely, as replacements of
+remote queries.
+
+A last remark: the QCM/SD3 approach requires shared knowledge of
+remote database schemata as opposed to credential structure.
+Apparently, the latter would be preferable and more natural in
+reference scenarios.  A priori knowledge of database schemata may
+easily become an onstacle to interoperability between heterogeneous
+peers.
+
+
+===============================================================================
+
+Referee: 3
+
+Review of:
+
+Trust Management: Features and Foundations
+
+Peter Chapin, Christian Skalka, and Sean Wang
+
+
+This article gives a very nice and much needed survey of the field of
+Trust Management (TM).  Being now just over 10 years old, this area
+has received a lot of research attention by diverse groups, but has
+not yet been surveyed in a comprehensive manner.  While the current
+article is not exhaustive, it does analyze the characteristics of 12
+different TM systems, presenting four in some detail.  A running
+example is used to good effect.
+
+The article has many other nice features.  It provides a nice
+introduction of TM concept and systems for non-experts.  It has a
+glossary that, with a couple improvements, will be very helpful to the
+reader.  It provides a graphical model of the components of a generic
+TM system that it uses to frame its discussion of the many systems it
+considers.  It presents in tabular format the main features of the
+following 12 TM systems: Policy Maker, Keynote, SPKI/SDSI, Referee,
+QCM, OASIS, PCA, TPL, SD3, Binder, RT, and Cassandra.  It gives a
+brief introduction to three logics that are utilized and extended by
+the TM systems surveyed: BAN Logic, ABLP Logic, and Programming Logic.
+The four systems it covers in some detail (features, running example,
+semantics, and implementation) are SPKI/SDSI, RT, and QCM, and SD3.
+These are chosen as being representative.  The discussion of the
+remaining seven TM systems is less systematic (Policy Maker, KeyNote,
+Referee, OASIS, PCA, TPL, Binder, and Cassandra).
+
+There are some weakness and inaccuracies that must be corrected before
+the article should be published.  However, I have every confidence
+that the authors will be able to fix these problems.
+
+The first problem that must be fixed concerns the difference between
+non-monotonic languages and credential revocation.  The authors
+conflate these issues in section 3.1.9, though they are quite
+distinct. In a non-monotonic language, such as TPL, one can write a
+policy requiring that authorized users not have, for instance,
+certificates indicating that they are felons.  This is a tricky
+feature to manage in general, since failure to obtain an existing
+credential could lead to an incorrect, positive authorization
+decision.  This is the reason many of the languages surveyed do not
+support the feature.  The same effect can NOT be achieved, as the
+authors incorrectly assert, via certificate revocation.  The
+discussion of revocation belongs in section 3.1.8, Certificate
+Validity.
+
+There are other problems that must be corrected with the treatment of
+revocation.  It is one of the features referred to in the second to
+last sentence of section 2.4 as being located within the authorization
+semantics in some languages and external to the same in
+others. Although the statement here is somewhat ambiguous, my reading
+here, and certainly in the conclusion, is that the authors acknowledge
+that a trust management system should not be construed to consist
+exclusively of its authorization semantics.  Thus at the top of the
+second paragraph on page 27 when they say that RT does not admit
+certificate revocation, they are misleading the reader.  RT does not
+consider the various checks whether a certificate is currently valid
+to be part of the authorization semantics.  However, if the authors
+look at the end of section 7.1 of [Li et al. 2002], they will see that
+revocation is certainly expected to be a part of a full TM system
+based on RT.
+
+The authors have not made what is in my mind an important distinction
+between the validity of a certificate and the validity of its
+content. It is true that much of the literature they survey also does
+not make this distinction.  However, it bears on the subject of my
+previous paragraph.  Certificates per se have a limited lifetime
+because their verification normally depends on cryptographic
+signatures.  There is no reason why an application-level policy should
+be concerned with certificate-representation details such as how long
+a signature should be considered unforgeable for the crypto system and
+key length employed.  On the other hand, the content of the
+certificate is concerned with information whose shelf-life may vary
+dramatically and is certainly of concern to the application-level
+policy.  Systems that cannot distinguish between these two forms of
+validity are at a disadvantage.  On the other hand, a language such as
+RT_1^C, that assumes signature validity is handled outside the
+semantics, and that supports parameters and constraints, can ensure
+that evidence of volatile attributes is appropriately fresh without
+requiring evidence of unchanging attributes (e.g., year of birth) to
+be reissued with unnecessary frequency.
+
+It should be acknowledged that the difference between requiring a
+recently issued CRL be checked and requiring a recently issued
+certificate be checked is not significant at the level of the
+authorization semantics.
+
+On page 42, under Certificate Revocation, the authors state that
+revocation is theoretically thorny because it introduces
+non-monotonicity.  I think this has been more or less cleared up by Li
+and Feigenbaum in Nonmonotonicity, User Interfaces, and Risk
+Assessment in Certificate Revocation (Position Paper), In Proceedings
+of the 5th International Conference on Financial Cryptography (FCí01)
+2001, http://crypto.stanford.edu/~ninghui/papers/revocation_fc01.pdf.
+
+The basic idea is that it remains the case indefinitely that the
+issuer believed the content of the certificate when it was
+issued. Depending upon the volatility of the belief and the use to
+which the information will be put, the relying party and/or the policy
+must decide how recently it is necessary that the issuing party held
+the belief.  As a means of establishing that the belief was held
+recently, checking a revocation list is just an alternative to getting
+a fresher certificate.  At the point in the paper mentioned above, the
+authors are not very clear about what point they are trying to make.
+I think this stems from the fact that they are not entirely clear
+about the subject themselves.  Do they think freshness needs to be an
+explicit concept in the underlying semantics, or is it sufficient if
+the underlying expressive power is sufficient to enable the policy
+author to manage freshness herself.  Do they think the matter can be
+adequately handled entirely outside the semantics (as they acknowledge
+SPKI/SDSI tries to do)?  It would be nice if they could try to clarify
+their thinking and the point they wish to make here in the
+antepenultimate paragraph of the paper.
+
+The authors have chosen to discuss the security analysis work of Li et
+al. [2005] in the implementation section of RT. This is not
+reasonable.  It is presented in that context in a manner that makes it
+seem as though its aim is to answer authorization questions in a
+distributed context.  This can be done by the RT system on its own;
+the security analysis work is not needed for this purpose. So it is
+misleading to write, "To study the complexity of authorization in a
+distributed context, Li et al. address general security analysis
+questions..."  The complexity of the authorization decision in a
+distributed context was addressed by Li et al. [2003]. Don't get me
+wrong.  I love the fact that the authors chose to talk about this
+work.  I just think they make it sound as though RT evaluation is
+intractable, which is definitely not the case.  The problem is that
+this material doesn't fit under "implementation."  Not at all.  While
+it's not the solution I would prefer, removing the discussion would
+eliminate the problem.  Better would be to put it in an extra
+discussion section somewhere.  (By the way, Li et al. [2005] has now
+appeared, so the bibliography should be updated.)
+
+There are a couple problems on page 5 with the glossary.  First, going
+back to Blaze et al. [1996], a credential is just a signed policy
+statement.  It may assign rights or, more generally, attributes, or it
+may specify how rights or attributes can be derived.  But it should
+not be confused with the right or attribute itself.  Also, be sure to
+generalize rights to attributes.  These observations and suggestions
+bear on how the Credential entry should be revised.  Second, the
+Delegation of rights entry gives "transmission of credentials..." as a
+definition.  This is highly misleading and must be rewritten in
+different terms.  "Transmission" sounds like communication.  This is a
+transfer not of information, but of authority or authorization,
+depending on the type of delegation.
+
+Some less problematic substantive concerns are as follows.
+
+On p.6, six lines from the bottom, the authors write "...the
+consequences of SPKI's revocation policy cannot be reasoned about
+formally."  This over states the case.  We can reason formally about
+the impact of things that are outside SPKI's formal structure.  The
+question is whether the formalism by which authorization is specified
+in SPKI is impoverished unacceptably by being unable to express
+matters related to revocation.
+
+On p.26, right after the numbered list, it probably isn't necessary to
+introduce "subject" as it isn't used.  I'm suggesting this because the
+sense in which the subject is "in" f is syntactic.  That is, it's not
+a member of the set denoted by f.
+
+The last sentence of the first paragraph of 5.2.3 (p.27) is
+inaccurate.  Constraints are not used in RT_1 and RT_2.  They are used
+in RT_1^C, a member of the family introduced by Li and Mitchell
+[2003a].  The article should discuss RT_1^C and its difference from
+RT_1.
+
+At the top of p.29 it should probably be noted that the guarantee that
+all credential chains can be found hinges on a type system that
+assigns types to role names and places restrictions on how role names
+of various types can be combined in well-typed credentials.
+
+The remainder of this review consist of line by line suggestions and
+corrections for the authors.
+
+P5,L-2 (i.e., second line from the bottom on page 5): You might want
+to consider avoiding using T_P and the like as a name here. The
+subscript normally means the value is somehow parameterized by the the
+subscript value.  In the current context, P is a policy.  But the
+function T_P is independent of any policy. It takes a policy input,
+that's true.  But by T_P you mean the function, not its output value
+when applied to P.  All that said, a lot of people abuse notation this
+way, so it's up to you.
+
+P6,L-9: "cases cases"
+
+P7,L3: I guess this is the first reference to RT_0, so perhaps there
+should be a cite.
+
+P7,L4: revise: "To authorized for a particular resource"
+
+P9,L7: "Some while some"
+
+P13, Certificate Validity: Be sure to discuss the fact that signatures
+don't last forever, too.
+
+P14,L2: "the system's formalism" is not a monolithic thing in the case
+of RT.  The evaluation mechanism is different from and sound and
+complete with respect to the semantics.  Chain discovery is part of
+the evaluation mechanism, not the semantics.  I'm not sure how much of
+this needs to be said.  The current phrasing just makes it sound a
+little like obtaining certificates is part of the semantics.
+
+P15,L-14: "None of the...": This is not accurate when X has the form
+\{X\}_{K^{-1}}.
+
+P16,L-17: and -> or  (i.e., "and" should be "or")
+
+P16,L-9: is a role a kind of principal?  If so, say so above.
+
+P17,L24: B -> A
+
+P18,L5: What is meant by "atoms"?  I suggest you use "constants" as
+"atoms" often means atomic formulas in logic programming literature.
+
+P20,L5: or revoked -> or been revoked
+
+P20,L12: K_A: reusing A (just used as a name in the prev. line) may
+confuse some readers
+
+P20,L24: "subsumes" may be a slightly confusing word choice since the
+property of speaking for K2.A2 entails the property of speaking for
+K1.A1.
+
+P20,L29: described the -> described in the
+
+P22,L-5: constrained -> defined ? 
+
+P22,L-5: satisfying the -> satisfying the above equalities and the
+
+P23,L4 of text: such associativity -> such as associativity
+
+P23,L20: express -> formalize ?
+
+P26,L19: A.s -> B.s
+
+P26,L-2: separate -> separation
+
+P27,L5: member or role -> member of role
+
+P27,L5-6: "Hence, ...": the meaning of this sentence and why it
+follows are not clear.
+
+P32,L-18: finite of cofinite -> finite or cofinite
+
+
+
+
+
+
+
+
+
+

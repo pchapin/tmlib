@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+  "http://www.docbook.org/xml/4.4/docbookx.dtd" [
+]>
+
+<!-- FILE        : doc-TMLibDev.xml
+     LAST REVISED: 2009-01-21
+     AUTHOR      : (C) Copyright 2009 by Peter C. Chapin
+
+This is the documentation chapter for people interested in developing (fixing,
+modifying, enhancing) the TMLib library itself. -->
+  
+<chapter>
+  <title>TMLib Developer's Guide</title>
+
+  <sect1>
+    <title>Promoting Reliability</title>
+
+    <para>TMLib is security sensitive software. This means every reasonable effort should be
+      made to deal with security related issues during TMLib's construction and development.
+      Applying security fixes after the fact has been shown by wide experience to be less than
+      satisfactory. One important way of improving a system's security is to improve its
+      reliability in general. This is because malicious attackers can often transform ordinary
+      bugs into security vulnerabilities using clever and unexpected attack methods. In
+      addition, if a security system fails the nature of that failure might be such as to allow
+      more access than intended. While it is always desirable to build systems that "fail safe"
+      one can not always be sure the system will fail the way one desires. Of course reliability
+      is a virtuous goal in any case, even without regard to its security implications.</para>
+
+    <para>For these reasons, TMLib was written to be highly reliable. This the main reason why
+      SPARK Ada was choosen as the primary implementation language for TMLib. Note, however,
+      that not all of TMLib is written in the SPARK subset of Ada. Only the core facilities that
+      compose the trusted computing base are SPARKable. Other parts of TMLib, including certain
+      aspects of the administrative program, are written in ordinary Ada. However, even these
+      other parts enjoy a fairly rigorous development model. Some of the conventions used in the
+      development of TMLib are described below.</para>
+
+    <sect2>
+      <title>Assert</title>
+
+      <para>The standard <code>assert</code> pragma is used extensively in TMLib to check for
+        "impossible" errors. These are defined to be errors that can not occur in a correct
+        program; they are errors that only occur if the program violates the documented TMLib
+        API. For example many TMLib abstract types require initialization before they are used.
+        An attempt to use an object that has not been initialized will likely cause an assertion
+        failure. A correct program would not do this, but an incorrect program might do so
+        accidentally. In contrast assertions are not used to check for out of memory errors or
+        files that fail to open. Such errors are outside the control of the program; even
+        correct programs might experience them.</para>
+
+      <para>The nice thing about the <code>assert</code> pragma is that the code it introduces
+        can be removed by simply recompiling with an appropriate compiler option. This means
+        that once a program has been fully tested, the asserts can be removed and the overhead
+        they imply can be eliminated. Of course the asserts should be enabled during development
+        and initial testing. A careful deployment may even want the asserts enabled in
+        production code. Note, however, that when an assertion fails the program
+        aborts&#x2014;something that might be considered undesirable in a production
+        setting.</para>
+    </sect2>
+
+  </sect1>
+
+</chapter>

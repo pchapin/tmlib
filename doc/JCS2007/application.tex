@@ -1,0 +1,180 @@
+\section{Applications}
+\label{section-application} 
+\label{section-applications} 
+
+In this section we discuss interesting applications of $\RTR$.
+Details of these applications are avenues for future work.
+
+\subsection{Authorization Caching and Certificate Validity}
+
+Since authorization decisions can be expensive to compute, and it
+might be the case that a decision needs to be computed again in the
+future, caching of decision results can be a useful tactic.  Indeed,
+since some decisions involve subdecisions, a number of results can be
+cached, or vice-versa a number of cached results can be used, for many
+authorization decisions.  Recall that in the example in
+\autoref{section-discovery-example}, it is determined that
+$\mathit{Mary}$ is a member of several roles, and that $\mathit{AAA}$
+is a member of $H.\mathit{orgs}$.  All of these facts could be cached,
+and if in the future it is necessary to determine e.g.~that
+$\mathit{Mary}$ is a member of $H.\mathit{preferred}$, the fact will
+be on hand.
+
+Previous systems have leveraged this idea.  In particular, the
+ConChord system for SDSI certificate storage and name resolution
+\cite{ajmani02conchord} maintains a \emph{closure} of the certificate
+database, where all name bindings derivable from a certificate are
+computed and cached upon certificate insertion.  As a consequence,
+authorization decisions are $O(1)$.  However, the introduction of
+certificate validity measures, such as expiration dates, pose a
+problem for this strategy: cached computations may depend on
+certificates that have expired.  How to determine that this is or is
+not the case, without re-computation of the authorization decision?
+
+The system $RT^R$ provides a solution to this problem.  Imagine that
+authorization facts discovered during $\checkmem$ computation are
+cached as weighted paths $\wtpath{B}{A.r}{\risk}$.  Let $\mathcal{K}$
+be the set of timestamps, and define $\po$ as the ``more recent than''
+relation between timestamps.  Thus, credentials can be labeled with
+their expiration date.  By defining $\riskplus$ and $\linkplus$ as
+operations that return the older of their operands, any membership
+decision will be labeled with the expiration date of the oldest
+certificate involved in the decision.  Hence, by caching computed
+authorization facts as weighted paths of the form
+$\wtpath{B}{A.r}{\risk}$ in this risk model and by defining a
+threshold $\thresh$ mapping every role to the current date/time,
+cached facts can be reused in a manner that allow those reliant on
+expired certificates to be immediately rejected.
+
+\subsection{Trust but Verify}
+
+The Trust but Verify (TbV) framework \cite{skalka-wang-sws04} provides
+a setting for distributed trust management that takes into account a
+notion of \emph{trust} for online authorization decisions, backed up
+by offline \emph{verification}.  Many realistic authorization
+decisions require ``softening'' of security in the online phase; this
+amounts to trusting the validity of certain assertions in this phase,
+that would otherwise be too expensive to verify.  However, online
+trust should be specified so that sound offline verification is
+well-defined, providing formal certainty that offline verification
+supports online trust.
+
+Any authorization decision in the TbV framework is abstractly
+specified as derivability of a target privilege $\priv$ given a
+security context $s$, written $s\vdash\priv$.  Any instance of the TbV
+framework comprises a \emph{trust transformation}, that formalizes the
+definition of trust in terms of a function, mapping initial security
+contexts $s$ to contexts $\cod{s}$, that contain assertions that are
+trusted solely for efficient online verification.  Furthermore, the
+trust transformation should be reversible, via an $\audit$ technique
+that is required to reconstruct a security context that is at least as
+strong as the pre-image $s$ of any trust-transformed security context
+$\cod{s}$.  The $\audit$ technique is the implementation of offline
+verification.  In \cite{skalka-wang-sws04}, the TbV framework is
+developed using ABLP logic \cite{ABLP93}.  However, the $\RT$
+framework is a more modern trust management system, with a variety of
+implementation techniques and variations \cite{Li:2003-02}.  The
+$\RTR$ variation offers a unique dimension of support for TbV, since
+trust can be encoded using definitions of risk in $\RTR$.
+
+The TbV framework is characterized by three conditions, that we
+recount here.  We show how $\RTR$ can be used to instantiate the
+framework in a system that satisfies these conditions.  The first
+condition requires that authorization decisions are decidable:
+\begin{condition}
+\label{cond-decidable}
+Let $s$ be an authorization context; then validity of $s \vdash \priv$
+is decidable.
+\end{condition}
+In $\RTR$, authorization decisions are implemented as role membership
+decisions with an assessed risk, and security contexts are sets of
+credentials $\creds$.  That is, if the role $A.r$ represents a target
+privilege and $B$ is a privilege requester, then authorization amounts
+to discovery of whether there exists $\risk$ such that $(B,\risk) \in
+\credsmean{\creds}^\thresh$ for some specified threshold $\thresh$.  We
+have shown that this relation is decidable.
+
+The second condition specifies that auditing reverses trust
+transformation, though since trust transformations can be many-to-one,
+the context returned by auditing need not be the exact preimage
+of trust transformation:
+\begin{condition}
+\label{cond-extrapolate}
+Let $s$ be a trusted context. Then success of $\audit(s)$ implies that
+$\cod{\audit(s)} = s$.
+\end{condition}
+The last condition sufficiently strengthens the requirements of
+auditing to formally establish that any auditing is a sound
+verification of trust injected by the trust transformation:
+\begin{condition}
+\label{cond-audit}
+Let $s$ be a trusted context; then if $\audit(s)$ succeeds, for all 
+$\priv$ it is the case that $\audit(\cod{s}) \vdash \priv$ implies
+$s \vdash \priv$. 
+\end{condition}
+The condition requires that auditing of a trust-transformed context
+must reconstruct a context that is at least as strong as the initial
+context, prior the trust transformation.  In $\RTR$, since
+authorization contexts are credentials $\creds$, and the authorization
+decision includes a risk threshold, trust transformations may be
+implemented via an increase in the tolerable risk thresholds in chain
+discovery.  Assuming the same credentials $\creds$ as the example in
+\autoref{section-examples-bounds}, the initial authorization decision
+could be to determine whether there exists $\risk$ such that
+$(\mathit{Ed},\risk) \in
+\credsmean{\creds}^\thresh(\mathit{Store.buyer})$, where
+$\thresh(\mathit{Store.buyer}) = \mathit{medium}$ and $\thresh(A.r) =
+\mathit{high}$ for all other roles $A.r$.  An online trust
+transformation could be implemented by using the threshold
+$\shadowmap{\thresh}{\mathit{Store.buyer}}{\mathit{high}}$,
+allowing Ed's credential $\mathitcred{Acme.purchaser}{Ed}{high}$ to be
+used for immediate authorization.  Auditing in this case would just
+consist of authorization under threshold $\thresh$.  The following
+Lemma is trivial and establishes that this trust transformation
+satisfies the last condition enumerated above.
+\begin{lemma}
+Define $\thresh_1 \po \thresh_2$ iff $\thresh_1(A.r) \po
+\thresh_2(A.r)$ for all roles $A.r$.  Then $\credsmean{\creds}^{\thresh_1}
+\po \credsmean{\creds}^{\thresh_2}$ for arbitrary $\creds$.
+\end{lemma}
+
+\subsection{Cost/Benefit Analysis}
+\label{section-applications-cost-benefit}
+
+Risk in $\RTR$ is defined in an abstract manner.  Although the
+examples in this paper have used atomic risk values, it is possible to
+define a risk ordering on compound risk values.  For example, suppose
+both levels of ``trustability'' and expected wait times for retrieval
+of specific credentials are considered components of risk.  The set
+$\mathcal{K}$ could then contain elements of the form $(\risk,t)$,
+where $\risk \in \setdefn{\mathit{low,medium,high}}$ as in
+\autoref{section-examples-bounds} and $t$ is a wait time represented as an
+integer, and:
+$$
+(\risk_1,t_1) \po (\risk_2,t_2) \iff \risk_1 \po \risk_2 \wedge
+t_1 \le t_2
+$$ 
+reflecting that lower wait times, as well as higher confidence in
+validity, define lower risk.  Maximum risk in chain discovery would
+then specify both a tolerable level of trust, and a tolerable wait
+time for any particular credential.
+
+This suggests an \emph{interactive} procedure for chain discovery,
+where the costs of raising the level of one component of risk could be
+balanced against benefits in another risk dimension.  In the above
+scenario, if chain discovery in some instance fails given a threshold
+$\thresh$ such that $\thresh(A.r) = (\risk, t)$ for the governing role
+$A.r$, chain discovery could be re-run with a higher threshold, but
+notice there is a choice of which element(s) of risk to raise.  The
+cost of raising $\risk$ can then be balanced against the benefits in
+the time dimension, by re-running chain discovery with the threshold
+$\shadowmap{\thresh}{A.r}{(\risk',t)}$  with $\risk\po\risk'$.
+The opposite is also clearly the case.  This cost/benefit analysis
+would be further enhanced by optimizing chain discovery.  The backward
+chain discovery algorithm presented in this paper ensures that risks
+are kept below a certain threshold, but does not attempt to optimize
+risk.  By extending chain discovery with optimization techniques, in
+the presence of compound risk, benefit dimensions could be optimized
+within a fixed cost dimension.  For example, optimal wait times could
+be sought given a $\mathit{high}$ level of trust risk.  Development of
+optimizing algorithms is a topic for future work.

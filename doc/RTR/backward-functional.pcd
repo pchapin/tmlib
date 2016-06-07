@@ -1,0 +1,105 @@
+
+(* Basic type definitions to specify roles and credentials *)
+type entity     = string;
+type rolename   = string;
+type roleexpr   = Entity of entity |
+                  Role of (entity * rolename) |
+                  LinkedRole of (entity * rolename * rolename) |
+                  Intersection of roleexpr list
+type credential = Credential of (roleexpr * roleexpr)
+
+(* Accumulated Trust Cost Record *)
+type atcr = {
+  key         : int;
+  roi         : rolexpr;
+  accumulated : int;
+  maximum     : int;
+  observer    : atcr -> entity -> unit
+}
+type graph_node = {
+  cost_records : atcr list  (* A better data structure could be used. *)
+}
+type graph_type = {
+  (* Some suitable collection of graph nodes *)
+}
+type queue_type = {
+  (* Some suitable queue data structure *)
+}
+
+
+(*
+   queue_empty : queue_type -> bool
+   in  : A queue of nodes
+   out : 'true' iff the queue is empty.
+*)
+let queue_empty q = ...
+
+(*
+   push_queue : queue_type -> graph_node -> queue_type
+   in  : A queue of nodes and a new node
+   out : A queue with the new node "at the end"
+*)
+let push_queue q item = ...
+
+(*
+   pop_queue : queue_type -> graph_node * queue_type
+   in  : A queue of nodes
+   out : The first node and a queue with the first node removed.
+*)
+let pop_queue q = ...
+
+
+let initial_node = add_atcr (newnode ())
+ { key         = -1;
+   roi         = Role("A", "g");
+   accumulated = 0;
+   maximum     = overallMax;
+   observer    = ... }
+
+let q = newq ()
+
+let graph = newgraph ()
+
+let process_credential q graph found n c =
+  let (resultq, resultgraph, resultfound) = match c with
+      Credential(Role(e1, r), expr) ->
+        (match expr with
+          Entity(e2) ->
+            do_type1 q graph found n e2
+
+          Role(e2, s) ->
+            do_type2 q graph found n e2 s
+
+          LinkedRole(e2, s, t) ->
+            do_type3 q graph found n e2 s t
+
+          Intersection(role_list) ->
+            do_type4 q graph found n role_list)
+    | _ -> raise Failure
+
+
+let rec process_node q graph found =
+  if queue_empty q then (q, graph, found)
+  else
+    let (n, q) = pop_queue q in
+    let target = get_target_role n in
+    let (resultq, resultgraph, resultfound) = List.fold_left
+        (fun (q, graph, found) c -> process_credential q graph found n c)
+        (q, graph, found)
+        (get_defining_list target)
+    process_node resultq, resultgraph, resultfound
+
+let is_authorized = 
+  let (resultq, resultgraph, resultfound) = process_node q graph false in
+    resultfound
+
+==== Below are the specifics of how each credential type is handled.
+
+let do_type1 q graph found n e2 =
+
+let do_type2 q graph found n e2 s =
+  let updated_graph = <Add node for e2.s with edge to N>
+
+let do_type3 q graph found n e2 s t =
+
+let do_type4 q graph found n role_list =

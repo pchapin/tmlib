@@ -1,0 +1,538 @@
+\subsection{Other Trust Management Systems}
+\label{section-other}
+
+In this section we review several other trust management systems more
+briefly, highlighting their most significant features and
+contributions.
+
+\subsubsection{PolicyMaker}
+
+Blaze et al.~first introduced trust management systems per se as a subject of
+study \cite{Blaze:DTM}, by presenting the PolicyMaker system. In PolicyMaker,
+policies, credentials, and trust relationships between principals are
+implemented as arbitrary programs in a suitable safe programming language. In
+this context ``safe'' means that the interpreter for the language is
+restricted in terms of the I/O operations and resource consumption permitted.
+Such restrictions are necessary to prevent attacks against the authorization
+mechanism and to ensure that the authorization decision will terminate.
+
+PolicyMaker statements, called \newterm{assertion}s, have the form:
+\varword{Source} \keyword{ASSERTS} \varword{Authority} \keyword{WHERE}
+\varword{Filter}. Here \varword{Source} and \varword{Authority} are public
+keys and \varword{Filter} is a program taking an application specific
+``action string'' as a parameter and returning a boolean result. Policy
+statements have the same form except that \varword{Source} is replaced by
+the keyword \keyword{POLICY} to indicate that the assertion is not a signed
+credential but rather locally trusted policy. More complex
+\varword{Authority} structures are also possible, allowing one to express
+threshold policies.
+
+The semantics of PolicyMaker is graph theoretic.  Each assertion is
+represented as a labeled edge in directed graph $G$ where the vertexes
+of $G$ are public keys or \keyword{POLICY}.  There is an edge $v_1
+\rightarrow v_2$ labeled with $f$ in $G$ iff there is an assertion
+where \varword{Source} corresponds to $v_1$,
+\varword{Authority} corresponds to $v_2$ and \varword{Filter}
+corresponds to $f$. An access request in PolicyMaker has the form:
+\varword{key} \keyword{REQUESTS} \varword{ActionString}. Authorization
+requires to find a path in the graph $G$ that starts at \keyword{POLICY},
+ends at the vertex corresponding to \varword{key}, and for which
+$f(\text{\varword{ActionString}})$ returns true on every edge in the path.
+
+The form and meaning of the action strings are not defined by PolicyMaker
+but must be agreed upon by the authorizer and the requester. For example an
+action string might describe a particular operation, such as read or write,
+on a particular file. Each assertion either allows or rejects the action
+according to the program contained in its filter. If the action is allowed,
+authority for that action is passed from the \varword{Source} key to the
+\varword{Authority} key. If there is a path in $G$ that passes rights
+from \keyword{POLICY} to the requesting key, those rights are granted.
+
+Blaze et al.~formalized the PolicyMaker authorization decision and
+analyzed its computational complexity in later work
+\cite{Blaze:CCPTMS}. The general system is undecidable since the
+programs contained in the assertions can be written in a Turing complete
+language. However, Blaze et al.~consider several restrictions on the
+system. With suitable restrictions, the authorization algorithm has
+polynomial complexity while retaining enough expressiveness to be useful.
+
+\subsubsection{KeyNote}
+
+KeyNote \cite{RFC-2704,Blaze:RTMDSS} is a direct descendant of PolicyMaker. In
+KeyNote principals are either public keys or opaque \newterm{principal
+identifiers} with an application-defined meaning. In KeyNote the authorization
+mechanism is given a collection of assertions together with the key or
+identifier of the requester. The authorization mechanism returns an
+application defined \newterm{policy compliance value} representing the degree
+to which the request complies with policy.
+
+Each KeyNote assertion specifies an authorizer and a \newterm{licensee}. As
+with PolicyMaker, the assertion represents a transfer of authority from the
+authorizer to the licensee. However, unlike PolicyMaker where the language
+used in the assertions is left open, KeyNote defines a specific language.
+This language includes support for simple mathematical computations and
+string matching via regular expressions.
+
+%The KeyNote authorization mechanism is required to be able to verify
+%signatures on assertions. However, RFC-2704 specifies that a trusted interface
+%to the authorizaton mechanism can be provided so that assertions that are
+%verified externally to KeyNote by a trusted module can be passed directly to
+%the authorization mechanism.
+% -- cut, a bit esoteric -cs
+
+Although there is no formal description of KeyNote in the original
+presentation \cite{RFC-2704}, KeyNote has been formally analyzed
+\cite{Weeks:UTMS,Li:DCFTML}. Using Datalog with constraints Li and
+Mitchell find that KeyNote's assertion language is, in some respects,
+too expressive. To capture KeyNote's computational ability, a rich
+constraint domain is necessary.  As a result, certain authorization
+problems are undecidable, such as determining the set of all requests that a
+collection of KeyNote assertions authorize.
+
+It is instructive to consider our running example
+(\autoref{section-overview-example}) in KeyNote. Here the hospital
+database could write a policy assertion that grants all rights to
+Alice's medical records to Alice's key. Such an assertion might look
+like\footnote{In this example keys and signatures are abbreviated for
+easy presentation.}:
+\begin{verbatim}
+Authorizer: POLICY
+Licensees: "RSA:123abc"    # Alice's key.
+Conditions: (name == "Alice")
+\end{verbatim}
+
+A KeyNote application passes a collection of name, value pairs called
+\newterm{action attributes} containing information about the context of the
+request to the authorization mechanism. In this case, we assume the hospital
+database application will pass a ``name'' attribute identifying whose
+records are being accessed. It is likely that the application would pass
+additional attributes to KeyNote as well that provide more specific
+information about the request. In the KeyNote assertion above, the hospital
+is authorizing all requests made by Alice's key for which the name
+attribute is ``Alice.'' This policy gives Alice total control over her own
+medical records. A more realistic policy might restrict Alice in certain
+ways by using more complicated conditions involving more action attributes.
+
+Alice passes her authority over her medical records to her physician Bob
+by issuing (and signing) a credential such as:
+\begin{verbatim}
+Authorizer: "RSA:123abc" # Alice's key.
+Licensees: "RSA:456def"  # Bob's key.
+Conditions: (name == "Alice")
+Signature: "DSA-SHA1:8912aa"
+\end{verbatim}
+Again, in a more realistic situation, Alice might wish to pass only a
+portion of her authority to Bob.
+
+The limitations of KeyNote (and also PolicyMaker) become apparent when
+Bob tries to delegate access to Alice's records to his medical
+team. KeyNote does not provide a language for defining and
+manipulating groups of principals.  Thus Bob is forced to explicitly
+list all the keys corresponding to his medical team in the Licensees
+field of any assertion he writes. Without the indirection made
+possible by roles, policy administration in KeyNote is much more
+difficult than in SPKI/SDSI or RT, for example.  Furthermore, when Bob
+consults with Carol about Alice's condition, Bob can easily write an
+assertion conveying his access to Alice's records to Carol. However,
+Carol must now write a new assertion of her own conveying that access
+on to Dave, her lab technician. Linked names in SDSI or linked roles
+in RT allow policies where this last step happens automatically; under
+those systems, once Carol has been granted access, she need not do
+anything in order for her technicians to also access Alice's records.
+
+
+\subsubsection{REFEREE}
+
+The REFEREE system \cite{Chu:RTMWA} was originally considered as a
+trust management language by the World Wide Web Consortium's PICS
+(Platform for Internet Content Selection) working group
+\cite{Resnick:PIACWC} for possible use in content selection
+applications. The PICS effort is now subsumed by RDF (Resource
+Description Framework).
+
+Like PolicyMaker, policies and credentials in REFEREE contain executable
+programs. However, REFEREE differs from PolicyMaker in that the execution
+of policies and credentials is itself put under the control of policy. In
+this manner REFEREE attempts to mitigate the risks associated with
+executing arbitrary programs as part of the authorization decision. The
+policy can prohibit the execution of credentials from untrustworthy
+sources. In addition REFEREE places signature verification and the fetching
+of remote credentials under policy control as well. The idea is that such
+actions are potentially dangerous, or at least require a certain amount of
+trust, and thus should be explicitly governed by the authorizer's policy.
+In this respect REFEREE represents some of the earliest work in automated
+trust negotiation, although it wasn't called that at the time.
+
+Policy programs in REFEREE can return one of ``yes'', ``no'', or
+``unknown.'' An affirmative value implies that the policy is definitely
+satisfied. A negative value implies that the policy is definitely not
+satisfied. An ``unknown'' value implies that there is insufficient
+information to decide compliance with the policy. In this way REFEREE does
+not automatically deny a request when the compliance with policy is
+ambiguous. The application must decide how to react to an ``unknown''
+result. Although a high security application might want to grant access
+only if the policy program returns an affirmative result, the web applications
+for which REFEREE is targeting might want a more flexible approach to
+ambiguous requests.
+
+Unlike PolicyMaker, REFEREE lacks a formal specification and does not
+appear to have been formally analyzed in the literature. Its model of
+evaluation is different than PolicyMaker's in that assertions can directly
+invoke each other rather than executing in isolation. This allows for more
+complex interactions between the assertions and makes the graph-theory
+explanation used with PolicyMaker inapplicable.
+
+\subsubsection{OASIS}
+
+In OASIS
+\cite{Hayton:ACODE,Hine:ADOS,Bacon:MORBACSAS,Dimmock:UTRRBACP} clients
+are classified into named roles by appropriate certificate
+authorities. An authorizer uses membership in a particular role as the
+basis for deciding access. The client collects role membership
+certificates from various certificate authorities ahead of time. To
+obtain such a certificate the client must show
+compliance with the authority's policy for role membership. This might
+require the use of previously obtained certificates or a proof of
+identity by way of some authentication protocol, or both. Once an
+appropriate role membership certificate has been obtained no further
+authorization computations need to be done. The authorizer
+simply checks the validity of the role membership certificate and
+grants access accordingly. Thus OASIS effectively moves the authorization
+computation off-line and distributes it to the various
+certificate authorities.
+
+A certificates may become invalid because a certificate
+authority's policy might change. Alternatively the client might no longer
+have the necessary characteristics to be eligible for membership in a
+critical role. To deal with this OASIS requires that servers maintain
+information about every place where their certificates are used. If a
+certificate needs to be revoked later, the issuing server proactively
+contacts all servers using the certificate to inform them. In this way
+OASIS provides rapid response to changing conditions.
+
+OASIS uses \newterm{appointment certificates} to provide delegation of
+authority and delegation of rights. A principal issues an appointment
+certificate to allow another principal the ability to activate a role. For
+example, a principal who can activate a role $r$ can delegate the rights
+implied by $r$ to another principal by issuing an appointment certificate
+that allows that other principal to also activate $r$. OASIS appointments
+are a generalization of normal role delegation because the issuer can
+appoint a subject to a role that the issuer can not activate. For example,
+a human resources director at a hospital can appoint a doctor without
+having the privileges of a doctor.
+
+OASIS also allows arbitrary \newterm{environmental constraints} to be
+used in rules for enabling role activations and for maintaining role
+membership. The logical core of OASIS treats environmental constraints
+as atomic propositions.  They are intended to allow the expression of
+policies based on time of day, local machine identity, or other
+similar factors. Since the environmental constraints are left
+unspecified, arbitrary amounts of computation could be done to
+evaluate them. As a consequence, the question of the tractability of
+access control decisions under OASIS can't be definitively answered
+without first making some assumptions about the nature of the
+environmental constraints being used.
+
+Role activation and role maintenance rules in OASIS are definite Horn
+clauses and thus represent a subset of first order logic. In particular,
+role activation rules have the form $\Delta \vdash r$ where $r$ is the role
+that may be activated and the conditions in $\Delta$ are elements in the
+union of roles, appointment certificates, and environmental constraints.
+All of the components of a rule can be parameterized. In the case of role
+activation such a rule means that a principal may activate role $r$ if that
+principal has activated all of the roles in $\Delta$, holds all the
+appointment certificates in $\Delta$, and if all the environmental
+constraints in $\Delta$ are satisfied. In the case of role maintenance,
+such a rule means that a principal may remain in role $r$ as long as all
+the conditions in $\Delta$ are satisfied. The requirements for maintaining
+a role activation may be less stringent than the requirements for
+activating the role in the first place.
+
+OASIS does not provide a language for specifying appointments, leaving that
+instead to individual applications. The presumption is that a principal
+should have to be in a particular role to issue particular appointments but
+OASIS does not describe how to express that detail. For example the human
+resources director at a hospital would first have to activate a special
+role that allows her to appoint doctors. Most likely, she would be able to
+activate this role due to an appointment certificate she has been given by
+the hospital administration. However, OASIS does not provide a way to
+specify what appointments a principal can make in terms of the roles that
+principal has activated.
+
+To encode the running example of section \autoref{section-overview-example}
+in OASIS one must presuppose the existence of a policy outside of the OASIS
+system that defines the conditions under which appointment certificates can
+be issued. For example, the hospital database might specify an OASIS rule
+such as \texttt{records\_user(X)} $\vdash$ \texttt{records(X)} allowing any
+entity with an appointment certificate \texttt{records\_user(X)} for
+patient $X$ to activate a role providing access to $X$'s medical records.
+The hospital can then define a policy allowing Alice to issue appointment
+certificates of the form \texttt{records\_user(Alice)}, although OASIS does
+not define what this policy would look like. Alice would use this ability
+to issue an appointment certificate for Bob who could then use the
+appointment certificate to activate the \texttt{records(Alice)} role when
+necessary. In order for Bob to delegate his access to Carol, Bob would need
+to be able to create an appointment certificate
+\texttt{records\_user(Alice)} that Carol can use. His ability to do this
+depends on the hospital's policy regarding the creation of appointment
+certificates.
+
+\subsubsection{PCA}
+\label{section-other-PCA}
+
+Proof Carrying Authorization (PCA) uses a higher order logic to specify
+both policy and credentials \cite{Appel:PCA,Bauer:GFACSW,Bauer:ACWPCA}.
+This logic is, in general, undecidable. However, this does not cause a
+problem for the authorizer because in PCA it is the requester who must
+construct a
+proof of authorization. The authorizer only needs to check this proof,
+something that is both decidable and tractable, to verify that the
+requester does have the requested access. PCA thus borrows concepts from
+proof carrying code \cite{Necula:PCC} where untrusted code must be
+accompanied by a safety proof that is checked by the consumer of that code.
+
+This approach seems to put a significant burden on requesters. However,
+each requester normally only needs to work with a subset of the full logic.
+For any particular application, an application-specific logic can be
+defined where the rules of inference in that logic are lemmas in the
+general higher order logic. The requester can construct a proof using this
+limited logic but the authorizer does not need to be aware of the
+particular application-specific logic being used. The requester provides
+proofs of the necessary application-specific lemmas as part of the proof of
+authorization.
+
+Many application-specific logics are possible. Other trust management
+systems such as SPKI can be encoded as an application-specific logic for
+use with PCA. Thus a PCA authorizer is able to work with requesters using a
+variety of trust management methods in a uniform way. In this respect PCA
+is a generalization of the other systems reviewed here.
+
+Principals in PCA are modeled as sets of formulae the principal regards as
+true and thus can be represented as a higher order predicate taking a
+formula as an argument. $P$ is a principal if both $\forall F . F \implies
+P(F)$ and $\forall F_1 \forall F_2 . ( P(F_1) \wedge P(F_1 \implies F_2) )
+\implies P(F_2)$. In other words, $P$ is a principal if $P$ admits true
+statements and any statement that is implied by other statements $P$
+admits.
+
+The logic contains a primitive \texttt{signed} connective used to represent
+digitally signed statements, and constants used to represent keys. As an
+example, consider the following three formulae.
+\begin{enumerate}
+\item $K_{\textrm{ca}}\,\,
+\textrm{signed}\,\, (\forall F . (K_a\,\, \textrm{signed}\,\, F) \implies
+(\textit{Alice}(F)))$
+
+\item $\forall F . (K_{\textrm{ca}}\,\, \textrm{signed}\,\, F)
+\implies \textit{CA}(F)$
+
+\item $\forall k. \forall p.
+  \textit{CA}((\forall S.( k\,\, \textrm{signed}\,\, S) \implies p(S)))
+  \implies
+  \forall S.( k\,\, \textrm{signed}\,\, S) \implies p(S)$
+\end{enumerate}
+
+The first formula describes the binding of the key $K_a$ to the principal
+$\textit{Alice}$ made by an authority with key $K_{ca}$. It asserts that
+any formula signed by $K_a$ is admitted by the principal $\textit{Alice}$.
+This formula plays the role of an identity certificate. The second formula
+is part of the authorizer's policy. It asserts that any formula signed by
+$K_{ca}$ can be attributed to the $\textit{CA}$ principal. In other words,
+$K_{ca}$ is the correct key. The final formula is how the authorizer
+delegates authority to $\textit{CA}$. It asserts that if the certificate
+authority asserts that $k$ is principal $p$'s key, then the authorizer will
+take any statement signed by $k$ as a statement admitted by $p$.
+
+The beauty of the PCA system is that formula such as the ones above are not
+built into the system but instead are constructed to suit the needs of a
+particular application. For this reason most of the features we describe
+for trust management systems are supported by PCA indirectly. 
+
+\PCAInferencefig
+
+The inference rules of PCA those of higher order logic along with a few
+additional rules that talk about keys and digital signatures. These
+additional rules are shown in \autoref{figure-PCArules}.
+The function $\mathcal{N}$ takes a string, for example a public key, and
+returns the principal corresponding to that key. The \textsc{name\_i}
+and \textsc{name\_imp\_e} rules embody the definition of a principal
+mentioned above. The \textsc{signed} rule says that a formula signed by
+key $k$ is a statement admitted by principal $\mathcal{N}(k)$.
+
+PCA uses an interesting mechanism to handle certificate revocation
+\cite{Bauer:ACWPCA},
+that is an example of how this feature can be handled while preserving
+monotonicity; their approach is inspired by previous work
+\cite{lbi-fc01} proposed for use in the 
+RT framework \cite{Li:DRBTMF}.
+
+In particular, a PCA implementation only treats a
+certificate as valid if there is an appropriate certificate revocation
+list available. The presence of a revocation list does not remove a
+previously valid certificate, rather it enables a certificate that was
+previously invalid to be used. The relevant inference rule is as 
+follows, though the PCA authors note that this rule is derivable 
+as a theorem:
+\begin{mathpar}
+\inferrule[cert-e]
+  { \textrm{cert}(A, F, N) \\
+    A\, \textrm{signed}(\textrm{revlist}(T_1, T_2, L)) \\
+    \textrm{localtime} < T_2 \\
+    N \notin L }
+  { A\, \textrm{says}\, F }
+\end{mathpar}
+This rule states that principal $A$ says $F$ provided there is a
+certificate asserting it and a revocation list signed by $A$ that is
+currently valid and which does not include the certificate's serial number.
+If the revocation list is not available, $A\,\textrm{says}\,F$ can not be
+deduced from the certificate alone.
+
+
+\subsubsection{TPL}
+
+In Trust Policy Language (TPL) \cite{Herzberg:ACMPKI} the policy language
+and the certificate language are distinct. Certificates bind attributes to
+public keys and can be translated from other certificate formats, such as
+X.509v3. The policy language allows authorizers to define rules, based on
+certificate attribute values, by which an entity, represented by a public
+key, can enter a role. As with $\RT$ but unlike SPKI, the system does not
+directly express authorizations. Instead only role memberships are
+computed. The permissions granted to an entity depend on the resulting role
+memberships and are defined externally.
+
+TPL uses an XML syntax for its policy language. The example in
+\autoref{figure-TPLexample} \cite{Herzberg:ACMPKI} illustrates a policy
+statement that defines the members of a group (or role) named
+``Hospitals.'' In such statements multiple rules are allowed; if any of the
+rules are satisfied then the policy is satisfied. A rule contains one or
+more INCLUSION elements, each of which represents a certificate or, if the
+REPEAT attribute is present, multiple certificates. In the example a
+subject is a member of the Hospitals group if that subject has been
+recommended by two other hospitals. The FUNCTION element describes
+additional conditions on the various certificates in the rule. In the
+example, the recommendation certificates must have a ``Level'' field with a
+value greater than one.
+
+\TPLexamplefig
+
+TPL policies can be compiled to Prolog, using appropriate functions in
+Prolog to capture the full expressiveness of the policy language. However
+the implementation does not use Prolog directly but instead provides its
+own policy engine. Unlike an ordinary Prolog theorem prover, this engine is
+capable of fetching remote certificates as needed and thus provides a form
+of distributed chain discovery. For example, suppose $X$ issues a
+certificate about some subject $Y$. The certificate contains an
+\textit{issuerCertRepository} field where the policy engine can find
+more information about $X$ (for example, the groups of which $X$ is a
+member) and a \textit{subjectCertRepository} field where the policy
+engine can find more information about $Y$ (for example, the groups
+defined by $Y$).
+
+The general form of TPL allows for credential negation and is
+therefore nonmonotonic. Since the requester cannot be expected to
+willingly provide information that would deny access, such
+certificates are fetched from repositories defined by the authorizer,
+instead of by the issuer or subject.
+
+\subsubsection{Binder}
+
+Like SD3, Binder \cite{DeTreville:BLBSL,DeTreville:MCP} uses an extended
+version of \datalog\ as its foundation. The authorizer writes \datalog\
+rules and facts to describe the local policy. These rules and facts exist
+in a \newterm{context} that is associated with a public/private key pair.
+Rules and facts can be exported from a context by signing them. Thus signed
+\datalog\ statements form the credentials in the Binder system. An
+importing context quotes the credentials using \says in a way similar to
+other ABLP inspired logics. Special rules in the policy must be provided to
+relate quoted predicates to local predicates.
+
+The following example \cite{DeTreville:BLBSL} allows all members of
+\texttt{bigco} to read \texttt{re\-source\_r}. The authorizer's local policy
+is
+\begin{eqnarray*}
+\textit{can}(X, \texttt{read}, \texttt{resource\_r}) & \leftarrow &
+  \textit{employee}(X, \texttt{bigco}). \\
+\textit{employee}(X, \texttt{bigco}) & \leftarrow &
+  K_b\,\, \textbf{says}\,\, \textit{employee}(X, \texttt{bigco}).
+\end{eqnarray*}
+This policy grants read access to all objects $X$ for which the local
+predicate $\textit{employee}\-(X, \texttt{bigco})$ is true. The policy then
+connects the predicate \textit{employee} in the context controlled by key
+$K_b$ to the local predicate with the same name. When a signed credential
+$K_b\,\,\textbf{says}\,\,\textit{employee}(\texttt{john}, \texttt{bigco})$
+is presented to the authorizer, the authorizer can then compute that
+$\textit{can}(\texttt{john}, \texttt{read}, \texttt{resource\_r})$.
+
+In effect Binder distributes a large \datalog\ program over many contexts
+and allows each context to explicitly decide which statements from other
+contexts it will accept. Like SD3 this gives Binder the full expressivity
+of \datalog.
+
+Binder makes no attempt to treat negative information and revocation is
+handled in $T_C$ (\autoref{figure-tmstruct}) by controlling certificate
+lifetimes or by requiring the use of on-line revocation checks. In addition
+an authorizer's policy can be, at least potentially, signed and published.
+Thus a Binder based system could require clients to find the necessary
+proofs with the authorizer simply checking the results as is done with PCA.
+This can help off-load work from the authorizer but the technique is not
+specific to Binder. 
+
+\subsubsection{Cassandra}
+
+Cassandra \cite{Becker:CDACPTE,Becker:CFTMAEHR,Becker:CFTMAEHR2} uses
+a semantics based on \datalog\ with constraints but allows the
+constraint domains to be selected independently of the base
+system. This allows an application to tune Cassandra by trading off
+expressiveness in the policy language for computational efficiency
+without having to modify the core implementation.
+
+In a Cassandra system, each host runs a Cassandra service. In addition to
+requesting access to resources, clients of the service can activate or
+deactivate roles in that service as well as request credentials for use
+with Cassandra services on other nodes. Each Cassandra service runs an
+authorization mechanism that consults local policy and that also makes
+remote queries to other Cassandra services to obtain relevant policy
+information. Information about where remote credentials can be found is
+encoded in the rules themselves; credential chain discovery is not
+completely automatic.
+
+Cassandra is role based and allows roles and actions (permissions) to be
+parameterized. The base system uses only a few predicates including:
+$\textit{permits}(\texttt{entity}, \texttt{permission})$,
+$\textit{canActivate}(\texttt{entity}, \texttt{role})$, and
+$\textit{hasActivated}(\texttt{entity}, \texttt{role})$. Users are able to
+introduce application specific predicates as well.
+Whenever a role is activated in a particular Cassandra service, that
+service adds an appropriate \textit{hasActivated} fact to its policy.
+Thus the set of policy rules available to the authorization mechanism varies
+as roles are activated and deactivated.
+
+The predicates in a rule can be annotated with information about the
+location where specific certificates can be obtained. These annotations
+can be variables that are instantiated during the evaluation process.
+Using side-effect free functions in an integer order constraint domain,
+Cassandra can directly express rules regarding credential validity. For
+example:
+\begin{displaymath}
+\begin{array}{l}
+\textit{canActivate}(X, \texttt{Doc}()) \leftarrow \\
+\hspace{0.5cm} \textit{canActivate}(X, \texttt{CertDoc}(T)),
+  \texttt{CurTime}() - \texttt{Years}(1) \le T \le \texttt{CurTime}()
+\end{array}
+\end{displaymath}
+This rule says that $X$ can activate the doctor role provided that $X$ was
+certified at time $T$ ($X$ can activate the \texttt{CertDoc} role for $T$),
+and that $T$ is not more than one year old. In this case the authorizer
+defines a validity period on $X$'s certification and won't accept
+certifications that are too old. Notice that in most systems the lifespan
+of a certificate is set by the issuer. However, since the authorizer is the
+principal assuming the risk of using an invalid certificate it makes sense
+in many applications for the authorizer to define the acceptable lifespans
+\cite{Rivest:CWECRL}.
+
+Cassandra uses an authorization procedure that is a variation of
+Toman's memoing algorithm for \datalog\ with constraints
+\cite{Toman:MECED}. This approach is based on SLG resolution and is
+goal oriented (top down) while avoiding the non-termination problems
+that might arise using a traditional SLD style evaluation.
+

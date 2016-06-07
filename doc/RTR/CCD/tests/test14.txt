@@ -1,0 +1,12 @@
+# This is variation of test13.txt. In this case, the risk associated
+# with H.orgs <- AARP is made high enough so that the *total* aggregated
+# risk to AARP is excessive. Thus no derived credential should be added
+# to the credential database. There should be no output.
+
+H.discount, 50
+H.discount <- H.preferred, 2, 15
+H.discount <- H.orgs.members, 3, 20
+H.preferred <- AARP.members, 2, 50
+H.orgs <- AARP, 1, 40
+AARP.members <- M, 1, 0
+

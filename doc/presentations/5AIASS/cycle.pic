@@ -1,0 +1,27 @@
+.PS
+
+circlerad = 0.50;
+hunit   = 0.30
+vunit   = 0.15
+unumoff = 0.17
+dnumoff = 0.20
+
+circle "$B.s$";
+move down from 1st circle 6*vunit;
+circle "$C.t$";
+move right from 2st circle 4*hunit up 3*vunit;
+circle "$A.r$";
+move right from 3rd circle 4*hunit;
+circle "$E$";
+
+line -> from 1st circle to 2nd circle chop;
+line -> from 2nd circle to 3rd circle chop;
+line -> from 3rd circle to 1st circle chop;
+line -> from 4th circle to 3rd circle chop;
+
+move left dnumoff from 1st line.c "3";
+move down dnumoff from 2nd line.c "4";
+move up unumoff from 3rd line.c "2";
+move up unumoff from 4th line.c "1";
+
+.PE

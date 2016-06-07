@@ -1,0 +1,52 @@
+%\documentclass[envcountsame,envcountsect,oribibl,runningheads]{llncs}
+% Remove `runningheads' option in final version.
+\documentclass[acmcsur]{acmtrans2m}
+%\usepackage{a4wide}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage[T1]{fontenc}
+\usepackage[english]{fp-autoref}
+\usepackage{fp-frame}
+\usepackage[latin1]{inputenc}
+\usepackage{mathpartir}
+%\usepackage{moreverb}% TEMPORARY
+\def\TirName#1{\text{\sc #1}}
+\usepackage{stmaryrd}
+\usepackage{url}
+\usepackage{jbw-arrow}
+\usepackage{enumerate}
+\usepackage{rotating}
+\usepackage{graphics}
+
+\input{macros}
+\input{ces_macros}
+\input{figures}
+
+\begin{document}
+
+\input{frontmatter}
+
+\input{introduction}
+
+\input{overview}
+
+\input{features}
+
+\input{foundation}
+
+\input{review}
+
+\input{trust-negotiation}
+
+\input{conclusion}
+
+\bibliographystyle{acmtrans}
+%\hbadness=10000 % Don't tell us how bad the bibliography really looks. We do not want to know...
+\bibliography{survey}
+
+\begin{received}
+Received Month Year; revised Month Year; accepted Month Year
+\end{received}
+\end{document}

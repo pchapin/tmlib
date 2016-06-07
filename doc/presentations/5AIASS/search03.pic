@@ -1,0 +1,37 @@
+.PS
+
+circlerad = 0.50;
+hunit = 0.30
+vunit = 0.15
+unumoff = 0.17
+dnumoff = 0.20
+
+circle "$\frac{H.d}{0}$";
+move right from 1st circle 4*hunit up vunit;
+circle "$\frac{H.p}{15}$";
+move down from 2nd circle 2*vunit;
+circle "$\frac{H.o.m}{5}$";
+move right from 3rd circle 4*hunit up vunit;
+circle "$\frac{A.m}{22}$";
+move right from 4th circle 3*hunit;
+circle "$M$";
+move down from 3rd circle 1.5*vunit;
+circle "$\frac{H.o}{5}$";
+move right from 6th circle 3*hunit;
+circle "$A$";
+
+line -> from 2nd circle to 1st circle chop;
+line -> from 3rd circle to 1st circle chop;
+line -> from 4th circle to 2nd circle chop;
+#line dashed -> from 4th circle to 3rd circle chop;
+#line -> from 5th circle to 4th circle chop;
+#line -> from 7th circle to 6th circle chop;
+
+move up unumoff from 1st line.c "15";
+move down dnumoff from 2nd line.c "5";
+move up unumoff from 3rd line.c "7";
+#move down dnumoff from 4th line.c "10";
+#move up unumoff from 5th line.c "4";
+#move up unumoff from 6th line.c "10";
+
+.PE

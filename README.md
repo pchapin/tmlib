@@ -1,2 +1,6 @@
-# tmlib
-A trust management library
+
+TMLib
+=====
+
+A library for trust management processing.
+

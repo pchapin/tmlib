@@ -1,0 +1,229 @@
+\section{$\RTR$ Credential Chain Discovery}
+\label{section-chain-discovery}
+
+In this section we discuss an algorithm for authorization with risk in a distributed
+environment. As in $\RT$ chain discovery, \cite{Li:2003-02}, a central issue is that credentials
+need not be stored locally, but may need to be retrieved from remote machines. Furthermore,
+modulation of tolerable risk is intended to be a central feature of $\RTR$; online authorization
+need not be risk-optimal, but risk should be kept below a certain threshold. This allows
+tolerable levels of risk to be specified and enforced. This flexibility will be implemented by
+viewing authorization decisions as a reachability analysis in a \emph{credential graph}, and by
+defining chain discovery as a partial graph reconstruction algorithm parameterized by a
+\emph{maximum risk threshold}.
+
+\subsection{Credential Graphs}
+
+We begin by defining an interpretation of credential sets $\creds$ as a credential graph. More
+precisely, sets of credentials are interpreted as a weighted multigraph, where nodes are role
+expressions, edges are credentials, and weights are risks. Authorization is implemented by
+determining reachability, via \emph{risk weighted paths}, where the aggregation of edge risk
+along the path is the risk of authorization. Reachability is predicated on simple paths, since
+traversing cycles can only increase risk, and any path with a cycle would otherwise generate an
+infinite number of risk weighted paths. Allowing the latter would preclude a constructive
+definition of credential graphs, as will become clear below.
+\begin{definition}[Risk weighted paths]
+  Let $\graph{} = (\nodes{}, \wtedges{})$ be a weighted multigraph with nodes $f \in \nodes{}$
+  and edges $\wtedge{f_1}{f_2}{\risk} \in \wtedges{}$ weighted by elements $\risk$ of a given
+  risk ordering. The pair:
+$$((f_1,\ldots,f_n), \risk_1 \oplus \cdots \oplus \risk_{n-1})$$ is a
+\emph{risk weighted path in $\graph{}$} iff for all $i \in [1..n-1]$, there exists
+$\wtedge{f_i}{f_{i+1}}{\risk_i} \in \wtedges{}$. A weighted path $((f_1,\ldots,f_n), \risk)$ is
+\emph{simple} iff no node is repeated in $(f_1,\ldots,f_n)$. We write $\wtpath{f}{f'}{\risk}$,
+pronounced ``$f'$ is reachable from $f$ with risk $\risk$'', iff $((f,\ldots,f'), \risk)$ is a
+simple risk weighted path. We write $\wtpath{f}{f'}{\risk} \in \graph{}$ iff
+$\wtpath{f}{f'}{\risk}$ holds given $\graph{}$.
+\end{definition}
+
+Now, the definition of credential graphs is founded on the definition of risk weighted paths,
+since edges derived from linked and intersection credentials are supported by them.
+\begin{definition}[Credential graph]
+  \label{def-credentialgraph}
+  Given $\creds$, its \emph{credential graph} is a weighted multigraph $\graph{\creds} =
+  (\nodes{\creds}, \wtedges{\creds})$, where:
+$$
+\nodes{\creds} = \bigcup\limits_{\cred{A.r}{e}{\risk}} \setdefn{A.r,e}
+$$
+And $\wtedges{\creds}$ is the least set of risk-weighted edges satisfying the following closure
+properties:
+\begin{enumerate}
+\item If $\cred{A.r}{e}{\risk} \in \creds$ then $\wtedge{e}{A.r}{\risk} \in \wtedges{\creds}$.
+\item If $B.r_2, A.r_1.r_2 \in \nodes{\creds}$ and $\wtpath{B}{A.r_1}{\risk}$ is simple, then
+  $\wtedge{B.r_2}{A.r_1.r_2}{\risk} \in \wtedges{\creds}$.
+\item If $D,f_1\cap \cdots \cap f_n \in \nodes{\creds}$ and for each $i \in [1..n]$ there exists
+  a simple path $\wtpath{D}{f_i}{\risk_i}$, then $\wtedge{D}{f_1 \cap \cdots \cap f_n}{\risk}
+  \in \wtedges{\creds}$, where $\risk = \risk_1 \oplus \cdots \oplus \risk_n$.
+\end{enumerate}
+\end{definition}
+
+The definition of credential graphs can be made constructive by iterating closure over an
+initial initial edge set $\wtedges{\creds}^0$:
+$$
+\wtedges{\creds}^0 = \setdefn{\wtedge{A.r}{e}{\risk} \mid 
+\cred{A.r}{e}{\risk} \in \creds}
+$$ 
+In rules (2) and (3), the paths predicating membership in $\wtedges{\creds}$ are called
+\emph{support paths}, and the edges are called \emph{derived}. On each iteration, add a new
+weighted edge according to closure rule (2) or (3). Since $\creds$ is finite, and support paths
+must be simple, the process will reach a fixpoint in a finite number of iterations; this
+fixpoint is $\wtedges{\creds}$.
+
+We observe that the characterization of credential sets $\creds$ is sound and complete with
+respect to the set theoretic semantics given in the previous section. These results will form a
+bridge with the semantics of $\RTR$ for establishing correctness of credential chain discovery.
+The statement of soundness reflects the fact that while risk assessments of credential sets
+express minimum risk bounds of role membership, the credential graph does not preclude
+reachability via paths of higher risk.
+\begin{theorem}[Soundness]
+  For all $B,A.r$, if $\wtpath{B}{A.r}{\risk} \in \graph{\creds}$, then $(B,\risk') \in
+  \credsmean{\creds}(A.r)$ with $\risk' \po \risk$.
+\end{theorem}
+The statement of completeness reflects that any assessed risk is the weight of some related path
+in the graph:
+\begin{theorem}[Completeness]
+  For all $A.r$, if $(B,\risk) \in \credsmean{\creds}(A.r)$, then $\wtpath{B}{A.r}{\risk} \in
+  \graph{\creds}$.
+\end{theorem}
+
+\subsection{Backward Chain Discovery Algorithm}
+
+The credential chain discovery algorithm is a modification of the backward search algorithm in
+\cite{Li:2003-02}. For a particular risk lattice $\mathcal{K}$ and risk aggregration operation
+$\oplus$, the algorithm takes a collection of credentials $\mathcal{C}$, the name of a governing
+role, and a maximum risk $\risk_M \in \mathcal{K}$. The algorithm returns a risk assessment for
+the governing role where each entity in the assessment is associated with a risk $\risk \po
+\risk_M$.
+
+The algorithm maintains a set of credential graph nodes $N$ and edges $E$, adding nodes and
+edges to these sets as it works. The algorithm also maintains a queue of nodes $Q$ that are
+waiting to be processed. When this queue is exhausted the algorithm terminates. Associated with
+each node in $N$ is a set of aggregated risk records (ARRs) of the form $(n_d, n_s, \risk_A)$.
+The driving node $n_d$ contains the name of the node that caused the ARR to be initially
+created. The support node $n_s$ is used when handling intersection roles. The aggregated risk
+$\risk_A$ reflects the risk accumulated from the point where the ARR is first created. In what
+follows we use $N(e)$ to denote the set of ARRs in node $e$.
+
+We define a canonical representation for sets of ARRs $\mathcal{A}$ analogously to risk
+assessments. $\mathcal{A}$ is in canonical form if there does not exist $(n_d, n_s, \risk_1),
+(n_d, n_s, \risk_2) \in \mathcal{A}$ such that $\risk_1 \po \risk_2$. In addition we extend the
+definition of $\oplus$ to include sets of ARRs
+$$
+\mathcal{A} \oplus \risk' = \{(n_d, n_s, \risk \oplus \risk')\,|\, (n_d, n_s, \risk) \in
+\mathcal{A}\}
+$$
+
+It is convenient to define an operation $\mathit{update}(\mathcal{A}, \risk, e_2)$ that
+describes how a set of ARRs $\mathcal{A}$ are copied to a node $e_2$ over an edge in the
+credential graph with risk $\risk$. The $\mathit{update}$ function first adds a node for $e_2$
+to the graph if one does not already exist. It then computes
+$$
+A' = \mathit{canonical}(\mathit{bound}(\mathcal{A} \oplus \risk) \cup N(e_2))
+$$
+where $\mathit{canonical}$ is a function that returns a set of ARRs that is the canonical form
+of the set given as its argument, and where $\mathit{bound}$ is a function that removes all ARRs
+$(n_d, n_s, \risk)$ from the given set where $\risk \po \risk_M$ is false. If $N(e_2) \ne A'$
+then $\mathit{update}$ sets $N(e_2) = A'$ and queues $e_2$ for exploration.
+
+The algorithm processes each type of node, except for entity nodes, as follows
+\begin{description}
+\item[Role $A.r$] Look up all edges $\cred{A.r}{e}{\risk}$. For each such edge,
+  $\mathit{update}(N(A.r), \risk, e)$.
+\item[Linked role $A.s.t$] Look up all edges $\cred{A.s.t}{e}{\risk}$. For each such edge,
+  $\mathit{update}(N(A.r.s), \risk\ e)$. In addition $\mathit{update}((A.s.t, A.s, \bot), \bot,
+  A.s)$.
+\item[Intersection role $f_1 \cap \cdots \cap f_n$] Look up all edges $\cred{f_1 \cap \cdots
+    \cap f_n}{e}{\risk}$. For each such edge, $\mathit{update}(N(f_1 \cap \cdots \cap f_n),
+  \risk, e)$. In addition, for each $f_i$ participating in the intersection
+  $\mathit{update}((f_1 \cap \cdots \cap f_n, f_i, \bot), \bot, f_i)$.
+\end{description}
+
+These rules describe how ARRs propagate through the credential graph. The algorithm starts by
+creating and queuing a node for the governing role $g$ and assigning to that node the ARR $(g,
+g, \bot)$. As this ARR moves through the graph it accumulates risk information about the various
+paths to $g$. If two paths converge, the node at the junction of the paths will get re-explored
+if the second set of incoming ARRs cause accumulated risks at that node to change.
+
+Maintaining the canonical form of the ARR sets in each node keeps the algorithm from diverging
+when there are cycles in the credential graph. When the edge $\cred{e_1}{e_2}{\risk}$ that
+closes the cycle is processed, the $\mathit{update}$ operation will not modify $N(e_2)$ since
+all ARRs in $N(e_1) \oplus \risk$ will have risk values greater than or equal to those in
+$N(e_2)$. Thus there will be no change to the canonical form of $N(e_2)$ and $e_2$ will not be
+re-explored.
+
+If at any time during the search the total aggregated risk $\risk$ in an ARR is such that $\risk
+\po \risk_M$ is false, that ARR no longer propagates and the search in that direction is
+abandoned. Thus the algorithm does not bother exploring portions of the credential graph that
+have too much aggregated risk from the governing role.
+
+Entity nodes must be processed in a special way so that the derived edges they imply are
+properly handled. The operation $\mathit{processEntity}$ loops over all ARRs in the entity node
+$E$ and for each ARR $(n_d, n_s, \risk)$ considers one of three cases
+\begin{description}
+\item[$n_d$ is a plain role $A.r$] In this case, $A.r$ must be the governing role and $E$ can
+  reach that node with an aggregated risk $\risk$. The algorithm records this discovery.
+\item[$n_d$ is a linked role $A.s.t$] In this case $E$ can reach $A.s$ with risk $\risk$. The
+  algorithm adds the edge $\cred{A.s.t}{E.t}{\risk}$ to the edge set and queues $A.s.t$ for
+  re-exploration.
+\item[$n_d$ is an intersection role $f_1 \cap \cdots \cap f_n$] In this case $E$ can reach $n_s$
+  with risk $\risk$. The algorithm associates this information with the pair $(n_d, E)$. If all
+  roles mentioned in $n_d$ have been associated with $(n_d, E)$ in this way, the algorithm adds
+  the edge $\cred{f_1 \cap \cdots \cap f_n}{E}{\risk}$ to the edge set and queues $f_1 \cap
+  \cdots \cap f_n$ for re-exploration.
+\end{description}
+
+To illustrate the action of the algorithm consider the sum-of-risks example in Section
+\ref{sec:sum-of-risks}. In that example $\mathit{Ed}$ is in the \role{Store}{buyer} role both
+with risk 8 and through the \role{Personnel}{manager} role with risk 9. If $\risk_M = 8$, the
+algorithm returns a risk assessment for the \role{Store}{buyer} role of $\{(\mathit{Ed}, 8)\}$.
+The path with risk 9 is not fully explored because the total aggregated risk on that path
+exceeds $\risk_M$. The algorithm processes this example as follows.
+\begin{enumerate}
+
+\item The node for \role{Store}{buyer} is created an initialized with an ARR of $(S.b, S.b,
+  \bot)$.
+
+\item When \role{Store}{buyer} is processed, a node is created for \role{Acme}{purchaser} $\cap$
+  \role{Acme}{employee} and the ARR in \role{Store}{buyer} is copied to the new node and updated
+  to $(S.b, S.b, 1)$.
+
+\item When \role{Acme}{purchaser} $\cap$ \role{Acme}{employee} is processed, there are no edges
+  yet defining it. However, nodes for \role{Acme}{purchaser} and \role{Acme}{employee} are
+  created and initialized with $(A.p \cap A.e, A.p, \bot)$ and $(A.p \cap A.e, A.e, \bot)$
+  respectively.
+
+\item When \role{Acme}{purchaser} is processed, nodes for \role{Personnel}{manager} and
+  $\mathit{Ed}$ are created. The ARRs in \role{Acme}{purchaser} are copied to these new nodes
+  and updated resulting in $(A.p \cap A.e, A.p, 2) \in N(P.m)$ and $(A.p \cap A.e, A.p, 4) \in
+  N(E)$.
+
+\item When \role{Acme}{employee} is processed, the ARR $(A.p \cap A.e, A.e, 3)$ is added to
+  $N(E)$
+
+\item When \role{Personnel}{manager} is processed, the ARR $(A.p \cap A.e, A.p, 5)$ is computed
+  from $N(P.m) \oplus 3$. However, this ARR is removed by the canonicalization process and thus
+  is never added to $N(E)$.
+
+\item When $\mathit{Ed}$ is processed $\mathit{processEntity}$ loops over the ARRs contained in
+  $N(E)$. It finds that the intersection is satisfied and thus creates the edge $\cred{A.p \cap
+    A.e}{E}{7}$. It then queues node $A.p \cap A.e$ for re-exploration.
+
+\item When \role{Acme}{purchaser} $\cap$ \role{Acme}{employee} is processed again the algorithm
+  copies the ARR $(S.b, S.b, \bot)$ to $E$ and updates it to $(S.b, S.b, 8)$. Since this changes
+  $N(E)$ that node is queued for re-exploration. However, \role{Acme}{purchaser} and
+  \role{Acme}{employee} are not queued since their ARR sets are not modified.
+
+\item When $\mathit{Ed}$ is processed again, the discovery is made that $E$ is in $S.b$ with
+  risk 8. The other ARRs in $N(E)$ are also processed causing the node for $A.p \cap A.e$ to be
+  re-explored. However, none of the canonical ARR sets are modified after that and thus the
+  queue drains and the algorithm terminates.
+\end{enumerate}
+
+\begin{theorem}
+  If $\mbox{\texttt{checkmem}}(E, A.r, \risk)$ returns true, then there exists $(E, \risk') \in
+  \mathcal{S}_\mathcal{C}(A.r)$ such that $\risk' \po \risk$.
+\end{theorem}
+
+\begin{theorem}
+  For all $(E, \risk) \in \mathcal{S}_\mathcal{C}(A.r)$, $\mbox{\texttt{checkmem}}(E, A.r,
+  \risk)$ returns true.
+\end{theorem}
+

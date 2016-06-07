@@ -1,0 +1,11 @@
+# This test case contains a cycle. The total weight around the cycle is
+# 15. The expected output should be equivalent to (M, 5). If the
+# algorithm loops until it reaches its upper bound of risk, it will also
+# find (M, 20), (M, 35), etc.
+
+A.r, 100
+A.r <- C.t, 2, 5
+B.s <- A.r, 2, 5
+C.t <- B.s, 2, 5
+C.t <- M, 1, 0
+

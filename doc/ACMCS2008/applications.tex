@@ -1,0 +1,442 @@
+%+++++++++++++++++++++++++++++++++
+% Preamble and global declarations
+%+++++++++++++++++++++++++++++++++
+\documentclass{article}
+%\documentclass[12pt]{article}
+
+% Common packages. Uncomment as needed.
+%\usepackage{amsmath}
+%\usepackage{amssymb}
+%\usepackage{amstext}
+%\usepackage{amsthm}
+%\usepackage{doublespace}
+%\usepackage{fullpage}
+%\usepackage[dvips]{graphics}
+%\usepackage{listings}
+%\usepackage{mathpartir}
+%\usepackage{url}
+%\usepackage{hyperref}
+
+% The following are settings for the listings package.
+%\lstset{language=Java,
+%        basicstyle=\small,
+%        stringstyle=\ttfamily,
+%        commentstyle=\ttfamily,
+%        xleftmargin=0.25in,
+%        showstringspaces=false}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1.75ex plus0.5ex minus0.5ex}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage[T1]{fontenc}
+\usepackage{fp-frame}
+\usepackage{mathpartir}
+\def\TirName#1{\text{\sc #1}}
+\input{macros}
+\input{ces_macros}
+
+%++++++++++++++++++++
+% The document itself
+%++++++++++++++++++++
+\begin{document}
+
+%-----------------------
+% Title page information
+%-----------------------
+\title{Applications of Trust Management Systems}
+\author{Peter C. Chapin}
+\date{June 2006}
+\maketitle
+
+This informal document is intended to catalog possible applications of
+trust management (TM) systems. The purpose of this catalog is to find
+compelling examples as well as, perhaps, guide future implementation
+efforts.
+
+\begin{enumerate}
+
+\item \textit{Calendar Application}. Li and Mitchell \cite{Li:RRBTMF}
+  implemented a distributed calendar application called `August' that uses
+  $\textrm{RT}_0$ for access control. They say, ``In August each user has a
+  calendar and can specify policy that determines who is allowed to view
+  each part of the user's calendar and who is allowed to add an activity of
+  certain kinds at a certain time.''
+
+\item \textit{IPsec/Firewalls}. Blaze and Ioannidis \cite{Blaze:TMIPS}
+  describe an extension to the IPsec architecture that uses KeyNote to
+  check if packet filters proposed by a remote host comply with a local
+  policy for the creation of such filters. This is a specific case of a
+  more general concept of using a TM system for firewall management. For
+  example, one could imagine a proxy server using a TM system to control
+  who it will proxy for and under what conditions.
+
+\item \textit{Email}. People would like to be able to allow JavaScript and
+  other executable content in their email because doing so would enrich the
+  email experience. However, nobody does this currently because of the
+  dangers of malicious software. Accepting executable content from known
+  individuals who sign their messages is inflexible. Using TM techniques,
+  an email application could accept executable content from a larger array
+  of users, according to local policy.
+
+\item \textit{Web Page Content Ratings}. Several TM systems described in
+  the literature use a web page content rating example
+  \cite{Gunter:ADDUQCM,Chu:RTMWA}. The idea is that a ratings authority
+  issues certificates that associate [the hash of] a web page to a rating.
+  The web server delivers this certificate to the browser where local
+  policy is consulted to determine if the page should be displayed. There
+  was some effort in the W3C to standardize how this might be done
+  \cite{Resnick:PIACWC}, although that work appears to have stagnated.
+
+\item \textit{File and Database Sharing}. In environments where
+  collaborators are spread across administrative domains, access to common
+  files and data can be granted using TM techniques. That way the owner of
+  the file or data does not have to know the identity of users on other
+  domains. Many potential applications of this exist: web servers,
+  conventional file servers, revision control systems, database access,
+  etc.
+
+\item \textit{Streaming Media}. Suppose a television station partners with
+  MSN to offer streaming video to selected MSN subscribers. The television
+  station could use TM techniques to control access to the video feed by
+  delegating the authority to specify legitimate users to MSN. This is a
+  special case of multi-domain file sharing.
+
+\item \textit{Medical Records}. Several TM systems described in the
+  literature refer to medical record applications \cite{Bacon:MORBACSAS,
+  Becker:CFTMAEHR}. This is a special case of multi-domain database
+  sharing.
+
+\end{enumerate}
+
+\section{Email Application}
+
+% Alice.orgs <- Bob.orgs
+% Alice.programmers <- Alice.orgs.programmers
+% Alice.executable_content <- Alice.programmers & Bob.dbms_project
+%
+% Bob.orgs <- ACME
+% Bob.dbms_project <- ACME.dbms_project
+%
+% ACME.programmers <- Carol
+% ACME.dbms_project <- Carol
+
+Alice is a programmer at a company working on a new database management
+system. She would like to receive complex email messages containing
+executable content from other programmers working on the same project.
+Those working on her project include locally known individuals defined by
+her manager, Bob, as well as certain individuals who are working at an
+affiliated organization, ACME Software. However, not all of the project
+members are programmers. We assume that each organization maintains a list
+of its programmers and that Bob maintains a list of all organizations that
+might be relevant to Alice. Note that to protect herself from malicious
+content, Alice does not want to process executable content in arbitrary
+messages.
+
+In the traditional approach Alice might insist that messages with
+executable content be digitally signed and contain an attached certificate
+from a certificate authority she knows and trusts that binds the signing
+key to a name Alice understands. Alice then creates an access control list
+in her mail client specifying which names may send her executable content.
+
+The problem with this approach is that it is relatively inflexible. Alice
+must know the names of all programmers in her project, including
+programmers at a different organization. Alice is not likely to be made
+aware when new programmers are added or removed from her project by ACME
+Software and so her access control list will be often be out of date.
+\pnote{Add some comments about how RBAC might handle this problem}.
+
+In the trust management approach, Alice loads the following policy into her
+email program.
+
+\begin{enumerate}
+\item Alice will regard as an organization any entity that Bob regards as
+  an organization.
+
+\item Alice will regard as a programmer any entity that one of her listed
+  organizations regards as a programmer.
+
+\item Alice will accept executable content from anyone on the DBMS project,
+  according to Bob, and who is also a programmer.
+\end{enumerate}
+
+Bob's policy specifies ACME Software as an affiliated organization. Also,
+in addition to specifically adding certain local people to the DBMS
+project, Bob's policy merges ACME Software's group of DBMS people into his
+locally defined group. Notice that the security policy is distributed. Not
+only is Alice unaware of the precise set of individuals from which she will
+accept executable content, she is unaware of precisely how that set is
+constructed. However, she has delegated trust to her manager, Bob, and
+indirectly to ACME Software to specify these sets correctly. If some
+programmers from an additional organization join the DBMS project, Bob
+modifies his definition of the project's membership appropriately. Alice
+does not need to do anything to begin accepting email with executable
+content from these new programmers.
+
+Suppose Alice receives some email from Carol, a programmer at ACME Software
+working on the DBMS project. The message is signed with Carols's private
+key and is accompanied by several certificates.
+
+\begin{enumerate}
+\item A certificate signed by ACME Software asserting that Carol is working
+  on the DBMS project.
+
+\item A certificate signed by ACME Software asserting that Carol is a
+  programmer.
+
+\item A certificate signed by Bob asserting that ACME Software is an
+  affiliated organization. This certificate contains ACME Software's public
+  key which could be used to check the signature on the previous two
+  certificates.
+
+\item A certificate signed by Bob asserting that ACME Software's definition
+  of its DBMS project is part of his definition of the DBMS project.
+\end{enumerate}
+
+Based on this information Alice's email client computes that the received
+message complies with Alice's policy for executable content.
+
+Notice that two of the certificates above were signed by Bob. In practice
+it is likely that Carol will not know to include those certificates in her
+message. Furthermore Alice may be initially unaware of them because she
+does not know Bob's policy regarding who is in her current project or which
+organizations are on his list of affiliated organizations. Thus it may be
+necessary, in general, for Alice's email client to automatically attempt to
+fetch these additional certificates from Bob's server. Trust management
+systems vary in if, and how, they support this sort of credential
+discovery.
+
+\section{Medical Records Application}
+
+% Alice.records <- Bob
+% Alice.records <- Bob.alice_delegates
+%
+% Bob.team <- Carol
+% Bob.team <- Bob.team.support
+% Bob.alice_delegates <- Hospital.medical_staff & Bob.team
+%
+% Hosptial.medical_staff <- Dave (a lab technician)
+%
+% Carol.support <- Dave
+
+Suppose Alice is a cancer patient at a hospital being treated by Bob, a
+doctor. Alice grants Bob access to her medical records and also allows Bob
+to delegate such access to others as he sees fit.
+
+Bob defines his team as a particular collection of individuals together
+with the people supporting them. Notice that this definition is recursive;
+a person supporting one of Bob's team members becomes a team member. Here
+we assume that Bob's team includes both medical and non-medical personnel
+(for example other doctors as well as, perhaps, receptionists). Bob then
+delegates his access to Alice's medical records to only the medical staff
+on his team.
+
+Suppose further that Bob consults with another doctor, Carol, on Alice's
+condition. Bob modifies his policy to add Carol temporally to his team.
+Carol orders some blood tests that are then analyzed by Dave, a lab
+technician and one of Carol's support people. The policy described allows
+Dave to access Alice's medical records, for example to input the test
+results.
+
+Dave signs the test results when he uploads them to the hospital database.
+He also includes the following certificates.
+
+\begin{enumerate}
+\item A certificate signed by Carol asserting that Dave is one of her support
+  people.
+
+\item A certificate signed by the hospital asserting that Dave is a member of
+  the medical staff.
+
+\item A certificate signed by Bob asserting that he delegates his access to
+  Alice's medical records to the medical staff on his team.
+
+\item A certificate signed by Bob asserting that his team contains all
+  the people supporting those on his team.
+
+\item A certificate signed by Bob asserting that Carol is on his team.
+\end{enumerate}
+
+In this scenario the hospital database is assumed to already know Alice's
+policy. As with the earlier example, Dave may not realize that he needs to
+submit the various certificates that have been signed by Bob. Since Carol
+requested the test Dave may not realize that Bob is involved at all.
+Instead the hospital database fetches Bob's policy from Bob's server in
+order to complete the authorization decision.
+
+Complex access control scenarios such as this one are difficult to express
+using traditional methods. Neither Alice nor Bob realize that Dave needs to
+be granted access to Alice's medical records. Although Dave's role as one
+of Carol's support people might be enough to grant him access to the
+records of Carol's patients, the fact that Bob is consulting with Carol on
+Alice's case is not something that would be initially assumed or expected.
+This connection is established by Bob's policy, which he writes on demand,
+and not by any previous decision made by the hospital.
+
+% Extend this example to include the case where Bob consults with a doctor
+% at a different hospital?
+
+\subsection{RT}
+
+To express the medical records example using $\RT$, only the facilities of
+$\RT_0$ are necessary. Alice defines a role \texttt{records} whose members
+are able to access her medical records. She creates the policy
+
+\begin{itemize}
+\item \texttt{Alice.records} $\leftarrow$ \texttt{Bob}
+\item \texttt{Alice.records} $\leftarrow$ \texttt{Bob.alice\_delegates}
+\end{itemize}
+
+The first rule grants her doctor, Bob, access to her records. The second
+rule allows Bob to further delegate that access by defining the membership
+of an \texttt{alice\_delegates} role.
+
+Bob's standing policy is
+
+\begin{itemize}
+\item \texttt{Bob.team} $\leftarrow$ \texttt{Bob.team.support}
+\item \texttt{Bob.alice\_delegates} $\leftarrow$
+  \texttt{Hospital.medical\_staff} $\cap$ \texttt{Bob.team}
+\end{itemize}
+
+The first rule defines Bob's team as including all the support personnel
+specified by the members of his team. In the second rule, Bob uses an
+intersection role to specify that only the medical personnel on his team
+should have access to Alice's medical records.
+
+When Bob consults with Carol he adds \texttt{Bob.team} $\leftarrow$
+\texttt{Carol} to his policy to add Carol, and indirectly all of Carol's
+support people, to his team.
+
+The only part of Carol's policy relevant to this example places Dave in her
+\texttt{support} role: \texttt{Carol.support} $\leftarrow$ \texttt{Dave}.
+Finally Dave has a credential from the hospital asserting his membership in
+the \texttt{medical\_staff} role. $\RT_0$ can use these credentials to
+prove that Dave is a member of \texttt{Alice.records} and thus able to
+access Alice's medical records.
+
+\subsection{SDSI}
+
+SDSI is very similar to $\RT_0$ except that SDSI lacks intersections.
+\pnote{This isn't strictly true, although much of the literature acts as if
+it is.} This presents a problem in the example as originally stated since
+Bob would then be forced to grant his entire team, including non-medical
+personnel, access to Alice's medical records. To work around this Bob could
+distinguish between his overall team and his medical team and assume that
+the members of \texttt{support} are only medical personnel. Assuming that
+$K_a$ is Alice's key and so forth, the credentials become
+
+\begin{itemize}
+
+\item $K_a\, \text{\tt records} \rightarrow K_b$
+\item $K_a\, \text{\tt records} \rightarrow K_b\, \text{\tt alice\_delegates}$
+\item $K_b\, \text{\tt medical\_team} \rightarrow K_b\, \text{\tt
+  medical\_team}\,\, \text{\tt support}$
+\item $K_b\, \text{\tt alice\_delegates} \rightarrow K_b\, \text{\tt
+  medical\_team}$
+\item $K_b\, \text{\tt medical\_team} \rightarrow K_c$
+\item $K_c\, \text{\tt support} \rightarrow K_d$
+
+\end{itemize}
+
+\subsection{SPKI}
+
+In the SDSI example above, a request signed by a key $K$ is granted access
+to Alice's records if the name $K_a\, \text{\tt records}$ can be resolved
+to $K$. SPKI version 2.0 contains SDSI and so this approach would apply in
+a SPKI setting as well. However, SPKI also provides authorization
+certificates.
+
+So far the example has treated Alice's medical records as a single entity.
+If access is granted to any part of Alice's records, access is granted to
+all of Alice's records. If Alice's medical records contain many components
+one could assert access control over each component individually using
+separate names (or roles) to represent the different components. However,
+for indefinitely large structured resources such an approach is infeasible.
+SPKI authorization tags allow an indefinite subset of a structured resource
+to be specified and thus offers a degree of expressiveness that is not
+possible using SDSI (or $\RT_0$) alone.
+
+For example, Alice might issue a SPKI authorization certificate that grants
+Bob access to her medical records (or some portion thereof) and grant Bob
+the power to delegate that access to others. Such a certificate might look
+like
+
+\vspace{1.5ex}
+\centerline{$(K_a, K_b, \text{\tt true}, \text{\tt records:*})$}
+
+Here the string \texttt{records:*} is assumed to convey all access to all
+records. The precise format of this string is application dependent. As
+long as the hospital database, acting on behalf of Alice, understands its
+meaning authorizations will only be carried out according to Alice's
+wishes.
+
+Bob could delegate the authorization he received from Alice to his medical
+team by issuing another authorization certificate such as
+
+\vspace{1.5ex}
+\centerline{$(K_b, K_b\,\,\text{\tt medical\_team}, \text{\tt false},
+  \text{\tt records:*})$}
+
+Here Bob prevents further delegations of the authorization. In this
+example, Bob passes his entire set of permissions to his medical team.
+Assuming Bob understands the format of the authorization tag, he could
+optionally pass a subset of his permissions to his team. When a request is
+made the hospital database would intersect the authorization tags to find
+the overall set of permissions allowed in the request.
+
+In this example, no further authorization certificates are necessary. When
+Dave submits his test results to the hospital database, he must sign his
+request with his key and provide SDSI name certificates to prove his key's
+association with $K_b\,\,\text{\tt medical\_team}$. He must also provide
+the two authorization certificates showing that $K_b\,\,\text{\tt
+medical\_team}$ is authorized to access Alice's medical records.
+
+\subsection{SD3}
+
+SD3 treats the authorization problem as a distributed database query.
+Accordingly we need to first express the information to be processed as a
+collection of relations. Alice maintains a one-place relation
+\texttt{records} with tuples storing the keys of those principals who can
+access her medical records. We can then represent Alice's policy as the
+following two SD3-style \datalog\ rules.
+
+\begin{itemize}
+\item \texttt{$K_a$\$records($K_b$).}
+\item \texttt{$K_a$\$records(X) :- $K_b$\$alice\_delegates(X).}
+\end{itemize}
+
+\datalog\ has no problems expressing either recursion or intersections
+(conjunctions). Bob's policy becomes
+
+\begin{itemize}
+\item \texttt{$K_b$\$team(X) :- $K_b$\$team(Y), Y\$support(X).}
+\item \texttt{$K_b$\$alice\_delegates(X) :- $K_h$\$medical\_staff(X), $K_b$\$team(X).}
+\item \texttt{$K_b$\$team($K_c$).}
+\end{itemize}
+
+The remaining assertions made by the hospital and by Carol are
+
+\begin{itemize}
+\item \texttt{$K_h$\$medical\_staff($K_d$).}
+\item \texttt{$K_c$\$support($K_d$).}
+\end{itemize}
+
+This example does not illustrate much of SD3's expressiveness. All the
+relations involved are one-place relations containing keys. These
+correspond to the roles of $\RT$ and the names of SDSI. However, SD3 is
+much more general because the relations involved can be arbitrary.
+
+SD3 distinguishes between global names that are key-qualified and local
+names that are not. If the hospital database evaluates Dave's request to
+update Alice's medical records in Alice's context, then the $K_a$ prefix on
+Alice's policy is superfluous. The tuples from the other relations would be
+signed by the corresponding key and obtained ``externally'' from Alice's
+context.
+
+\bibliographystyle{plain}
+\bibliography{survey}
+
+\end{document}

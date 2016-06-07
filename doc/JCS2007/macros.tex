@@ -1,0 +1,84 @@
+\newtheorem{condition}{Condition}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{lemma}{Lemma}[section]
+
+\newcommand{\RT}{\text{RT}}
+\newcommand{\RTR}{\RT^R}
+\newcommand{\WSMDB}{\text{WS}_{MDB}}
+\newcommand{\WSM}{\text{WS}_{M}}
+\newcommand{\WS}{\text{WS}}
+\newcommand{\says}{\textit{ says }}
+\newcommand{\as}{\textit{ as }}
+\newcommand{\controls}{\textit{ controls }}
+\newcommand{\serves}{\textit{ serves }}
+\newcommand{\for}{\textit{ for }}
+\newcommand{\carrier}[3]{#1 \textit{ carries } #2 \textit{ for } #3}
+\newcommand{\speaksfor}{\Rightarrow}
+\renewcommand{\implies}{\supset}
+\newcommand{\network}{\mathcal{N}}
+\newcommand{\cod}[1]{\llbracket#1\rrbracket}
+\newcommand{\subcod}[2]{\llbracket#2\rrbracket_{#1}}
+\newcommand{\audit}{\text{audit}}
+\newcommand{\aud}{\text{aud}}
+\newcommand{\assert}{\text{assert}}
+\newcommand{\lookup}{\text{lookup}}
+\newcommand{\ok}[1]{\mathit{OK}(#1)}
+%\newcommand{\priv}{\ok{T}}
+\newcommand{\priv}{\mathbf{priv}}
+%\newcommand{\privmdb}{\ok{T_{MDB}}}
+\newcommand{\privmdb}{\priv_{MDB}}
+\newcommand{\aclmdb}{\acl_{MDB}}
+\newcommand{\rawreq}{\mathbf{req}}
+\newcommand{\acl}{\mathcal{A}}
+\newcommand{\ccl}{\mathcal{C}}
+\newcommand{\cclmdb}{\ccl_{MDB}}
+\newcommand{\rolecerts}{\mathcal{R}}
+\newcommand{\delcerts}{\mathcal{D}}
+\newcommand{\keycontrol}{\mathcal{K}}
+\newcommand{\true}{\mathbf{true}}
+\newcommand{\metaonreq}[1]{\hat{#1}}
+\newcommand{\onloc}[2]{#1 \cdot #2}
+\newcommand{\onreq}[2]{#1 \cdot #2}
+\newcommand{\cloc}{\iota}
+\newcommand{\cedge}[1]{\stackrel{#1}{\longleftarrow}}
+\newcommand{\cred}[3]{#1 \cedge{#3} #2}
+\newcommand{\mathitcred}[3]{\mathit{#1} \cedge{\mathit{#3}} \mathit{#2}}
+\newcommand{\expr}{\mathrm{expr}}
+\newcommand{\rmem}{\mathrm{rmem}}
+\newcommand{\creds}{\mathcal{C}}
+\newcommand{\risk}{\kappa}
+\newcommand{\risks}{K}
+\newcommand{\po}{\preccurlyeq}
+\newcommand{\entityrisk}{\mathit{EntityRisk}}
+\renewcommand{\implies}{\Rightarrow}
+\newcommand{\ents}{\mathrm{ents}}
+\newcommand{\credsmean}[1]{\mathcal{S}_{#1}}
+\newcommand{\inexprs}{\mathrm{inexprs}}
+\newcommand{\bounds}{\mathrm{bounds}}
+%\def\twoheadrightarrowfill@{\arrowfill@\relbar\relbar\twoheadrightarrow} 
+%\newcommand{\xtwoheadrightarrow}[2][]{\ext@arrow 0359\xtwoheadrightarrowfill@{#1}{#2}} 
+\newcommand{\wtedge}[3]{#1 \sarrow{->}{#3} #2}
+\newcommand{\xtwoheadrightarrow}[1]{\sarrow{->>}{#1}}
+\newcommand{\wtpath}[3]{#1 \xtwoheadrightarrow{#3} #2}
+\newcommand{\nodes}[1]{\mathcal{N}_{#1}}
+\newcommand{\wtedges}[1]{\mathcal{E}_{#1}}
+\newcommand{\graph}[1]{\mathcal{G}_{#1}}
+\newcommand{\role}[2]{$\mathit{#1}.\mathit{#2}$}
+\newcommand{\CCD}{\textit{GetRisks}}
+\newcommand{\checkmem}{\ttt{checkmem}}
+\newcommand{\riskplus}{\oplus}
+\newcommand{\linkplus}{\oplus}
+\newcommand{\isectplus}{\otimes}
+\newcommand{\thresh}{\Theta}
+\newcommand{\subjects}{\mathit{subjects}}
+\newcommand{\shadowmap}[3]{#1[#2 : #3]}
+\newcommand{\ponat}{\mathcal{N}}
+\newcommand{\rmpaths}{\mathit{rmpaths}}
+\newcommand{\tail}{\mathit{tail}}
+\newcommand{\support}{\mathit{support}}
+\newcommand{\rmempo}{\unlhd}
+\newcommand{\ttt}[1]{\texttt{#1}}
+
+\long\def\cnote#1{\marginpar{CS}{\small \ \ $\langle\langle\langle$\
+{#1 - CS}\
+    $\rangle\rangle\rangle$\ \ }}

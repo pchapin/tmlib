@@ -1,0 +1,129 @@
+A Framework for TbV Management
+==============================
+
+I'll begin with some general comments before going to the 
+outline.
+
+General Comments
+----------------
+
+The "framework" of the title is intended to evoke the fact that we are
+defining a system that can be instantiated for different applications.
+Therefore, it should be general, but provide some means of
+implementing desired features for particular applications.  In my
+original view, there are three basic components of the framework; 
+recent conversation has also yielded the possibility of a fourth 
+component, discussed last:
+
+Interfaces for TbV Policy Specification: Interfaces are like APIs for
+framework end-users, and provide the top-level means of manipulating
+the system, i.e. specifying TbV policies.  In any instance of the
+framework, users can specify two kinds of manipulations:
+  - *trust transformations*, which allow specification of certain
+  kinds of trust; e.g.  Trust(member_of(Bob, Doctor)), or
+  Trust(delegations_for(Bob)). 
+  - *proof directives*, which allow meta-directives for proof search--
+  meta-directives being manipulations that aren't logical, but
+  engineering concerns, e.g. Dont_goto(http://www.hacker.com).
+Note that any number of reasonable transformations or directives 
+can be imagined; however, the task of a foundational presentation
+is not to define a particular instance of the framework, but 
+establish the framework as a basis for different instances.  Of 
+course, we have pre-loaded the framework with a bias for supporting
+the trust of delegations in particular, but this is a defendable 
+position.
+
+Reformulated RT_0^D Logic: This logic provides the logical foundation
+for TbV specifications.  The reformulation of authorization in the
+logic into delegation and and membership components supports the
+separation of delegation and memberbership trust transformations
+conceptually.  It also corresponds to a separation in the
+implementation component of the framework (discussed below).  Note
+that while a logical separation is not theoretically necessary, it
+clarifies the presentation significantly and will probably make proofs
+much easier.  I am also a little skeptical of Li and Mitchell's
+original for_role predicate, which is a suspicious typing mishmash.
+The purpose of a logical foundation is clarity, and this separation
+clarifies.
+
+RT_0^D Proof Search (Implementation): As mentioned above, the proof
+search is separated into membership and delegation components, since
+we expect that these will be favorite flavors of trust
+transformations.  Also, we want to endow the implementation with hooks
+for supporting proof directives in the interface, since a directive
+such as Dont_goto(http://www.hacker.com) should directly affect the
+proof search. 
+
+Cost/Benefit Analysis: Some prelimary ideas have been discussed on
+this topic, including weighting various assertions based on location,
+"trustworthiness", etc.  Various issues need to be clarified, most
+notably how the cost of various authorization decisions are computed
+statically, and how these are related to proof directives.
+Analogously, a complete analysis would also consider computing the
+cost of logical weakenings, and how these are related to trust
+transformations, *and* how the logical and implementation analyses are
+composed.
+
+Outline
+-------
+
+Here is the outline again, with some alterations and comments.
+
+1. Basic Theory: Redefinition of RT_0^D Logic and Implementation.
+   a. New datalog predicates.
+   b. Clarification of logical foundations (advantage of new predicates).
+   c. Demonstrate equivalence with Li/Mitchell Datalog predicates.
+   d. Redefinition of implementation (set theory approach).
+     i. Correctness of set theory approach wrt logical approach.
+
+2. Logical/Implementation Foundations of TbV. 
+   a. TbV trust transformations as logical weakenings (addition of asserts).
+     i. Trust order <--> provability ordering.
+   b. Motivations for redefinitions: many possible trust transforms.
+     i. Declaration benefits (easier to state transforms of interest).
+     ii. Implementation benefits (different lifetime properties).
+   c. Directed proof search.
+     i. Modification of implementation to support proof directives.
+   d. Cost analysis
+     i. Modification of implementation to support cost analysis
+     of proof search.
+     ii. Logical meta-theory for supporting cost analysis of 
+     trust transformation
+     iii. Theory for comparing the cost of trust transformation with 
+     the benefits of eliminating the cost of related proof search.
+
+3. Interfaces.
+   a. Trust transformations 
+     i. Conversion into logic rules.
+     ii. Examples of desirable user-level abstractions.
+   b. Proof directives (meta rules).
+     i. Interaction with the implementation.
+     ii. Examples of desirable user-level abstractions
+   c. Cost/benefit analysis; what implementation benefit will a
+   a particular proof directive provide, compared to the cost of 
+   it's related trust transformation?
+
+Comments:  
+
+(1.b) The word "advantage" here should not be replaced by "necessary".
+
+(2.a, 2.a.i) The logical embodiment of trust transformation is
+conceived of in a completely general manner, as weakening.  This has
+the pleasing effect of imposing a natural "trust ordering" as a
+provability ordering.  That is, it is immediately meaningful to say
+that one transformation is "more trusted" than another-- the latter
+entails the former.
+
+(2.d.ii) It is not clear to me how the cost of particular trust
+transformations can be measured.  I suppose some arbitrary measure is
+fine, as long as it is useful.
+
+(2.d.ii,2.d.iii,3.c) This issue pre-supposes that we can relate proof
+directives with weakenings.  That is, given the addition of certain
+logical assumptions Delta, we need to be able to then look at some
+authorization decision P and automatically say that "given Delta,
+assertions Delta' no longer need to be proven in order to prove P", so
+we can say that cost(Delta) has the benefit of cost(Delta').  However,
+observe that Delta and Delta' are not necessarily equivalent, and I
+suspect it is a very difficult and interesting problem to statically
+determine Delta' given Delta and P.
