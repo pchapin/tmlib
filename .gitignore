@@ -6,6 +6,12 @@ main.log
 main.pdf
 main.ps
 
+RT.aux
+RT.dvi
+RT.log
+RT.pdf
+RT.ps
+
 # Official published papers
 doc/ACMCS2008/chapin-skalka-wang-ACMCS2008.pdf
 doc/FMSE2005/FMSE2005.pdf
